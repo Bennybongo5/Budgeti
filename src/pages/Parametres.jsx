@@ -1,11 +1,10 @@
 import { useState } from "react";
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, signInWithRedirect, GoogleAuthProvider, OAuthProvider, signOut } from "firebase/auth";
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, signInWithRedirect, GoogleAuthProvider, signOut } from "firebase/auth";
 import { auth } from "../firebase.js";
 import { DEFAULT_CATS, SF, SF2, BR, BR2, TX, TX2, TX3, BT, BTB, BTT, RD } from "../constants.js";
 import Modal from "../components/Modal.jsx";
 
 const googleProvider = new GoogleAuthProvider();
-const appleProvider = new OAuthProvider("apple.com");
 
 export default function Parametres({ user, inp, card, updTxs, updRecs, updRrecs, updDettes, updProjets, updCats, updPaieM, setDetSel, setPrjSel }) {
   const [showEmail, setShowEmail] = useState(false);
@@ -52,22 +51,8 @@ export default function Parametres({ user, inp, card, updTxs, updRecs, updRrecs,
     }
   };
 
-  const handleApple = async () => {
-    setError(""); setLoading(true);
-    try {
-      await signInWithPopup(auth, appleProvider);
-      setLoading(false);
-    } catch (e) {
-      if (e.code === "auth/popup-blocked" || e.code === "auth/popup-closed-by-user") {
-        try { await signInWithRedirect(auth, appleProvider); }
-        catch (e2) { setError("Erreur Apple : " + e2.code); setLoading(false); }
-      } else {
-        setError("Erreur Apple : " + e.code); setLoading(false);
-      }
-    }
-  };
 
-  const handleSignOut = async () => {
+const handleSignOut = async () => {
     await signOut(auth);
     setShowEmail(false);
     setEmail(""); setPassword(""); setError("");
@@ -120,15 +105,7 @@ export default function Parametres({ user, inp, card, updTxs, updRecs, updRrecs,
                   Continuer avec Google
                 </button>
 
-                <button
-                  onClick={handleApple} disabled={loading}
-                  style={{ width: "100%", padding: "12px", background: "#1a1a1a", border: "1px solid #333", borderRadius: 10, color: "#fff", fontSize: 13, fontWeight: 500, cursor: "pointer", marginBottom: 8, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, opacity: loading ? 0.7 : 1 }}
-                >
-                  <svg width="14" height="16" viewBox="0 0 814 1000"><path fill="white" d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-57.8-155.5-127.4C46 790.7 0 663 0 541.8c0-207.5 135.4-317.3 269-317.3 70.1 0 128.4 46.4 172.5 46.4 42.8 0 109.2-49.2 190.5-49.2zm-6.7-174.6c31.5-38.2 54.1-91.3 54.1-144.4 0-7.7-.6-15.4-1.9-21.8-51.6 1.9-112.2 34.4-148.9 77.2-28.9 32.7-56.4 84.5-56.4 138.3 0 8.3 1.3 16.6 1.9 19.2 3.2.6 8.3 1.3 13.5 1.3 46.4 0 102.6-31.5 137.7-69.8z"/></svg>
-                  Continuer avec Apple
-                </button>
-
-                <button
+<button
                   onClick={() => { setShowEmail(true); setError(""); }}
                   style={{ width: "100%", padding: "12px", background: "none", border: "1px solid " + BR, borderRadius: 10, color: TX2, fontSize: 13, fontWeight: 500, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
                 >
