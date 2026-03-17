@@ -1,0 +1,357 @@
+import { useState, useMemo, useEffect, useRef } from "react";
+import { DEFAULT_CATS, ICONS_CAT, BG, SF, SF2, BR, BR2, TX, TX2, TX3, BT, BTB, BTT, NS } from "./constants.js";
+import { storage } from "./utils/storage.js";
+import { today, ymd, ld, addD } from "./utils/dates.js";
+import { getPaies, getFinD, calcAutoInPeriod, calcManuelsInPeriod } from "./utils/calculs.js";
+import { onAuthStateChanged, getRedirectResult } from "firebase/auth";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { auth, db } from "./firebase.js";
+import Modal from "./components/Modal.jsx";
+import SaveCancel from "./components/SaveCancel.jsx";
+import DelBtn from "./components/DelBtn.jsx";
+import CatSelect from "./components/CatSelect.jsx";
+import Dashboard from "./pages/Dashboard.jsx";
+import Dettes from "./pages/Dettes.jsx";
+import Projets from "./pages/Projets.jsx";
+import Recurrents from "./pages/Recurrents.jsx";
+import Historique from "./pages/Historique.jsx";
+import Parametres from "./pages/Parametres.jsx";
+
+const initTx=[{id:1,type:"depense",desc:"Loyer",amount:1200,cat:"logement",date:"2026-03-02"},{id:2,type:"depense",desc:"Epicerie",amount:180,cat:"alimentation",date:"2026-03-05"},{id:3,type:"depense",desc:"Metro/Bus",amount:90,cat:"transport",date:"2026-03-08"},{id:4,type:"depense",desc:"Restaurant",amount:65,cat:"loisirs",date:"2026-03-10"}];
+const initRec=[{id:1,desc:"Loyer",amount:1200,cat:"logement",jour:1},{id:2,desc:"Internet",amount:65,cat:"transport",jour:5},{id:3,desc:"Netflix",amount:18,cat:"loisirs",jour:12}];
+const initRevRec=[{id:1,desc:"Allocations familiales",amount:350,jour:20}];
+const emptyD={nom:"",montantInitial:"",tauxInteret:"",paiementsAuto:[]};
+const emptyP={nom:"",objectif:"",icon:"🎯",paiementsAuto:[]};
+const initPaie={ frequence: "2semaines", jourSemaine: "Vendredi", jour1: 15, jour2: "fin", dateRef: "" };
+
+export default function App() {
+  // ── Auth ──────────────────────────────────────────────────────────────────
+  const [user, setUser] = useState(null);
+  const userRef = useRef(null);
+
+  // ── State ─────────────────────────────────────────────────────────────────
+  const [cats, setCats] = useState(DEFAULT_CATS);
+  const [showCat, setShowCat] = useState(false);
+  const [newCatLbl, setNewCatLbl] = useState("");
+  const [newCatIco, setNewCatIco] = useState("📦");
+  const [catCb, setCatCb] = useState(null);
+  const [txs, setTxs] = useState(initTx);
+  const [recs, setRecs] = useState(initRec);
+  const [rrecs, setRrecs] = useState(initRevRec);
+  const [view, setView] = useState("dashboard");
+  const [paie, setPaie] = useState(initPaie);
+  const [paieOpen, setPaieOpen] = useState(false);
+  const [paieM, setPaieM] = useState({});
+  const [paieIdx, setPaieIdx] = useState(null);
+  const [txForm, setTxForm] = useState({ type: "depense", desc: "", amount: "", cat: DEFAULT_CATS[0].id, date: today() });
+  const [showTx, setShowTx] = useState(false);
+  const [addType, setAddType] = useState("depense");
+  const [recFrm, setRecFrm] = useState({ desc: "", amount: "", cat: DEFAULT_CATS[0].id, jour: 1 });
+  const [rrFrm, setRrFrm] = useState({ desc: "", amount: "", jour: 1 });
+  const [eTxId, setETxId] = useState(null); const [eTxFrm, setETxFrm] = useState(null);
+  const [eRecId, setERecId] = useState(null); const [eRecMod, setERecMod] = useState(false);
+  const [eRrId, setERrId] = useState(null); const [eRrMod, setERrMod] = useState(false);
+  const [filCat, setFilCat] = useState("tout");
+  const [selMo, setSelMo] = useState("tout");
+  const [dettes, setDettes] = useState([]);
+  const [detSel, setDetSel] = useState(null);
+  const [showAddDet, setShowAddDet] = useState(false);
+  const [detFrm, setDetFrm] = useState(emptyD);
+  const [eDetMod, setEDetMod] = useState(false); const [eDetId, setEDetId] = useState(null);
+  const [, setShowAddPai] = useState(false);
+  const [paiType, setPaiType] = useState(null);
+  const [paiFrm, setPaiFrm] = useState({ montant: "", date: today(), jour: "1" });
+  const [editPai, setEditPai] = useState(null);
+  const [editPaiFrm, setEditPaiFrm] = useState({ montant: "", date: "", jour: "" });
+  const [projets, setProjets] = useState([]);
+  const [prjSel, setPrjSel] = useState(null);
+  const [showAddPrj, setShowAddPrj] = useState(false);
+  const [prjFrm, setPrjFrm] = useState(emptyP);
+  const [ePrjMod, setEPrjMod] = useState(false); const [ePrjId, setEPrjId] = useState(null);
+  const [, setShowAddVer] = useState(false);
+  const [verType, setVerType] = useState(null);
+  const [verFrm, setVerFrm] = useState({ montant: "", date: today(), jour: "1" });
+  const [editVer, setEditVer] = useState(null);
+  const [editVerFrm, setEditVerFrm] = useState({ montant: "", date: "", jour: "" });
+
+  // ── Load from localStorage on mount ───────────────────────────────────────
+  useEffect(() => {
+    const p = storage.get("paie-config"); if (p) setPaie(JSON.parse(p.value));
+    const m = storage.get("paie-montants"); if (m) setPaieM(JSON.parse(m.value));
+    const t = storage.get("budgeti-txs"); if (t) setTxs(JSON.parse(t.value));
+    const r = storage.get("budgeti-recs"); if (r) setRecs(JSON.parse(r.value));
+    const rr = storage.get("budgeti-rrecs"); if (rr) setRrecs(JSON.parse(rr.value));
+    const d = storage.get("budgeti-dettes"); if (d) setDettes(JSON.parse(d.value));
+    const pr = storage.get("budgeti-projets"); if (pr) setProjets(JSON.parse(pr.value));
+    const c = storage.get("budgeti-cats"); if (c) setCats(JSON.parse(c.value));
+  }, []);
+
+  // ── Firebase auth + optional Firestore sync ────────────────────────────────
+  useEffect(() => {
+    getRedirectResult(auth).catch(() => {});
+    const unsub = onAuthStateChanged(auth, async (u) => {
+      const wasLoggedIn = !!userRef.current;
+      userRef.current = u;
+      setUser(u);
+      if (u) {
+        // Load from Firestore (cloud takes precedence when logged in)
+        const snap = await getDoc(doc(db, "users", u.uid));
+        if (snap.exists()) {
+          const d = snap.data();
+          if (d.txs !== undefined) { setTxs(d.txs); storage.set("budgeti-txs", JSON.stringify(d.txs)); }
+          if (d.recs !== undefined) { setRecs(d.recs); storage.set("budgeti-recs", JSON.stringify(d.recs)); }
+          if (d.rrecs !== undefined) { setRrecs(d.rrecs); storage.set("budgeti-rrecs", JSON.stringify(d.rrecs)); }
+          if (d.dettes !== undefined) { setDettes(d.dettes); storage.set("budgeti-dettes", JSON.stringify(d.dettes)); }
+          if (d.projets !== undefined) { setProjets(d.projets); storage.set("budgeti-projets", JSON.stringify(d.projets)); }
+          if (d.cats !== undefined) { setCats(d.cats); storage.set("budgeti-cats", JSON.stringify(d.cats)); }
+          if (d.paie !== undefined) { setPaie(d.paie); storage.set("paie-config", JSON.stringify(d.paie)); }
+          if (d.paieM !== undefined) { setPaieM(d.paieM); storage.set("paie-montants", JSON.stringify(d.paieM)); }
+        } else if (!wasLoggedIn) {
+          // First login with no cloud data: upload current local data
+          const lsMap = { txs: "budgeti-txs", recs: "budgeti-recs", rrecs: "budgeti-rrecs", dettes: "budgeti-dettes", projets: "budgeti-projets", cats: "budgeti-cats", paie: "paie-config", paieM: "paie-montants" };
+          const upload = {};
+          for (const [field, key] of Object.entries(lsMap)) {
+            const item = storage.get(key);
+            if (item) upload[field] = JSON.parse(item.value);
+          }
+          if (Object.keys(upload).length > 0) setDoc(doc(db, "users", u.uid), upload);
+        }
+      }
+    });
+    return unsub;
+  }, []);
+
+  // ── Save to localStorage + Firestore (if logged in) ───────────────────────
+  const save = (lsKey, fsField, value) => {
+    storage.set(lsKey, JSON.stringify(value));
+    if (userRef.current) setDoc(doc(db, "users", userRef.current.uid), { [fsField]: value }, { merge: true });
+  };
+
+  // ── Updaters ──────────────────────────────────────────────────────────────
+  const updPaie    = fn => setPaie(prev    => { const n = typeof fn === "function" ? fn(prev) : fn; save("paie-config",      "paie",    n); return n; });
+  const updPaieM   = fn => setPaieM(prev   => { const n = typeof fn === "function" ? fn(prev) : fn; save("paie-montants",    "paieM",   n); return n; });
+  const updTxs     = fn => setTxs(prev     => { const n = typeof fn === "function" ? fn(prev) : fn; save("budgeti-txs",      "txs",     n); return n; });
+  const updRecs    = fn => setRecs(prev    => { const n = typeof fn === "function" ? fn(prev) : fn; save("budgeti-recs",     "recs",    n); return n; });
+  const updRrecs   = fn => setRrecs(prev   => { const n = typeof fn === "function" ? fn(prev) : fn; save("budgeti-rrecs",    "rrecs",   n); return n; });
+  const updDettes  = fn => setDettes(prev  => { const n = typeof fn === "function" ? fn(prev) : fn; save("budgeti-dettes",   "dettes",  n); return n; });
+  const updProjets = fn => setProjets(prev => { const n = typeof fn === "function" ? fn(prev) : fn; save("budgeti-projets",  "projets", n); return n; });
+  const updCats    = fn => setCats(prev    => { const n = typeof fn === "function" ? fn(prev) : fn; save("budgeti-cats",     "cats",    n); return n; });
+
+  // ── Handlers ──────────────────────────────────────────────────────────────
+  const addTx = () => { if (!txForm.desc || !txForm.amount || isNaN(+txForm.amount)) return; updTxs(p => [...p, { id: Date.now(), ...txForm, amount: +txForm.amount }]); setTxForm(f => ({ ...f, desc: "", amount: "" })); };
+  const delTx = id => updTxs(p => p.filter(x => x.id !== id));
+  const startETx = x => { setETxId(x.id); setETxFrm({ type: x.type, desc: x.desc, amount: x.amount, cat: x.cat, date: x.date }); };
+  const saveETx = () => { if (!eTxFrm.desc || !eTxFrm.amount || isNaN(+eTxFrm.amount)) return; updTxs(p => p.map(x => x.id === eTxId ? { ...x, ...eTxFrm, amount: +eTxFrm.amount } : x)); setETxId(null); setETxFrm(null); };
+  const addRec = () => { if (!recFrm.desc || !recFrm.amount || isNaN(+recFrm.amount)) return; if (eRecId !== null) { updRecs(p => p.map(r => r.id === eRecId ? { ...r, ...recFrm, amount: +recFrm.amount } : r)); setERecId(null); } else updRecs(p => [...p, { id: Date.now(), ...recFrm, amount: +recFrm.amount }]); setRecFrm({ desc: "", amount: "", cat: cats[0]?.id || "", jour: 1 }); };
+  const delRec = id => { updRecs(p => p.filter(r => r.id !== id)); setERecId(null); setERecMod(false); };
+  const openERec = r => { setERecId(r.id); setRecFrm({ desc: r.desc, amount: r.amount, cat: r.cat, jour: r.jour }); setERecMod(true); };
+  const addRr = () => { if (!rrFrm.desc || !rrFrm.amount || isNaN(+rrFrm.amount)) return; if (eRrId !== null) { updRrecs(p => p.map(r => r.id === eRrId ? { ...r, ...rrFrm, amount: +rrFrm.amount } : r)); setERrId(null); } else updRrecs(p => [...p, { id: Date.now(), ...rrFrm, amount: +rrFrm.amount }]); setRrFrm({ desc: "", amount: "", jour: 1 }); };
+  const delRr = id => { updRrecs(p => p.filter(r => r.id !== id)); setERrId(null); setERrMod(false); };
+  const openERr = r => { setERrId(r.id); setRrFrm({ desc: r.desc, amount: r.amount, jour: r.jour }); setERrMod(true); };
+  const addCat = () => { if (!newCatLbl.trim()) return; const id = "cat-" + Date.now(); updCats(p => [...p, { id, label: newCatLbl.trim(), icon: newCatIco || "📦" }]); if (catCb) catCb(id); setNewCatLbl(""); setNewCatIco("📦"); setShowCat(false); setCatCb(null); };
+  const addDette = () => { if (!detFrm.nom || !detFrm.montantInitial || isNaN(+detFrm.montantInitial)) return; const id = "d-" + Date.now(); updDettes(p => [...p, { id, nom: detFrm.nom.trim(), montantInitial: +detFrm.montantInitial, tauxInteret: +detFrm.tauxInteret || 0, paiements: [], dateCreation: today(), paiementsAuto: [] }]); setDetSel(id); setDetFrm(emptyD); setShowAddDet(false); };
+  const delDette = id => { updDettes(p => p.filter(d => d.id !== id)); if (detSel === id) setDetSel(null); setEDetMod(false); };
+  const addPai = () => { if (!paiFrm.montant || isNaN(+paiFrm.montant)) return; if (paiType === "fixe") { updDettes(p => p.map(d => d.id === detSel ? { ...d, paiementsAuto: [...(d.paiementsAuto || []), { id: "pf-" + Date.now(), montant: +paiFrm.montant, jour: paiFrm.jour || "1" }] } : d)); } else { updDettes(p => p.map(d => d.id === detSel ? { ...d, paiements: [...d.paiements, { id: "p-" + Date.now(), montant: +paiFrm.montant, date: paiFrm.date }] } : d)); } setPaiFrm({ montant: "", date: today(), jour: "1" }); setPaiType(null); setShowAddPai(false); };
+  const delPai = (did, pid) => updDettes(p => p.map(d => d.id === did ? { ...d, paiements: d.paiements.filter(x => x.id !== pid) } : d));
+  const delPaiFixe = (did, pid) => updDettes(p => p.map(d => d.id === did ? { ...d, paiementsAuto: (d.paiementsAuto || []).filter(x => x.id !== pid) } : d));
+  const saveEditPai = () => { if (!editPaiFrm.montant || isNaN(+editPaiFrm.montant)) return; if (editPai.type === "fixe") { updDettes(p => p.map(d => d.id === detSel ? { ...d, paiementsAuto: (d.paiementsAuto || []).map(x => x.id === editPai.id ? { ...x, montant: +editPaiFrm.montant, jour: editPaiFrm.jour } : x) } : d)); } else { updDettes(p => p.map(d => d.id === detSel ? { ...d, paiements: d.paiements.map(x => x.id === editPai.id ? { ...x, montant: +editPaiFrm.montant, date: editPaiFrm.date } : x) } : d)); } setEditPai(null); };
+  const addProjet = () => { if (!prjFrm.nom || !prjFrm.objectif || isNaN(+prjFrm.objectif)) return; const id = "pr-" + Date.now(); updProjets(p => [...p, { id, nom: prjFrm.nom.trim(), objectif: +prjFrm.objectif, icon: prjFrm.icon, versements: [], dateCreation: today(), paiementsAuto: [] }]); setPrjSel(id); setPrjFrm(emptyP); setShowAddPrj(false); };
+  const delProjet = id => { updProjets(p => p.filter(x => x.id !== id)); if (prjSel === id) setPrjSel(null); setEPrjMod(false); setEPrjId(null); };
+  const addVer = () => { if (!verFrm.montant || isNaN(+verFrm.montant)) return; if (verType === "fixe") { updProjets(p => p.map(x => x.id === prjSel ? { ...x, paiementsAuto: [...(x.paiementsAuto || []), { id: "pf-" + Date.now(), montant: +verFrm.montant, jour: verFrm.jour || "1" }] } : x)); } else { updProjets(p => p.map(x => x.id === prjSel ? { ...x, versements: [...x.versements, { id: "v-" + Date.now(), montant: +verFrm.montant, date: verFrm.date }] } : x)); } setVerFrm({ montant: "", date: today(), jour: "1" }); setVerType(null); setShowAddVer(false); };
+  const delVer = (pid, vid) => updProjets(p => p.map(x => x.id === pid ? { ...x, versements: x.versements.filter(v => v.id !== vid) } : x));
+  const delVerFixe = (pid, vid) => updProjets(p => p.map(x => x.id === pid ? { ...x, paiementsAuto: (x.paiementsAuto || []).filter(v => v.id !== vid) } : x));
+  const saveEditVer = () => { if (!editVerFrm.montant || isNaN(+editVerFrm.montant)) return; if (editVer.type === "fixe") { updProjets(p => p.map(x => x.id === prjSel ? { ...x, paiementsAuto: (x.paiementsAuto || []).map(v => v.id === editVer.id ? { ...v, montant: +editVerFrm.montant, jour: editVerFrm.jour } : v) } : x)); } else { updProjets(p => p.map(x => x.id === prjSel ? { ...x, versements: x.versements.map(v => v.id === editVer.id ? { ...v, montant: +editVerFrm.montant, date: editVerFrm.date } : v) } : x)); } setEditVer(null); };
+  const navigate = id => { setView(id); setEPrjMod(false); setEPrjId(null); setEDetMod(false); setEDetId(null); setETxId(null); setETxFrm(null); setERecMod(false); setERrMod(false); setEditPai(null); setEditVer(null); setShowAddPai(false); setShowAddVer(false); setPaiType(null); setVerType(null); };
+
+  // ── Styles ────────────────────────────────────────────────────────────────
+  const inp = { width: "100%", background: SF, border: "0.5px solid " + BR2, borderRadius: 10, padding: "10px 12px", color: TX, fontSize: 16, boxSizing: "border-box" };
+  const inpSm = { ...inp, padding: "8px 10px" };
+  const card = { background: SF, border: "1px solid " + BR, borderRadius: 14, padding: "14px 16px", marginBottom: 12 };
+  const trow = { display: "flex", alignItems: "center", gap: 8, padding: "9px 0", borderBottom: "0.5px solid " + BR };
+  const ico = { width: 32, height: 32, borderRadius: 9, background: BT, border: "1px solid " + BTB, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, flexShrink: 0 };
+  const fbtn = a => ({ flex: 1, padding: "8px 4px", background: a ? BT : SF, border: "1px solid " + (a ? BTB : BR), borderRadius: 9, color: a ? BTT : TX2, fontSize: 11, cursor: "pointer", textAlign: "center", fontWeight: a ? 500 : 400 });
+  const chip = a => ({ padding: "5px 11px", background: a ? BT : SF, border: "1px solid " + (a ? BTB : BR), borderRadius: 20, color: a ? BTT : TX2, fontSize: 12, cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 });
+  const navBtn = a => ({ flex: 1, padding: "10px 2px 8px", background: a ? BT : "none", border: "none", cursor: "pointer", color: a ? BTT : TX3, fontSize: 9, display: "flex", flexDirection: "column", alignItems: "center", gap: 3, borderTop: a ? "2px solid " + BTB : "2px solid transparent" });
+  const tbtn = (a, tp) => { const r = tp === "depense"; return { flex: 1, padding: "8px", background: a ? (r ? "#f5d5d0" : BT) : SF, border: "1px solid " + (a ? (r ? "#d4877a" : BTB) : BR), borderRadius: 9, color: a ? (r ? "#7a2a1a" : BTT) : TX2, fontSize: 13, cursor: "pointer", fontWeight: a ? 500 : 400 }; };
+  const bigBtn = () => ({ width: "100%", padding: "12px", background: BT, border: "1px solid " + BTB, borderRadius: 12, color: BTT, fontSize: 14, fontWeight: 500, cursor: "pointer", marginTop: 6 });
+  const CatSel = ({ value, onChange }) => <CatSelect cats={cats} value={value} onChange={onChange} inp={inp} setCatCb={setCatCb} setShowCat={setShowCat} />;
+
+  // ── Derived ───────────────────────────────────────────────────────────────
+  const t = today();
+  const [curY, curM] = t.split("-").map(Number);
+  const mStart = ymd(curY, curM, 1);
+  const mEnd = ymd(curY, curM, ld(curY, curM));
+  const paies = useMemo(() => getPaies(paie), [paie]);
+  const months = useMemo(() => { const s = new Set(txs.map(x => x.date.slice(0, 7))); return [...s].sort((a, b) => b.localeCompare(a)); }, [txs]);
+  const filtTx = useMemo(() => txs.filter(x => (selMo === "tout" || x.date.startsWith(selMo)) && (filCat === "tout" || x.cat === filCat || (filCat === "revenu" && x.type === "revenu") || (filCat === "paie" && x.desc === "Paie"))).sort((a, b) => b.date.localeCompare(a.date)), [txs, selMo, filCat]);
+  const totRec = useMemo(() => recs.reduce((s, r) => s + r.amount, 0), [recs]);
+  const totRR = useMemo(() => rrecs.reduce((s, r) => s + r.amount, 0), [rrecs]);
+  const totRev = useMemo(() => txs.filter(x => x.type === "revenu" && x.date.startsWith(curY + "-" + String(curM).padStart(2, "0"))).reduce((s, x) => s + x.amount, 0), [txs, curY, curM]);
+  const totDep = useMemo(() => txs.filter(x => x.type === "depense").reduce((s, x) => s + x.amount, 0), [txs]);
+  const totDettesMois = useMemo(() => calcAutoInPeriod(dettes, mStart, addD(mEnd, 1)) + calcManuelsInPeriod(dettes, mStart, addD(mEnd, 1), "paiements"), [dettes, mStart, mEnd]);
+  const totProjetsMois = useMemo(() => calcAutoInPeriod(projets, mStart, addD(mEnd, 1)) + calcManuelsInPeriod(projets, mStart, addD(mEnd, 1), "versements"), [projets, mStart, mEnd]);
+  const solde = totRev - totDep - totDettesMois - totProjetsMois;
+  const dbc = useMemo(() => { const m = {}; txs.filter(x => x.type === "depense").forEach(x => { m[x.cat] = (m[x.cat] || 0) + x.amount; }); return m; }, [txs]);
+  const maxD = Math.max(...Object.values(dbc), 1);
+  const periodes = useMemo(() => {
+    if (!paies.length) return [];
+    return paies.map((deb, i) => {
+      const fin = i < paies.length - 1 ? paies[i + 1] : getFinD(paie, paies[paies.length - 1]);
+      const mp = paieM[deb] || 0;
+      const aRev = txs.filter(x => x.type === "revenu" && x.desc !== "Paie" && x.date >= deb && (fin ? x.date < fin : true)).reduce((s, x) => s + x.amount, 0);
+      const [dy, dm] = deb.split("-").map(Number);
+      const rrP = rrecs.reduce((s, r) => { for (let mo = 0; mo <= 1; mo++) { let mc = dm - 1 + mo, yc = dy + Math.floor(mc / 12); mc = ((mc % 12) + 12) % 12; const ds = ymd(yc, mc + 1, Math.min(r.jour, ld(yc, mc + 1))); if (ds >= deb && (fin ? ds < fin : true)) return s + r.amount; } return s; }, 0);
+      const ch = recs.reduce((s, r) => { for (let mo = 0; mo <= 1; mo++) { let mc = dm - 1 + mo, yc = dy + Math.floor(mc / 12); mc = ((mc % 12) + 12) % 12; const j = r.jour === "fin" ? ld(yc, mc + 1) : Math.min(r.jour, ld(yc, mc + 1)); const ds = ymd(yc, mc + 1, j); if (ds >= deb && (fin ? ds < fin : true)) return s + r.amount; } return s; }, 0);
+      const deps = txs.filter(x => x.type === "depense" && x.date >= deb && (fin ? x.date < fin : true)).reduce((s, x) => s + x.amount, 0);
+      const detP = calcAutoInPeriod(dettes, deb, fin) + calcManuelsInPeriod(dettes, deb, fin, "paiements");
+      const prjP = calcAutoInPeriod(projets, deb, fin) + calcManuelsInPeriod(projets, deb, fin, "versements");
+      const isCur = deb <= t && (fin ? t < fin : true);
+      const isPast = fin ? fin <= t : false;
+      const tot = mp + aRev + rrP;
+      return { deb, fin, mp, aRev, rrP, tot, ch, deps, detP, prjP, reste: tot - ch - deps - detP - prjP, hasPaie: mp > 0, isCur, isPast };
+    });
+  }, [paies, paieM, txs, recs, rrecs, paie, t, dettes, projets]);
+
+  const styles = { inp, inpSm, card, trow, ico, fbtn, chip, navBtn, tbtn, bigBtn };
+
+  return (
+    <div style={{ fontFamily: "system-ui,sans-serif", background: BG, minHeight: "100vh", color: TX, paddingBottom: "calc(80px + env(safe-area-inset-bottom))" }}>
+      <style>{NS}</style>
+
+      {/* Global modals */}
+      {showTx && (
+        <Modal title={txForm.type === "depense" ? "Nouvelle depense" : "Nouveau revenu"}>
+          <div style={{ marginBottom: 10 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Description</label><input autoFocus style={inp} placeholder="..." value={txForm.desc} onChange={e => setTxForm(f => ({ ...f, desc: e.target.value }))} /></div>
+          <div style={{ marginBottom: 10 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Montant (CAD)</label><input style={inp} type="number" placeholder="0.00" value={txForm.amount} onChange={e => setTxForm(f => ({ ...f, amount: e.target.value }))} /></div>
+          {txForm.type === "depense" && <div style={{ marginBottom: 10 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Categorie</label><CatSel value={txForm.cat} onChange={v => setTxForm(f => ({ ...f, cat: v }))} /></div>}
+          <div style={{ marginBottom: 14 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Date</label><input style={inp} type="date" value={txForm.date} onChange={e => setTxForm(f => ({ ...f, date: e.target.value }))} /></div>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button style={{ flex: 1, padding: "12px", background: txForm.type === "depense" ? "#f5d5d0" : BT, border: "1px solid " + (txForm.type === "depense" ? "#d4877a" : BTB), borderRadius: 12, color: txForm.type === "depense" ? "#7a2a1a" : BTT, fontSize: 14, fontWeight: 500, cursor: "pointer" }} onClick={() => { addTx(); setShowTx(false); }}>Ajouter</button>
+            <button style={{ width: 90, padding: "12px", background: SF2, border: "1px solid " + BTB, borderRadius: 12, color: TX2, fontSize: 14, cursor: "pointer" }} onClick={() => setShowTx(false)}>Annuler</button>
+          </div>
+        </Modal>
+      )}
+
+      {showCat && (
+        <Modal title="Nouvelle categorie">
+          <div style={{ marginBottom: 12 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Nom</label><input autoFocus style={inp} value={newCatLbl} onChange={e => setNewCatLbl(e.target.value)} onKeyDown={e => e.key === "Enter" && addCat()} /></div>
+          <div style={{ marginBottom: 14 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 6, display: "block" }}>Icone</label><div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>{ICONS_CAT.map(ic => <button key={ic} type="button" onClick={() => setNewCatIco(ic)} style={{ fontSize: 18, padding: "5px 7px", background: newCatIco === ic ? BT : SF, border: "1px solid " + (newCatIco === ic ? BTB : BR), borderRadius: 7, cursor: "pointer" }}>{ic}</button>)}</div></div>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button style={{ flex: 1, padding: "12px", background: BT, border: "1px solid " + BTB, borderRadius: 12, color: BTT, fontSize: 14, fontWeight: 500, cursor: "pointer" }} onClick={addCat}>Creer</button>
+            <button style={{ width: 90, padding: "12px", background: SF2, border: "1px solid " + BTB, borderRadius: 12, color: TX2, fontSize: 14, cursor: "pointer" }} onClick={() => { setShowCat(false); setNewCatLbl(""); setNewCatIco("📦"); setCatCb(null); }}>Annuler</button>
+          </div>
+        </Modal>
+      )}
+
+      {eTxId && eTxFrm && (
+        <Modal title="Modifier la transaction">
+          <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>{["depense", "revenu"].map(tp => <button key={tp} style={tbtn(eTxFrm.type === tp, tp)} onClick={() => setETxFrm(f => ({ ...f, type: tp }))}>{tp === "depense" ? "Depense" : "Revenu"}</button>)}</div>
+          <div style={{ marginBottom: 10 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Description</label><input style={inp} value={eTxFrm.desc} onChange={e => setETxFrm(f => ({ ...f, desc: e.target.value }))} /></div>
+          <div style={{ marginBottom: 10 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Montant</label><input style={inp} type="number" value={eTxFrm.amount} onChange={e => setETxFrm(f => ({ ...f, amount: e.target.value }))} /></div>
+          {eTxFrm.type === "depense" && <div style={{ marginBottom: 10 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Categorie</label><CatSel value={eTxFrm.cat} onChange={v => setETxFrm(f => ({ ...f, cat: v }))} /></div>}
+          <div style={{ marginBottom: 14 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Date</label><input style={inp} type="date" value={eTxFrm.date} onChange={e => setETxFrm(f => ({ ...f, date: e.target.value }))} /></div>
+          <SaveCancel onS={saveETx} onC={() => { setETxId(null); setETxFrm(null); }} />
+          <DelBtn onClick={() => { delTx(eTxId); setETxId(null); setETxFrm(null); }} />
+        </Modal>
+      )}
+
+      {/* Header */}
+      <div style={{ background: SF2, borderBottom: "1px solid " + BR, padding: "16px 20px 14px", textAlign: "center" }}>
+        <p style={{ fontSize: 28, fontWeight: 700, margin: 0, color: TX, fontFamily: "Georgia, serif", letterSpacing: "0.04em" }}>Budgeti</p>
+      </div>
+
+      {/* Page content */}
+      <div style={{ padding: "14px 14px 0" }}>
+        {view === "dashboard" && (
+          <Dashboard
+            paie={paie} paieOpen={paieOpen} paieM={paieM} paieIdx={paieIdx}
+            txs={txs} cats={cats} periodes={periodes} paies={paies}
+            totRev={totRev} totDep={totDep} totRR={totRR} totRec={totRec}
+            totDettesMois={totDettesMois} totProjetsMois={totProjetsMois} solde={solde}
+            dbc={dbc} maxD={maxD}
+            setPaieOpen={setPaieOpen} updPaie={updPaie} updPaieM={updPaieM}
+            updTxs={updTxs} setPaieIdx={setPaieIdx}
+            setTxForm={setTxForm} setShowTx={setShowTx} navigate={navigate} startETx={startETx}
+            {...styles}
+          />
+        )}
+        {view === "dettes" && (
+          <Dettes
+            dettes={dettes} detSel={detSel} showAddDet={showAddDet} detFrm={detFrm}
+            eDetMod={eDetMod} eDetId={eDetId} paiType={paiType} paiFrm={paiFrm}
+            editPai={editPai} editPaiFrm={editPaiFrm}
+            updDettes={updDettes} setDetSel={setDetSel} setShowAddDet={setShowAddDet} setDetFrm={setDetFrm}
+            setEDetMod={setEDetMod} setEDetId={setEDetId} addDette={addDette} delDette={delDette}
+            addPai={addPai} delPai={delPai} delPaiFixe={delPaiFixe} saveEditPai={saveEditPai}
+            setPaiType={setPaiType} setPaiFrm={setPaiFrm} setEditPai={setEditPai} setEditPaiFrm={setEditPaiFrm}
+            {...styles}
+          />
+        )}
+        {view === "projets" && (
+          <Projets
+            projets={projets} prjSel={prjSel} showAddPrj={showAddPrj} prjFrm={prjFrm}
+            ePrjMod={ePrjMod} ePrjId={ePrjId} verType={verType} verFrm={verFrm}
+            editVer={editVer} editVerFrm={editVerFrm}
+            updProjets={updProjets} setPrjSel={setPrjSel} setShowAddPrj={setShowAddPrj} setPrjFrm={setPrjFrm}
+            setEPrjMod={setEPrjMod} setEPrjId={setEPrjId} addProjet={addProjet} delProjet={delProjet}
+            addVer={addVer} delVer={delVer} delVerFixe={delVerFixe} saveEditVer={saveEditVer}
+            setVerType={setVerType} setVerFrm={setVerFrm} setEditVer={setEditVer} setEditVerFrm={setEditVerFrm}
+            {...styles}
+          />
+        )}
+        {view === "recurrents" && (
+          <Recurrents
+            recs={recs} rrecs={rrecs} recFrm={recFrm} rrFrm={rrFrm}
+            eRecId={eRecId} eRecMod={eRecMod} eRrId={eRrId} eRrMod={eRrMod}
+            addType={addType} cats={cats} totRec={totRec} totRR={totRR}
+            updRecs={updRecs} updRrecs={updRrecs}
+            setRecFrm={setRecFrm} setRrFrm={setRrFrm}
+            setERecId={setERecId} setERecMod={setERecMod} setERrId={setERrId} setERrMod={setERrMod}
+            addRec={addRec} delRec={delRec} openERec={openERec}
+            addRr={addRr} delRr={delRr} openERr={openERr} setAddType={setAddType}
+            CatSel={CatSel}
+            {...styles}
+          />
+        )}
+        {view === "historique" && (
+          <Historique
+            txs={txs} cats={cats} filtTx={filtTx} months={months}
+            filCat={filCat} selMo={selMo}
+            setFilCat={setFilCat} setSelMo={setSelMo}
+            startETx={startETx}
+            {...styles}
+          />
+        )}
+        {view === "parametres" && (
+          <Parametres
+            user={user}
+            updTxs={updTxs} updRecs={updRecs} updRrecs={updRrecs}
+            updDettes={updDettes} updProjets={updProjets} updCats={updCats} updPaieM={updPaieM}
+            setDetSel={setDetSel} setPrjSel={setPrjSel}
+            {...styles}
+          />
+        )}
+      </div>
+
+      {/* Nav */}
+      <nav style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: SF2, borderTop: "1px solid " + BR, display: "flex", zIndex: 10, paddingBottom: "env(safe-area-inset-bottom)" }}>
+        {[
+          { id: "dashboard",   icon: "◈",  label: "Tableau"    },
+          { id: "dettes",      icon: "📊", label: "Dettes"     },
+          { id: "projets",     icon: "🎯", label: "Projets"    },
+          { id: "recurrents",  icon: "↻",  label: "Recurrent"  },
+          { id: "historique",  icon: "☰",  label: "Historique" },
+          { id: "parametres",  icon: "⚙",  label: "Params",    dot: !!user },
+        ].map(n => (
+          <button key={n.id} style={navBtn(view === n.id)} onClick={() => navigate(n.id)}>
+            <span style={{ fontSize: 15, position: "relative" }}>
+              {n.icon}
+              {n.dot && <span style={{ position: "absolute", top: -2, right: -4, width: 6, height: 6, background: "#5a9a4a", borderRadius: "50%", border: "1px solid " + SF2 }} />}
+            </span>
+            {n.label}
+          </button>
+        ))}
+      </nav>
+    </div>
+  );
+}
