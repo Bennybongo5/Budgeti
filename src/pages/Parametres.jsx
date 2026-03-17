@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, signInWithRedirect, GoogleAuthProvider, signOut } from "firebase/auth";
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, signInWithRedirect, GoogleAuthProvider, FacebookAuthProvider, signOut } from "firebase/auth";
 import { auth } from "../firebase.js";
 import { DEFAULT_CATS, SF, SF2, BR, BR2, TX, TX2, TX3, BT, BTB, BTT, RD } from "../constants.js";
 import Modal from "../components/Modal.jsx";
 
 const googleProvider = new GoogleAuthProvider();
+const facebookProvider = new FacebookAuthProvider();
 
 export default function Parametres({ user, inp, card, updTxs, updRecs, updRrecs, updDettes, updProjets, updCats, updPaieM, setDetSel, setPrjSel }) {
   const [showEmail, setShowEmail] = useState(false);
@@ -52,7 +53,22 @@ export default function Parametres({ user, inp, card, updTxs, updRecs, updRrecs,
   };
 
 
-const handleSignOut = async () => {
+  const handleFacebook = async () => {
+    setError(""); setLoading(true);
+    try {
+      await signInWithPopup(auth, facebookProvider);
+      setLoading(false);
+    } catch (e) {
+      if (e.code === "auth/popup-blocked" || e.code === "auth/popup-closed-by-user") {
+        try { await signInWithRedirect(auth, facebookProvider); }
+        catch (e2) { setError("Erreur Facebook : " + e2.code); setLoading(false); }
+      } else {
+        setError("Erreur Facebook : " + e.code); setLoading(false);
+      }
+    }
+  };
+
+  const handleSignOut = async () => {
     await signOut(auth);
     setShowEmail(false);
     setEmail(""); setPassword(""); setError("");
@@ -110,6 +126,13 @@ const handleSignOut = async () => {
                   style={{ width: "100%", padding: "12px", background: "none", border: "1px solid " + BR, borderRadius: 10, color: TX2, fontSize: 13, fontWeight: 500, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
                 >
                   ✉ Continuer avec Email
+                </button>
+                <button
+                  onClick={handleFacebook} disabled={loading}
+                  style={{ width: "100%", padding: "12px", background: "#1877F2", border: "1px solid #1877F2", borderRadius: 10, color: "#fff", fontSize: 13, fontWeight: 500, cursor: "pointer", marginTop: 8, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, opacity: loading ? 0.7 : 1 }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                  Continuer avec Facebook
                 </button>
 
                 {error && <p style={{ fontSize: 12, color: RD, marginTop: 10 }}>{error}</p>}
