@@ -94,27 +94,29 @@ export default function App() {
       userRef.current = u;
       setUser(u);
       if (u) {
-        // Load from Firestore (cloud takes precedence when logged in)
-        const snap = await getDoc(doc(db, "users", u.uid));
-        if (snap.exists()) {
-          const d = snap.data();
-          if (d.txs !== undefined) { setTxs(d.txs); storage.set("budgeti-txs", JSON.stringify(d.txs)); }
-          if (d.recs !== undefined) { setRecs(d.recs); storage.set("budgeti-recs", JSON.stringify(d.recs)); }
-          if (d.rrecs !== undefined) { setRrecs(d.rrecs); storage.set("budgeti-rrecs", JSON.stringify(d.rrecs)); }
-          if (d.dettes !== undefined) { setDettes(d.dettes); storage.set("budgeti-dettes", JSON.stringify(d.dettes)); }
-          if (d.projets !== undefined) { setProjets(d.projets); storage.set("budgeti-projets", JSON.stringify(d.projets)); }
-          if (d.cats !== undefined) { setCats(d.cats); storage.set("budgeti-cats", JSON.stringify(d.cats)); }
-          if (d.paie !== undefined) { setPaie(d.paie); storage.set("paie-config", JSON.stringify(d.paie)); }
-          if (d.paieM !== undefined) { setPaieM(d.paieM); storage.set("paie-montants", JSON.stringify(d.paieM)); }
-        } else if (!wasLoggedIn) {
-          // First login with no cloud data: upload current local data
-          const lsMap = { txs: "budgeti-txs", recs: "budgeti-recs", rrecs: "budgeti-rrecs", dettes: "budgeti-dettes", projets: "budgeti-projets", cats: "budgeti-cats", paie: "paie-config", paieM: "paie-montants" };
-          const upload = {};
-          for (const [field, key] of Object.entries(lsMap)) {
-            const item = storage.get(key);
-            if (item) upload[field] = JSON.parse(item.value);
+        try {
+          const snap = await getDoc(doc(db, "users", u.uid));
+          if (snap.exists()) {
+            const d = snap.data();
+            if (d.txs !== undefined) { setTxs(d.txs); storage.set("budgeti-txs", JSON.stringify(d.txs)); }
+            if (d.recs !== undefined) { setRecs(d.recs); storage.set("budgeti-recs", JSON.stringify(d.recs)); }
+            if (d.rrecs !== undefined) { setRrecs(d.rrecs); storage.set("budgeti-rrecs", JSON.stringify(d.rrecs)); }
+            if (d.dettes !== undefined) { setDettes(d.dettes); storage.set("budgeti-dettes", JSON.stringify(d.dettes)); }
+            if (d.projets !== undefined) { setProjets(d.projets); storage.set("budgeti-projets", JSON.stringify(d.projets)); }
+            if (d.cats !== undefined) { setCats(d.cats); storage.set("budgeti-cats", JSON.stringify(d.cats)); }
+            if (d.paie !== undefined) { setPaie(d.paie); storage.set("paie-config", JSON.stringify(d.paie)); }
+            if (d.paieM !== undefined) { setPaieM(d.paieM); storage.set("paie-montants", JSON.stringify(d.paieM)); }
+          } else if (!wasLoggedIn) {
+            const lsMap = { txs: "budgeti-txs", recs: "budgeti-recs", rrecs: "budgeti-rrecs", dettes: "budgeti-dettes", projets: "budgeti-projets", cats: "budgeti-cats", paie: "paie-config", paieM: "paie-montants" };
+            const upload = {};
+            for (const [field, key] of Object.entries(lsMap)) {
+              const item = storage.get(key);
+              if (item) upload[field] = JSON.parse(item.value);
+            }
+            if (Object.keys(upload).length > 0) setDoc(doc(db, "users", u.uid), upload);
           }
-          if (Object.keys(upload).length > 0) setDoc(doc(db, "users", u.uid), upload);
+        } catch (e) {
+          console.error("Firestore sync error:", e);
         }
       }
     });
