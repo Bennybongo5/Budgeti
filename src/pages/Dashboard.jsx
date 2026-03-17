@@ -15,6 +15,7 @@ export default function Dashboard({
 }) {
   const t = today();
   const [paieInput, setPaieInput] = useState("");
+  const [catModal, setCatModal] = useState(null); // { id, label, icon }
 
   const buildPaieGrid = () => {
     const cols = "100px " + periodes.map(() => "minmax(80px, 1fr)").join(" ");
@@ -120,7 +121,36 @@ export default function Dashboard({
       {periodes.length > 0 && <div style={{ background: SF2, border: "1px solid " + BR2, borderRadius: 12, padding: "12px 14px", marginBottom: 12 }}><p style={{ fontSize: 13, fontWeight: 500, color: TX2, margin: "0 0 10px" }}>Par paie</p><div style={{ overflowX: "auto" }}>{buildPaieGrid()}</div></div>}
 
       <p style={{ fontSize: 13, fontWeight: 500, color: TX2, margin: "4px 0 8px" }}>Depenses par categorie</p>
-      {cats.map(c => { const a = dbc[c.id] || 0; if (!a) return null; return <div key={c.id} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 7 }}><span style={{ fontSize: 15, width: 22, textAlign: "center" }}>{c.icon}</span><span style={{ fontSize: 12, color: TX2, width: 88, flexShrink: 0 }}>{c.label}</span><div style={{ flex: 1, height: 6, background: BR, borderRadius: 3, overflow: "hidden" }}><div style={{ height: "100%", width: (a / maxD * 100) + "%", background: AC, borderRadius: 3 }} /></div><span style={{ fontSize: 12, color: TX, width: 68, textAlign: "right", flexShrink: 0 }}>{fmt(a)}</span></div>; })}
+      {cats.map(c => { const a = dbc[c.id] || 0; if (!a) return null; return <div key={c.id} onClick={() => setCatModal(c)} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 7, cursor: "pointer", borderRadius: 8, padding: "3px 4px", margin: "0 -4px 7px" }}><span style={{ fontSize: 15, width: 22, textAlign: "center" }}>{c.icon}</span><span style={{ fontSize: 12, color: TX2, width: 88, flexShrink: 0 }}>{c.label}</span><div style={{ flex: 1, height: 6, background: BR, borderRadius: 3, overflow: "hidden" }}><div style={{ height: "100%", width: (a / maxD * 100) + "%", background: AC, borderRadius: 3 }} /></div><span style={{ fontSize: 12, color: TX, width: 68, textAlign: "right", flexShrink: 0 }}>{fmt(a)}</span></div>; })}
+
+      {catModal && (() => {
+        const [curY, curM] = t.split("-").map(Number);
+        const curMo = curY + "-" + String(curM).padStart(2, "0");
+        const txsCat = [...txs].filter(x => x.type === "depense" && x.cat === catModal.id && x.date.startsWith(curMo)).sort((a, b) => b.date.localeCompare(a.date));
+        const total = txsCat.reduce((s, x) => s + x.amount, 0);
+        return (
+          <Modal title={catModal.icon + " " + catModal.label}>
+            <p style={{ fontSize: 12, color: TX3, margin: "0 0 12px" }}>{txsCat.length} transaction{txsCat.length !== 1 ? "s" : ""} ce mois</p>
+            {txsCat.length === 0 && <p style={{ fontSize: 13, color: TX3, textAlign: "center", padding: "10px 0" }}>Aucune depense ce mois.</p>}
+            {txsCat.map(x => (
+              <div key={x.id} style={trow}>
+                <div style={{ flex: 1 }}>
+                  <p style={{ fontSize: 13, color: TX, margin: 0, fontWeight: 500 }}>{x.desc}</p>
+                  <p style={{ fontSize: 11, color: TX3, margin: 0 }}>{fd(x.date)}</p>
+                </div>
+                <span style={{ fontSize: 13, fontWeight: 500, color: RD, flexShrink: 0 }}>-{fmt(x.amount)}</span>
+              </div>
+            ))}
+            {txsCat.length > 0 && (
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid " + BR, marginTop: 8, paddingTop: 10 }}>
+                <span style={{ fontSize: 12, fontWeight: 500, color: TX2 }}>Total</span>
+                <span style={{ fontSize: 14, fontWeight: 600, color: RD }}>-{fmt(total)}</span>
+              </div>
+            )}
+            <button onClick={() => setCatModal(null)} style={{ width: "100%", marginTop: 14, padding: "11px", background: BT, border: "1px solid " + BTB, borderRadius: 10, color: BTT, fontSize: 13, fontWeight: 500, cursor: "pointer" }}>Fermer</button>
+          </Modal>
+        );
+      })()}
 
       <p style={{ fontSize: 13, fontWeight: 500, color: TX2, margin: "12px 0 8px" }}>Dernieres transactions</p>
       <div style={{ marginBottom: 8 }}>
