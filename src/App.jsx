@@ -88,7 +88,10 @@ export default function App() {
 
   // ── Firebase auth + optional Firestore sync ────────────────────────────────
   useEffect(() => {
-    getRedirectResult(auth).catch(() => {});
+    // Handle redirect result (Google/Apple redirect flow)
+    getRedirectResult(auth).then(result => {
+      if (result?.user) setView("parametres");
+    }).catch(() => {});
     const unsub = onAuthStateChanged(auth, async (u) => {
       const wasLoggedIn = !!userRef.current;
       userRef.current = u;

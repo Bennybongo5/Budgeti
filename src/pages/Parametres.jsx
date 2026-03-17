@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithRedirect, GoogleAuthProvider, OAuthProvider, signOut } from "firebase/auth";
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, signInWithRedirect, GoogleAuthProvider, OAuthProvider, signOut } from "firebase/auth";
 import { auth } from "../firebase.js";
 import { DEFAULT_CATS, SF, SF2, BR, BR2, TX, TX2, TX3, BT, BTB, BTT, RD } from "../constants.js";
 import Modal from "../components/Modal.jsx";
@@ -39,14 +39,32 @@ export default function Parametres({ user, inp, card, updTxs, updRecs, updRrecs,
 
   const handleGoogle = async () => {
     setError(""); setLoading(true);
-    try { await signInWithRedirect(auth, googleProvider); }
-    catch (e) { setError("Impossible de se connecter avec Google. (" + e.code + ")"); setLoading(false); }
+    try {
+      await signInWithPopup(auth, googleProvider);
+      setLoading(false);
+    } catch (e) {
+      if (e.code === "auth/popup-blocked" || e.code === "auth/popup-closed-by-user") {
+        try { await signInWithRedirect(auth, googleProvider); }
+        catch (e2) { setError("Erreur Google : " + e2.code); setLoading(false); }
+      } else {
+        setError("Erreur Google : " + e.code); setLoading(false);
+      }
+    }
   };
 
   const handleApple = async () => {
     setError(""); setLoading(true);
-    try { await signInWithRedirect(auth, appleProvider); }
-    catch (e) { setError("Impossible de se connecter avec Apple. (" + e.code + ")"); setLoading(false); }
+    try {
+      await signInWithPopup(auth, appleProvider);
+      setLoading(false);
+    } catch (e) {
+      if (e.code === "auth/popup-blocked" || e.code === "auth/popup-closed-by-user") {
+        try { await signInWithRedirect(auth, appleProvider); }
+        catch (e2) { setError("Erreur Apple : " + e2.code); setLoading(false); }
+      } else {
+        setError("Erreur Apple : " + e.code); setLoading(false);
+      }
+    }
   };
 
   const handleSignOut = async () => {
