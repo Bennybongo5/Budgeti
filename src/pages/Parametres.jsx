@@ -6,6 +6,7 @@ import Modal from "../components/Modal.jsx";
 
 const googleProvider = new GoogleAuthProvider();
 const facebookProvider = new FacebookAuthProvider();
+facebookProvider.addScope("public_profile");
 
 export default function Parametres({ user, inp, card, updTxs, updRecs, updRrecs, updDettes, updProjets, updCats, updPaieM, setDetSel, setPrjSel }) {
   const [showEmail, setShowEmail] = useState(false);
