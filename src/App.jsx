@@ -261,8 +261,8 @@ export default function App() {
       )}
 
       {/* Header */}
-      <div style={{ background: SF2, borderBottom: "1px solid " + BR, padding: "14px 20px", display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
-        <img src="/logotransparant.png" alt="Budgeti" style={{ width: 70, height: 70, borderRadius: 10, flexShrink: 0 }} />
+      <div style={{ background: SF2, borderBottom: "1px solid " + BR, padding: "4px 20px", display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
+        <img src="/logotransparant.png" alt="Budgeti" style={{ width: 90, height: 90, borderRadius: 10, flexShrink: 0 }} />
         <p style={{ fontSize: 32, fontWeight: 700, margin: 0, color: TX, fontFamily: "Georgia, serif", fontStyle: "italic", letterSpacing: "0.08em" }}>Budgeti</p>
       </div>
 
