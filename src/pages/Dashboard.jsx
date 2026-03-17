@@ -7,15 +7,59 @@ import StatBox from "../components/StatBox.jsx";
 import TxRow from "../components/TxRow.jsx";
 import SemaineRef from "../components/SemaineRef.jsx";
 
+function StatModal({ title, items, emptyMsg, onClose, trow, cats }) {
+  const [filCat, setFilCat] = useState("tout");
+  const visibleCats = cats ? cats.filter(c => items.some(i => i.catId === c.id)) : [];
+  const shown = filCat === "tout" ? items : items.filter(i => i.catId === filCat);
+  const total = shown.reduce((s, i) => s + i.montant, 0);
+  const clr = items[0]?.clr || TX;
+  const pfx = items[0]?.pfx || "";
+  const chipSt = active => ({ padding: "4px 10px", background: active ? BT : SF, border: "1px solid " + (active ? BTB : BR), borderRadius: 20, color: active ? BTT : TX2, fontSize: 11, cursor: "pointer", whiteSpace: "nowrap" });
+  return (
+    <Modal title={title}>
+      {visibleCats.length > 1 && (
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 12 }}>
+          <button style={chipSt(filCat === "tout")} onClick={() => setFilCat("tout")}>Tout</button>
+          {visibleCats.map(c => (
+            <button key={c.id} style={chipSt(filCat === c.id)} onClick={() => setFilCat(c.id)}>{c.icon} {c.label}</button>
+          ))}
+        </div>
+      )}
+      <p style={{ fontSize: 12, color: TX3, margin: "0 0 12px" }}>{shown.length} element{shown.length !== 1 ? "s" : ""}</p>
+      {shown.length === 0 && <p style={{ fontSize: 13, color: TX3, textAlign: "center", padding: "10px 0" }}>{emptyMsg}</p>}
+      {shown.map(it => (
+        <div key={it.key} style={trow}>
+          <div style={{ flex: 1 }}>
+            <p style={{ fontSize: 13, color: TX, margin: 0, fontWeight: 500 }}>{it.label}</p>
+            {it.sub && <p style={{ fontSize: 11, color: TX3, margin: 0 }}>{it.sub}</p>}
+          </div>
+          <span style={{ fontSize: 13, fontWeight: 500, color: it.clr, flexShrink: 0 }}>{it.pfx}{fmt(it.montant)}</span>
+        </div>
+      ))}
+      {shown.length > 0 && (
+        <div style={{ display: "flex", justifyContent: "space-between", borderTop: "1px solid " + BR, marginTop: 8, paddingTop: 10 }}>
+          <span style={{ fontSize: 12, fontWeight: 500, color: TX2 }}>Total</span>
+          <span style={{ fontSize: 14, fontWeight: 600, color: clr }}>{pfx}{fmt(total)}</span>
+        </div>
+      )}
+      <button onClick={onClose} style={{ width: "100%", marginTop: 14, padding: "11px", background: BT, border: "1px solid " + BTB, borderRadius: 10, color: BTT, fontSize: 13, fontWeight: 500, cursor: "pointer" }}>Fermer</button>
+    </Modal>
+  );
+}
+
 export default function Dashboard({
   paie, paieOpen, paieM, paieIdx, txs, cats, periodes, paies,
+  recs, rrecs, dettes, projets,
   totRev, totDep, totRR, totRec, totDettesMois, totProjetsMois, solde, dbc, maxD,
   setPaieOpen, updPaie, updPaieM, updTxs, setPaieIdx, setTxForm, setShowTx, navigate, startETx,
   inp, inpSm, card, trow, ico, fbtn,
 }) {
   const t = today();
+  const [curY, curM] = t.split("-").map(Number);
+  const curMo = curY + "-" + String(curM).padStart(2, "0");
   const [paieInput, setPaieInput] = useState("");
   const [catModal, setCatModal] = useState(null); // { id, label, icon }
+  const [statModal, setStatModal] = useState(null);
 
   const buildPaieGrid = () => {
     const cols = "100px " + periodes.map(() => "minmax(80px, 1fr)").join(" ");
@@ -114,9 +158,18 @@ export default function Dashboard({
       </div>
 
       <p style={{ fontSize: 13, fontWeight: 500, color: TX2, margin: "0 0 8px" }}>Vue mensuelle</p>
-      <div style={{ display: "flex", gap: 10, marginBottom: 10 }}><StatBox label="Revenus" value={fmt(totRev)} color={GN} /><StatBox label="Depenses" value={fmt(totDep)} color={RD} /></div>
-      <div style={{ display: "flex", gap: 10, marginBottom: 10 }}><StatBox label="Rev. recurrents" value={"+" + fmt(totRR)} color={GN} /><StatBox label="Paiements fixes" value={"-" + fmt(totRec)} color={RD} /></div>
-      <div style={{ display: "flex", gap: 10, marginBottom: 10 }}><StatBox label="Paiements dettes" value={"-" + fmt(totDettesMois)} color={RD} /><StatBox label="Versements projets" value={"-" + fmt(totProjetsMois)} color={RD} /></div>
+      <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
+        <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("revenus")}><StatBox label="Revenus" value={fmt(totRev)} color={GN} /></div>
+        <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("depenses")}><StatBox label="Depenses" value={fmt(totDep)} color={RD} /></div>
+      </div>
+      <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
+        <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("rrecs")}><StatBox label="Autres revenus" value={"+" + fmt(totRR)} color={GN} /></div>
+        <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("recs")}><StatBox label="Paiements fixes" value={"-" + fmt(totRec)} color={RD} /></div>
+      </div>
+      <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
+        <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("dettes")}><StatBox label="Paiements dettes" value={"-" + fmt(totDettesMois)} color={RD} /></div>
+        <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("projets")}><StatBox label="Versements projets" value={"-" + fmt(totProjetsMois)} color={RD} /></div>
+      </div>
       <div style={{ display: "flex", gap: 10, marginBottom: 12 }}><StatBox label="Solde" value={fmt(solde)} color={solde >= 0 ? "#5a7a3a" : RD} /></div>
       {periodes.length > 0 && <div style={{ background: SF2, border: "1px solid " + BR2, borderRadius: 12, padding: "12px 14px", marginBottom: 12 }}><p style={{ fontSize: 13, fontWeight: 500, color: TX2, margin: "0 0 10px" }}>Par paie</p><div style={{ overflowX: "auto" }}>{buildPaieGrid()}</div></div>}
 
@@ -124,8 +177,6 @@ export default function Dashboard({
       {cats.map(c => { const a = dbc[c.id] || 0; if (!a) return null; return <div key={c.id} onClick={() => setCatModal(c)} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 7, cursor: "pointer", borderRadius: 8, padding: "3px 4px", margin: "0 -4px 7px" }}><span style={{ fontSize: 15, width: 22, textAlign: "center" }}>{c.icon}</span><span style={{ fontSize: 12, color: TX2, width: 88, flexShrink: 0 }}>{c.label}</span><div style={{ flex: 1, height: 6, background: BR, borderRadius: 3, overflow: "hidden" }}><div style={{ height: "100%", width: (a / maxD * 100) + "%", background: AC, borderRadius: 3 }} /></div><span style={{ fontSize: 12, color: TX, width: 68, textAlign: "right", flexShrink: 0 }}>{fmt(a)}</span></div>; })}
 
       {catModal && (() => {
-        const [curY, curM] = t.split("-").map(Number);
-        const curMo = curY + "-" + String(curM).padStart(2, "0");
         const txsCat = [...txs].filter(x => x.type === "depense" && x.cat === catModal.id && x.date.startsWith(curMo)).sort((a, b) => b.date.localeCompare(a.date));
         const total = txsCat.reduce((s, x) => s + x.amount, 0);
         return (
@@ -151,6 +202,13 @@ export default function Dashboard({
           </Modal>
         );
       })()}
+
+      {statModal === "revenus" && <StatModal title="Revenus ce mois" items={txs.filter(x => x.type === "revenu" && x.date.startsWith(curMo)).sort((a, b) => b.date.localeCompare(a.date)).map(x => ({ key: x.id, label: x.desc, sub: fd(x.date), montant: x.amount, clr: GN, pfx: "+" }))} emptyMsg="Aucun revenu ce mois." onClose={() => setStatModal(null)} trow={trow} />}
+      {statModal === "depenses" && <StatModal title="Depenses ce mois" items={txs.filter(x => x.type === "depense" && x.date.startsWith(curMo)).sort((a, b) => b.date.localeCompare(a.date)).map(x => ({ key: x.id, label: x.desc, sub: fd(x.date), montant: x.amount, clr: RD, pfx: "-", catId: x.cat }))} emptyMsg="Aucune depense ce mois." onClose={() => setStatModal(null)} trow={trow} cats={cats} />}
+      {statModal === "rrecs" && <StatModal title="Autres revenus" items={rrecs.map(r => ({ key: r.id, label: r.desc, sub: "Le " + r.jour + " de chaque mois", montant: r.amount, clr: GN, pfx: "+" }))} emptyMsg="Aucun autre revenu." onClose={() => setStatModal(null)} trow={trow} />}
+      {statModal === "recs" && <StatModal title="Paiements fixes" items={recs.map(r => ({ key: r.id, label: r.desc, sub: "Le " + r.jour + " de chaque mois", montant: r.amount, clr: RD, pfx: "-", catId: r.cat }))} emptyMsg="Aucun paiement fixe." onClose={() => setStatModal(null)} trow={trow} cats={cats} />}
+      {statModal === "dettes" && <StatModal title="Paiements dettes ce mois" items={dettes.flatMap(d => [...(d.paiementsAuto || []).map(p => ({ key: p.id, label: d.nom, sub: "Le " + p.jour + " (fixe)", montant: p.montant, clr: RD, pfx: "-" })), ...(d.paiements || []).filter(p => p.date.startsWith(curMo)).map(p => ({ key: p.id, label: d.nom, sub: fd(p.date), montant: p.montant, clr: RD, pfx: "-" }))])} emptyMsg="Aucun paiement ce mois." onClose={() => setStatModal(null)} trow={trow} />}
+      {statModal === "projets" && <StatModal title="Versements projets ce mois" items={projets.flatMap(p => [...(p.paiementsAuto || []).map(v => ({ key: v.id, label: p.nom, sub: "Le " + v.jour + " (fixe)", montant: v.montant, clr: RD, pfx: "-" })), ...(p.versements || []).filter(v => v.date.startsWith(curMo)).map(v => ({ key: v.id, label: p.nom, sub: fd(v.date), montant: v.montant, clr: RD, pfx: "-" }))])} emptyMsg="Aucun versement ce mois." onClose={() => setStatModal(null)} trow={trow} />}
 
       <p style={{ fontSize: 13, fontWeight: 500, color: TX2, margin: "12px 0 8px" }}>Dernieres transactions</p>
       <div style={{ marginBottom: 8 }}>

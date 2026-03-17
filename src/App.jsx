@@ -272,6 +272,7 @@ export default function App() {
           <Dashboard
             paie={paie} paieOpen={paieOpen} paieM={paieM} paieIdx={paieIdx}
             txs={txs} cats={cats} periodes={periodes} paies={paies}
+            recs={recs} rrecs={rrecs} dettes={dettes} projets={projets}
             totRev={totRev} totDep={totDep} totRR={totRR} totRec={totRec}
             totDettesMois={totDettesMois} totProjetsMois={totProjetsMois} solde={solde}
             dbc={dbc} maxD={maxD}

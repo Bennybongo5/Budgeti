@@ -27,7 +27,7 @@ export default function Recurrents({
       )}
 
       {eRrMod && eRrId && (
-        <Modal title="Modifier le revenu recurrent">
+        <Modal title="Modifier l'autre revenu">
           <div style={{ marginBottom: 10 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Description</label><input style={inp} value={rrFrm.desc} onChange={e => setRrFrm(f => ({ ...f, desc: e.target.value }))} /></div>
           <div style={{ display: "flex", gap: 10, marginBottom: 14 }}>
             <div style={{ flex: 1 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Montant</label><input style={inp} type="number" value={rrFrm.amount} onChange={e => setRrFrm(f => ({ ...f, amount: e.target.value }))} /></div>
@@ -44,7 +44,7 @@ export default function Recurrents({
         <div style={{ display: "flex", gap: 10 }}>
           <div style={{ flex: 1, textAlign: "center" }}><p style={{ fontSize: 11, color: TX3, margin: "0 0 3px" }}>Paiements fixes</p><p style={{ fontSize: 17, fontWeight: 500, color: RD, margin: 0 }}>-{fmt(totRec)}</p></div>
           <div style={{ width: 1, background: BR2 }} />
-          <div style={{ flex: 1, textAlign: "center" }}><p style={{ fontSize: 11, color: TX3, margin: "0 0 3px" }}>Revenus fixes</p><p style={{ fontSize: 17, fontWeight: 500, color: GN, margin: 0 }}>+{fmt(totRR)}</p></div>
+          <div style={{ flex: 1, textAlign: "center" }}><p style={{ fontSize: 11, color: TX3, margin: "0 0 3px" }}>Autres revenus</p><p style={{ fontSize: 17, fontWeight: 500, color: GN, margin: 0 }}>+{fmt(totRR)}</p></div>
         </div>
         <div style={{ borderTop: "0.5px solid " + BR2, marginTop: 10, paddingTop: 8, display: "flex", justifyContent: "space-between" }}>
           <span style={{ fontSize: 12, color: TX2 }}>Bilan mensuel</span>
@@ -74,7 +74,7 @@ export default function Recurrents({
           })}
         </div>
         <div style={{ minWidth: 0 }}>
-          <p style={{ fontSize: 12, fontWeight: 500, color: GN, margin: "0 0 8px" }}>Revenus</p>
+          <p style={{ fontSize: 12, fontWeight: 500, color: GN, margin: "0 0 8px" }}>Autres revenus</p>
           {rrecs.length === 0 && <p style={{ fontSize: 12, color: TX3, textAlign: "center", padding: "10px 0" }}>Aucun</p>}
           {[...rrecs].sort((a, b) => a.jour - b.jour).map(r => (
             <div key={r.id} style={{ background: SF, border: "1px solid " + BR, borderRadius: 10, padding: "9px 10px", marginBottom: 6, display: "flex", alignItems: "center", gap: 6, overflow: "hidden" }}>
