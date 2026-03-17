@@ -17,9 +17,9 @@ import Recurrents from "./pages/Recurrents.jsx";
 import Historique from "./pages/Historique.jsx";
 import Parametres from "./pages/Parametres.jsx";
 
-const initTx=[{id:1,type:"depense",desc:"Loyer",amount:1200,cat:"logement",date:"2026-03-02"},{id:2,type:"depense",desc:"Epicerie",amount:180,cat:"alimentation",date:"2026-03-05"},{id:3,type:"depense",desc:"Metro/Bus",amount:90,cat:"transport",date:"2026-03-08"},{id:4,type:"depense",desc:"Restaurant",amount:65,cat:"loisirs",date:"2026-03-10"}];
-const initRec=[{id:1,desc:"Loyer",amount:1200,cat:"logement",jour:1},{id:2,desc:"Internet",amount:65,cat:"transport",jour:5},{id:3,desc:"Netflix",amount:18,cat:"loisirs",jour:12}];
-const initRevRec=[{id:1,desc:"Allocations familiales",amount:350,jour:20}];
+const initTx=[];
+const initRec=[];
+const initRevRec=[];
 const emptyD={nom:"",montantInitial:"",tauxInteret:"",paiementsAuto:[]};
 const emptyP={nom:"",objectif:"",icon:"🎯",paiementsAuto:[]};
 const initPaie={ frequence: "2semaines", jourSemaine: "Vendredi", jour1: 15, jour2: "fin", dateRef: "" };
