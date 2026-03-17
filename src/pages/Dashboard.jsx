@@ -92,8 +92,8 @@ export default function Dashboard({
   return (
     <div>
       <div style={{ display: "flex", gap: 10, marginBottom: 14 }}>
-        <button style={{ flex: 1, padding: "14px 8px", background: "#f5d5d0", border: "1px solid #d4877a", borderRadius: 12, color: "#7a2a1a", fontSize: 14, fontWeight: 500, cursor: "pointer" }} onClick={() => { setTxForm(f => ({ ...f, type: "depense", desc: "", amount: "", date: today() })); setShowTx(true); }}>+ Depense</button>
-        <button style={{ flex: 1, padding: "14px 8px", background: BT, border: "1px solid " + BTB, borderRadius: 12, color: BTT, fontSize: 14, fontWeight: 500, cursor: "pointer" }} onClick={() => { setTxForm(f => ({ ...f, type: "revenu", desc: "", amount: "", date: today() })); setShowTx(true); }}>+ Revenu</button>
+        <button style={{ flex: 1, padding: "14px 8px", background: "#f5d5d0", border: "1px solid #d4877a", borderRadius: 12, color: "#7a2a1a", fontSize: 14, fontWeight: 500, cursor: "pointer" }} onClick={() => { setTxForm(f => ({ ...f, type: "depense", desc: "", amount: "", date: today() })); setShowTx(true); }}>Depense</button>
+        <button style={{ flex: 1, padding: "14px 8px", background: BT, border: "1px solid " + BTB, borderRadius: 12, color: BTT, fontSize: 14, fontWeight: 500, cursor: "pointer" }} onClick={() => { setTxForm(f => ({ ...f, type: "revenu", desc: "", amount: "", date: today() })); setShowTx(true); }}>Revenu</button>
       </div>
 
       <div style={card}>
