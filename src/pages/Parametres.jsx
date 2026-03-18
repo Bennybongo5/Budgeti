@@ -19,6 +19,17 @@ export default function Parametres({ user, cats, inp, card, updTxs, updRecs, upd
   const [editCatFrm, setEditCatFrm] = useState({ label: "", icon: "" });
   const [editCatCustomIco, setEditCatCustomIco] = useState("");
   const [delCat, setDelCat] = useState(null);
+  const [showAddCat, setShowAddCat] = useState(false);
+  const [newCatLbl, setNewCatLbl] = useState("");
+  const [newCatIco, setNewCatIco] = useState("📦");
+  const [newCatCustomIco, setNewCatCustomIco] = useState("");
+
+  const addCat = () => {
+    if (!newCatLbl.trim()) return;
+    const id = "cat-" + Date.now();
+    updCats(p => [...p, { id, label: newCatLbl.trim(), icon: newCatIco || "📦" }]);
+    setNewCatLbl(""); setNewCatIco("📦"); setNewCatCustomIco(""); setShowAddCat(false);
+  };
 
   const errMsg = code => ({
     "auth/invalid-email": "Adresse courriel invalide.",
@@ -152,7 +163,10 @@ const handleSignOut = async () => {
       </div>
 
       <div style={card}>
-        <p style={{ fontSize: 13, fontWeight: 500, color: TX2, margin: "0 0 12px" }}>Categories</p>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+          <p style={{ fontSize: 13, fontWeight: 500, color: TX2, margin: 0 }}>Categories</p>
+          <button onClick={() => { setNewCatLbl(""); setNewCatIco("📦"); setNewCatCustomIco(""); setShowAddCat(true); }} style={{ background: BT, border: "1px solid " + BTB, borderRadius: 8, color: BTT, fontSize: 16, width: 28, height: 28, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}>+</button>
+        </div>
         {(cats || []).map(c => (
           <div key={c.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: "0.5px solid " + BR }}>
             <span style={{ fontSize: 20, width: 28, textAlign: "center", flexShrink: 0 }}>{c.icon}</span>
@@ -203,6 +217,31 @@ const handleSignOut = async () => {
           <div style={{ display: "flex", gap: 8 }}>
             <button style={{ flex: 1, padding: "11px", background: RD, border: "1px solid " + RD, borderRadius: 10, color: "#fff", fontSize: 13, fontWeight: 500, cursor: "pointer" }} onClick={() => { updCats(p => p.filter(c => c.id !== delCat.id)); setDelCat(null); }}>Supprimer</button>
             <button style={{ padding: "11px 14px", background: SF2, border: "1px solid " + BR, borderRadius: 10, color: TX2, fontSize: 13, cursor: "pointer" }} onClick={() => setDelCat(null)}>Annuler</button>
+          </div>
+        </Modal>
+      )}
+
+      {showAddCat && (
+        <Modal title="Nouvelle categorie">
+          <div style={{ marginBottom: 12 }}>
+            <label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Nom</label>
+            <input autoFocus style={inp} value={newCatLbl} onChange={e => setNewCatLbl(e.target.value)} onKeyDown={e => e.key === "Enter" && addCat()} />
+          </div>
+          <div style={{ marginBottom: 16 }}>
+            <label style={{ fontSize: 12, color: TX2, marginBottom: 6, display: "block" }}>Icone</label>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 10 }}>
+              {ICONS_CAT.map(ic => (
+                <button key={ic} type="button" onClick={() => { setNewCatIco(ic); setNewCatCustomIco(""); }} style={{ fontSize: 18, padding: "5px 7px", background: newCatIco === ic && !newCatCustomIco ? BT : SF, border: "1px solid " + (newCatIco === ic && !newCatCustomIco ? BTB : BR), borderRadius: 7, cursor: "pointer" }}>{ic}</button>
+              ))}
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ fontSize: 12, color: TX3, whiteSpace: "nowrap" }}>Ou coller un emoji :</span>
+              <input style={{ width: 54, padding: "6px", background: SF, border: "1px solid " + (newCatCustomIco ? BTB : BR2), borderRadius: 8, fontSize: 22, textAlign: "center", boxSizing: "border-box" }} value={newCatCustomIco} onChange={e => { setNewCatCustomIco(e.target.value); if (e.target.value) setNewCatIco(e.target.value); }} />
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button style={{ flex: 1, padding: "11px", background: BT, border: "1px solid " + BTB, borderRadius: 10, color: BTT, fontSize: 13, fontWeight: 500, cursor: "pointer" }} onClick={addCat}>Creer</button>
+            <button style={{ padding: "11px 14px", background: SF2, border: "1px solid " + BR, borderRadius: 10, color: TX2, fontSize: 13, cursor: "pointer" }} onClick={() => setShowAddCat(false)}>Annuler</button>
           </div>
         </Modal>
       )}
