@@ -23,6 +23,8 @@ export default function Parametres({ user, cats, inp, card, updTxs, updRecs, upd
   const [newCatLbl, setNewCatLbl] = useState("");
   const [newCatIco, setNewCatIco] = useState("📦");
   const [newCatCustomIco, setNewCatCustomIco] = useState("");
+  const [dragIdx, setDragIdx] = useState(null);
+  const [dragOverIdx, setDragOverIdx] = useState(null);
 
   const addCat = () => {
     if (!newCatLbl.trim()) return;
@@ -167,12 +169,21 @@ const handleSignOut = async () => {
           <p style={{ fontSize: 13, fontWeight: 500, color: TX2, margin: 0 }}>Categories</p>
           <button onClick={() => { setNewCatLbl(""); setNewCatIco("📦"); setNewCatCustomIco(""); setShowAddCat(true); }} style={{ background: BT, border: "1px solid " + BTB, borderRadius: 8, color: BTT, fontSize: 16, width: 28, height: 28, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}>+</button>
         </div>
-        {(cats || []).map((c, i, arr) => (
-          <div key={c.id} style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 0", borderBottom: "0.5px solid " + BR }}>
-            <div style={{ display: "flex", flexDirection: "column", gap: 1, flexShrink: 0 }}>
-              <button onClick={() => { if (i === 0) return; updCats(p => { const a = [...p]; [a[i - 1], a[i]] = [a[i], a[i - 1]]; return a; }); }} style={{ background: "none", border: "none", cursor: i === 0 ? "default" : "pointer", color: i === 0 ? BR : TX3, fontSize: 11, padding: "1px 4px", lineHeight: 1 }}>▲</button>
-              <button onClick={() => { if (i === arr.length - 1) return; updCats(p => { const a = [...p]; [a[i], a[i + 1]] = [a[i + 1], a[i]]; return a; }); }} style={{ background: "none", border: "none", cursor: i === arr.length - 1 ? "default" : "pointer", color: i === arr.length - 1 ? BR : TX3, fontSize: 11, padding: "1px 4px", lineHeight: 1 }}>▼</button>
-            </div>
+        {(cats || []).map((c, i) => (
+          <div
+            key={c.id}
+            draggable
+            onDragStart={() => setDragIdx(i)}
+            onDragOver={e => { e.preventDefault(); setDragOverIdx(i); }}
+            onDrop={() => {
+              if (dragIdx === null || dragIdx === i) { setDragIdx(null); setDragOverIdx(null); return; }
+              updCats(p => { const a = [...p]; const [moved] = a.splice(dragIdx, 1); a.splice(i, 0, moved); return a; });
+              setDragIdx(null); setDragOverIdx(null);
+            }}
+            onDragEnd={() => { setDragIdx(null); setDragOverIdx(null); }}
+            style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 0", borderBottom: "0.5px solid " + BR, opacity: dragIdx === i ? 0.4 : 1, background: dragOverIdx === i && dragIdx !== i ? SF2 : "transparent", borderRadius: 6, transition: "background 0.1s" }}
+          >
+            <span style={{ fontSize: 16, color: TX3, cursor: "grab", padding: "0 2px", flexShrink: 0, userSelect: "none" }}>⠿</span>
             <span style={{ fontSize: 20, width: 28, textAlign: "center", flexShrink: 0 }}>{c.icon}</span>
             <p style={{ flex: 1, fontSize: 13, color: TX, margin: 0 }}>{c.label}</p>
             <button onClick={() => { setEditCat(c); setEditCatFrm({ label: c.label, icon: c.icon }); setEditCatCustomIco(""); }} style={{ background: "none", border: "none", cursor: "pointer", color: AC, fontSize: 15, padding: "2px 6px" }}>✎</button>
