@@ -14,7 +14,7 @@ import Dashboard from "./pages/Dashboard.jsx";
 import Dettes from "./pages/Dettes.jsx";
 import Projets from "./pages/Projets.jsx";
 import Recurrents from "./pages/Recurrents.jsx";
-import Historique from "./pages/Historique.jsx";
+import Analyse from "./pages/Analyse.jsx";
 import Parametres from "./pages/Parametres.jsx";
 
 const initTx=[];
@@ -337,9 +337,9 @@ export default function App() {
             {...styles}
           />
         )}
-        {view === "historique" && (
-          <Historique
-            txs={txs} cats={cats} filtTx={filtTx} months={months}
+        {view === "analyse" && (
+          <Analyse
+            cats={cats} filtTx={filtTx} histItems={histItems} months={months}
             filCat={filCat} selMo={selMo}
             setFilCat={setFilCat} setSelMo={setSelMo}
             startETx={startETx}
@@ -364,7 +364,7 @@ export default function App() {
           { id: "dettes",      icon: "📊", label: "Dettes"     },
           { id: "projets",     icon: "🎯", label: "Projets"    },
           { id: "recurrents",  icon: "↻",  label: "Recurrent"  },
-          { id: "historique",  icon: "☰",  label: "Historique" },
+          { id: "analyse",     icon: "☰",  label: "Analyse" },
           { id: "parametres",  icon: "⚙",  label: "Params",    dot: !!user },
         ].map(n => (
           <button key={n.id} style={navBtn(view === n.id)} onClick={() => navigate(n.id)}>
