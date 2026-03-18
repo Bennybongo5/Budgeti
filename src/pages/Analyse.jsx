@@ -174,10 +174,10 @@ export default function Analyse({
             <p style={{ fontSize: 13, color: TX2, margin: "0 0 14px", padding: "8px 12px", background: "rgba(90,160,60,0.08)", border: "1px solid rgba(90,160,60,0.2)", borderRadius: 8 }}>
               Revenu total : <strong style={{ color: GN }}>{fmt(revTotal)}</strong>
             </p>
-            <PieChart histItems={histItems} mo={chartMo} cats={cats} />
-            <p style={{ fontSize: 13, color: TX2, margin: "14px 0 0", padding: "8px 12px", background: "rgba(200,80,80,0.08)", border: "1px solid rgba(200,80,80,0.2)", borderRadius: 8 }}>
+            <p style={{ fontSize: 13, color: TX2, margin: "0 0 14px", padding: "8px 12px", background: "rgba(200,80,80,0.08)", border: "1px solid rgba(200,80,80,0.2)", borderRadius: 8 }}>
               Dépense totale : <strong style={{ color: RD }}>{fmt(depTotal)}</strong>
             </p>
+            <PieChart histItems={histItems} mo={chartMo} cats={cats} />
             <button style={{ width: "100%", marginTop: 16, padding: "11px", background: BT, border: "1px solid " + BTB, borderRadius: 10, color: BTT, fontSize: 13, fontWeight: 500, cursor: "pointer" }} onClick={() => setChartMo(null)}>Fermer</button>
           </Modal>
         );
