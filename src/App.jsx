@@ -364,7 +364,7 @@ export default function App() {
           { id: "dettes",      icon: "📊", label: "Dettes"     },
           { id: "projets",     icon: "🎯", label: "Projets"    },
           { id: "recurrents",  icon: "↻",  label: "Recurrent"  },
-          { id: "analyse",     icon: "☰",  label: "Analyse" },
+          { id: "analyse",     icon: "📈", label: "Analyse" },
           { id: "parametres",  icon: "⚙",  label: "Params",    dot: !!user },
         ].map(n => (
           <button key={n.id} style={navBtn(view === n.id)} onClick={() => navigate(n.id)}>
