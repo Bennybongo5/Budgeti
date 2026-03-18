@@ -50,7 +50,7 @@ function StatModal({ title, items, emptyMsg, onClose, trow, cats }) {
 export default function Dashboard({
   paie, paieOpen, paieM, paieIdx, txs, cats, periodes, paies,
   recs, rrecs, dettes, projets,
-  totArgentRecu, totDep, totRR, totRec, totDettesMois, totProjetsMois, solde, dbc, maxD,
+  totPaieMois, totArgentRecu, totDep, totRR, totRec, totDettesMois, totProjetsMois, solde, dbc, maxD,
   setPaieOpen, updPaie, updPaieM, updTxs, setPaieIdx, setTxForm, setShowTx, navigate, startETx,
   inp, inpSm, card, trow, ico, fbtn,
 }) {
@@ -160,7 +160,7 @@ export default function Dashboard({
 
       <p style={{ fontSize: 13, fontWeight: 500, color: TX2, margin: "0 0 8px" }}>Vue mensuelle</p>
       <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
-        {(() => { const totPaie = txs.filter(x => x.type === "revenu" && x.desc === "Paie" && x.date.startsWith(curMo)).reduce((s, x) => s + x.amount, 0); return <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("paie")}><StatBox label="Paies" value={"+" + fmt(totPaie)} color={GN} /></div>; })()}
+        <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("paie")}><StatBox label="Paies" value={"+" + fmt(totPaieMois)} color={GN} /></div>
         <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("depenses")}><StatBox label="Depenses" value={"-" + fmt(totDep)} color={RD} /></div>
       </div>
       <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>

@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect, useRef } from "react";
 import { DEFAULT_CATS, ICONS_CAT, BG, SF, SF2, BR, BR2, TX, TX2, TX3, BT, BTB, BTT, NS } from "./constants.js";
 import { storage } from "./utils/storage.js";
 import { today, ymd, ld, addD } from "./utils/dates.js";
-import { getPaies, getFinD, calcAutoInPeriod, calcManuelsInPeriod } from "./utils/calculs.js";
+import { getPaies, getFinD, calcAutoInPeriod, calcManuelsInPeriod, calcProportionalMonth } from "./utils/calculs.js";
 import { onAuthStateChanged, getRedirectResult } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { auth, db } from "./firebase.js";
@@ -203,14 +203,15 @@ export default function App() {
   const months = useMemo(() => { const s = new Set(txs.map(x => x.date.slice(0, 7))); dettes.forEach(d => d.paiements.forEach(p => s.add(p.date.slice(0, 7)))); projets.forEach(p => p.versements.forEach(v => s.add(v.date.slice(0, 7)))); return [...s].sort((a, b) => b.localeCompare(a)); }, [txs, dettes, projets]);
   const histItems = useMemo(() => { const curMoStr = curY + "-" + String(curM).padStart(2, "0"); const moSet = new Set([...months, curMoStr]); const items = [...txs]; moSet.forEach(mo => { const [y, m] = mo.split("-").map(Number); const lastD = ld(y, m); recs.forEach(r => { const j = r.jour === "paie" ? 1 : r.jour === "fin" ? lastD : Math.min(r.jour, lastD); items.push({ id: "rc-" + r.id + "-" + mo, type: "depense", desc: r.desc, amount: r.amount, cat: r.cat, date: ymd(y, m, j), source: "rec" }); }); rrecs.forEach(r => { const j = Math.min(r.jour, lastD); items.push({ id: "rr-" + r.id + "-" + mo, type: "revenu", desc: r.desc, amount: r.amount, date: ymd(y, m, j), source: "rr" }); }); dettes.forEach(d => { (d.paiementsAuto || []).filter(pa => +pa.montant > 0).forEach(pa => { const j = pa.jour === "paie" ? 1 : pa.jour === "fin" ? lastD : Math.min(+pa.jour || 1, lastD); items.push({ id: "dp-" + pa.id + "-" + mo, type: "depense", desc: d.nom, amount: +pa.montant, date: ymd(y, m, j), source: "dette" }); }); }); projets.forEach(p => { (p.paiementsAuto || []).filter(pa => +pa.montant > 0).forEach(pa => { const j = pa.jour === "paie" ? 1 : pa.jour === "fin" ? lastD : Math.min(+pa.jour || 1, lastD); items.push({ id: "pp-" + pa.id + "-" + mo, type: "depense", desc: p.nom, amount: +pa.montant, date: ymd(y, m, j), source: "projet", icon: p.icon }); }); }); }); dettes.forEach(d => d.paiements.forEach(p => items.push({ id: "dm-" + p.id, type: "depense", desc: d.nom, amount: p.montant, date: p.date, source: "dette" }))); projets.forEach(p => p.versements.forEach(v => items.push({ id: "pm-" + v.id, type: "depense", desc: p.nom, amount: v.montant, date: v.date, source: "projet", icon: p.icon }))); return items.sort((a, b) => b.date.localeCompare(a.date)); }, [txs, recs, rrecs, dettes, projets, months, curY, curM]);
   const filtTx = useMemo(() => histItems.filter(x => (selMo === "tout" || x.date.startsWith(selMo)) && (filCat === "tout" || x.cat === filCat || (filCat === "revenu" && x.type === "revenu") || (filCat === "paie" && x.desc === "Paie") || (filCat === "recurrents" && (x.source === "rec" || x.source === "rr")) || (filCat === "dettes" && x.source === "dette") || (filCat === "projets" && x.source === "projet"))), [histItems, selMo, filCat]);
-  const totRec = useMemo(() => recs.reduce((s, r) => s + r.amount, 0), [recs]);
-  const totRR = useMemo(() => rrecs.reduce((s, r) => s + r.amount, 0), [rrecs]);
-  const totRev = useMemo(() => txs.filter(x => x.type === "revenu" && x.date.startsWith(curY + "-" + String(curM).padStart(2, "0"))).reduce((s, x) => s + x.amount, 0), [txs, curY, curM]);
+  const propMois = useMemo(() => calcProportionalMonth(paie, mStart, mEnd, paieM, recs, rrecs, dettes, projets), [paie, mStart, mEnd, paieM, recs, rrecs, dettes, projets]);
+  const totPaieMois = propMois.totPaie;
+  const totRec = propMois.totRec;
+  const totRR = propMois.totRR;
+  const totDettesMois = propMois.totDette;
+  const totProjetsMois = propMois.totProjet;
   const totArgentRecu = useMemo(() => txs.filter(x => x.type === "revenu" && x.desc !== "Paie" && x.date.startsWith(curY + "-" + String(curM).padStart(2, "0"))).reduce((s, x) => s + x.amount, 0), [txs, curY, curM]);
   const totDep = useMemo(() => txs.filter(x => x.type === "depense").reduce((s, x) => s + x.amount, 0), [txs]);
-  const totDettesMois = useMemo(() => calcAutoInPeriod(dettes, mStart, addD(mEnd, 1)) + calcManuelsInPeriod(dettes, mStart, addD(mEnd, 1), "paiements"), [dettes, mStart, mEnd]);
-  const totProjetsMois = useMemo(() => calcAutoInPeriod(projets, mStart, addD(mEnd, 1)) + calcManuelsInPeriod(projets, mStart, addD(mEnd, 1), "versements"), [projets, mStart, mEnd]);
-  const solde = totRev - totDep - totDettesMois - totProjetsMois;
+  const solde = totPaieMois + totArgentRecu + totRR - totDep - totRec - totDettesMois - totProjetsMois;
   const dbc = useMemo(() => { const m = {}; txs.filter(x => x.type === "depense").forEach(x => { m[x.cat] = (m[x.cat] || 0) + x.amount; }); return m; }, [txs]);
   const maxD = Math.max(...Object.values(dbc), 1);
   const periodes = useMemo(() => {
@@ -295,7 +296,7 @@ export default function App() {
             paie={paie} paieOpen={paieOpen} paieM={paieM} paieIdx={paieIdx}
             txs={txs} cats={cats} periodes={periodes} paies={paies}
             recs={recs} rrecs={rrecs} dettes={dettes} projets={projets}
-            totRev={totRev} totArgentRecu={totArgentRecu} totDep={totDep} totRR={totRR} totRec={totRec}
+            totPaieMois={totPaieMois} totArgentRecu={totArgentRecu} totDep={totDep} totRR={totRR} totRec={totRec}
             totDettesMois={totDettesMois} totProjetsMois={totProjetsMois} solde={solde}
             dbc={dbc} maxD={maxD}
             setPaieOpen={setPaieOpen} updPaie={updPaie} updPaieM={updPaieM}
