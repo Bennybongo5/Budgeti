@@ -159,6 +159,9 @@ export default function Dashboard({
 
       <p style={{ fontSize: 13, fontWeight: 500, color: TX2, margin: "0 0 8px" }}>Vue mensuelle</p>
       <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
+        {(() => { const totPaie = txs.filter(x => x.type === "revenu" && x.desc === "Paie" && x.date.startsWith(curMo)).reduce((s, x) => s + x.amount, 0); return <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("paie")}><StatBox label="Paie" value={"+" + fmt(totPaie)} color={GN} /></div>; })()}
+      </div>
+      <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
         <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("argentRecu")}><StatBox label="Argent recu" value={"+" + fmt(totArgentRecu)} color={GN} /></div>
         <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("depenses")}><StatBox label="Depenses" value={fmt(totDep)} color={RD} /></div>
       </div>
@@ -203,6 +206,7 @@ export default function Dashboard({
         );
       })()}
 
+      {statModal === "paie" && <StatModal title="Paies ce mois" items={txs.filter(x => x.type === "revenu" && x.desc === "Paie" && x.date.startsWith(curMo)).sort((a, b) => b.date.localeCompare(a.date)).map(x => ({ key: x.id, label: "Paie", sub: fd(x.date), montant: x.amount, clr: GN, pfx: "+" }))} emptyMsg="Aucune paie ce mois." onClose={() => setStatModal(null)} trow={trow} />}
       {statModal === "argentRecu" && <StatModal title="Argent recu ce mois" items={txs.filter(x => x.type === "revenu" && x.desc !== "Paie" && x.date.startsWith(curMo)).sort((a, b) => b.date.localeCompare(a.date)).map(x => ({ key: x.id, label: x.desc, sub: fd(x.date), montant: x.amount, clr: GN, pfx: "+" }))} emptyMsg="Aucun argent recu ce mois." onClose={() => setStatModal(null)} trow={trow} />}
       {statModal === "depenses" && <StatModal title="Depenses ce mois" items={txs.filter(x => x.type === "depense" && x.date.startsWith(curMo)).sort((a, b) => b.date.localeCompare(a.date)).map(x => ({ key: x.id, label: x.desc, sub: fd(x.date), montant: x.amount, clr: RD, pfx: "-", catId: x.cat }))} emptyMsg="Aucune depense ce mois." onClose={() => setStatModal(null)} trow={trow} cats={cats} />}
       {statModal === "rrecs" && <StatModal title="Autres revenus" items={rrecs.map(r => ({ key: r.id, label: r.desc, sub: "Le " + r.jour + " de chaque mois", montant: r.amount, clr: GN, pfx: "+" }))} emptyMsg="Aucun autre revenu." onClose={() => setStatModal(null)} trow={trow} />}
