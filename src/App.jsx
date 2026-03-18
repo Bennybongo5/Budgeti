@@ -210,9 +210,9 @@ export default function App() {
   const totDettesMois = propMois.totDette;
   const totProjetsMois = propMois.totProjet;
   const totArgentRecu = useMemo(() => txs.filter(x => x.type === "revenu" && x.desc !== "Paie" && x.date.startsWith(curY + "-" + String(curM).padStart(2, "0"))).reduce((s, x) => s + x.amount, 0), [txs, curY, curM]);
-  const totDep = useMemo(() => txs.filter(x => x.type === "depense").reduce((s, x) => s + x.amount, 0), [txs]);
+  const totDep = useMemo(() => txs.filter(x => x.type === "depense" && x.date.startsWith(curY + "-" + String(curM).padStart(2, "0"))).reduce((s, x) => s + x.amount, 0), [txs, curY, curM]);
   const solde = totPaieMois + totArgentRecu + totRR - totDep - totRec - totDettesMois - totProjetsMois;
-  const dbc = useMemo(() => { const m = {}; txs.filter(x => x.type === "depense").forEach(x => { m[x.cat] = (m[x.cat] || 0) + x.amount; }); return m; }, [txs]);
+  const dbc = useMemo(() => { const m = {}; txs.filter(x => x.type === "depense" && x.date.startsWith(curY + "-" + String(curM).padStart(2, "0"))).forEach(x => { m[x.cat] = (m[x.cat] || 0) + x.amount; }); return m; }, [txs, curY, curM]);
   const maxD = Math.max(...Object.values(dbc), 1);
   const periodes = useMemo(() => {
     if (!paies.length) return [];
