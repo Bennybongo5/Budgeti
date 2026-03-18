@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
 import { SF, SF2, BR, BR2, TX, TX2, TX3, GN, RD, BT, BTB, BTT } from "../constants.js";
 import { fmt } from "../constants.js";
+import { ymd, ld } from "../utils/dates.js";
+import { calcProportionalMonth } from "../utils/calculs.js";
 import TxRow from "../components/TxRow.jsx";
 import Modal from "../components/Modal.jsx";
 
@@ -72,15 +74,20 @@ function PieChart({ histItems, mo, cats }) {
   );
 }
 
-function BarChart({ histItems, months, onClickMo }) {
+function BarChart({ histItems, months, onClickMo, txs, paie, paieM, recs, rrecs, dettes, projets }) {
   const data = useMemo(() => {
     return [...months].reverse().slice(0, 12).reverse().map(mo => {
-      const items = histItems.filter(x => x.date.startsWith(mo) && !x.source);
-      const rev = items.filter(x => x.type === "revenu").reduce((s, x) => s + x.amount, 0);
-      const dep = items.filter(x => x.type === "depense").reduce((s, x) => s + x.amount, 0);
+      const [my, mm] = mo.split("-").map(Number);
+      const moStart = ymd(my, mm, 1);
+      const moEnd = ymd(my, mm, ld(my, mm));
+      const prop = calcProportionalMonth(paie, moStart, moEnd, paieM, recs, rrecs, dettes, projets);
+      const totArgentRecu = txs.filter(x => x.type === "revenu" && x.desc !== "Paie" && x.date.startsWith(mo)).reduce((s, x) => s + x.amount, 0);
+      const totDep = txs.filter(x => x.type === "depense" && x.date.startsWith(mo)).reduce((s, x) => s + x.amount, 0);
+      const rev = prop.totPaie + prop.totRR + totArgentRecu;
+      const dep = totDep + prop.totRec + prop.totDette + prop.totProjet;
       return { mo, rev, dep, solde: rev - dep };
     });
-  }, [histItems, months]);
+  }, [months, txs, paie, paieM, recs, rrecs, dettes, projets]);
 
   if (data.length === 0) return (
     <p style={{ fontSize: 13, color: TX3, textAlign: "center", padding: "20px 0" }}>Aucune donnée disponible.</p>
@@ -139,6 +146,7 @@ function BarChart({ histItems, months, onClickMo }) {
 export default function Analyse({
   cats, filtTx, histItems, months, filCat, selMo,
   setFilCat, setSelMo, startETx,
+  txs, paie, paieM, recs, rrecs, dettes, projets,
   trow, ico, chip, card,
 }) {
   const [chartMo, setChartMo] = useState(null);
@@ -150,7 +158,7 @@ export default function Analyse({
       <div style={card}>
         <p style={{ fontSize: 13, fontWeight: 500, color: TX2, margin: "0 0 6px" }}>Revenus vs Dépenses par mois</p>
         <p style={{ fontSize: 11, color: TX3, margin: "0 0 12px" }}>Appuie sur un mois pour voir le détail des dépenses.</p>
-        <BarChart histItems={histItems} months={months} onClickMo={mo => setChartMo(mo)} />
+        <BarChart histItems={histItems} months={months} onClickMo={mo => setChartMo(mo)} txs={txs} paie={paie} paieM={paieM} recs={recs} rrecs={rrecs} dettes={dettes} projets={projets} />
       </div>
 
       {chartMo && (
