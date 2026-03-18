@@ -23,6 +23,7 @@ export default function Parametres({ user, cats, inp, card, updTxs, updRecs, upd
   const [newCatLbl, setNewCatLbl] = useState("");
   const [newCatIco, setNewCatIco] = useState("📦");
   const [newCatCustomIco, setNewCatCustomIco] = useState("");
+  const [reorderMode, setReorderMode] = useState(false);
   const [dragIdx, setDragIdx] = useState(null);
   const [dragOverIdx, setDragOverIdx] = useState(null);
   const listRef = useRef(null);
@@ -202,33 +203,38 @@ const handleSignOut = async () => {
       <div style={card}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
           <p style={{ fontSize: 13, fontWeight: 500, color: TX2, margin: 0 }}>Categories</p>
-          <button onClick={() => { setNewCatLbl(""); setNewCatIco("📦"); setNewCatCustomIco(""); setShowAddCat(true); }} style={{ background: BT, border: "1px solid " + BTB, borderRadius: 8, color: BTT, fontSize: 16, width: 28, height: 28, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}>+</button>
+          <div style={{ display: "flex", gap: 6 }}>
+            <button onClick={() => { setReorderMode(r => !r); setDragIdx(null); setDragOverIdx(null); }} style={{ background: reorderMode ? BT : "none", border: "1px solid " + (reorderMode ? BTB : BR), borderRadius: 8, color: reorderMode ? BTT : TX3, fontSize: 11, padding: "4px 8px", cursor: "pointer", fontWeight: reorderMode ? 600 : 400 }}>{reorderMode ? "Terminer" : "Modifier l'ordre"}</button>
+            {!reorderMode && <button onClick={() => { setNewCatLbl(""); setNewCatIco("📦"); setNewCatCustomIco(""); setShowAddCat(true); }} style={{ background: BT, border: "1px solid " + BTB, borderRadius: 8, color: BTT, fontSize: 16, width: 28, height: 28, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}>+</button>}
+          </div>
         </div>
         <div ref={listRef}>
           {(cats || []).map((c, i) => (
             <div
               key={c.id}
               data-catrow={i}
-              draggable
-              onDragStart={() => { dragState.current.from = i; setDragIdx(i); }}
-              onDragOver={e => { e.preventDefault(); dragState.current.over = i; setDragOverIdx(i); }}
-              onDrop={() => {
+              draggable={reorderMode}
+              onDragStart={reorderMode ? () => { dragState.current.from = i; setDragIdx(i); } : undefined}
+              onDragOver={reorderMode ? e => { e.preventDefault(); dragState.current.over = i; setDragOverIdx(i); } : undefined}
+              onDrop={reorderMode ? () => {
                 const { from, over } = dragState.current;
                 if (from === null || from === over) { setDragIdx(null); setDragOverIdx(null); return; }
                 updCats(p => { const a = [...p]; const [m] = a.splice(from, 1); a.splice(over, 0, m); return a; });
                 dragState.current = { from: null, over: null, moveHandler: null };
                 setDragIdx(null); setDragOverIdx(null);
-              }}
-              onDragEnd={() => { setDragIdx(null); setDragOverIdx(null); }}
-              onTouchStart={onTouchStart(i)}
-              onTouchEnd={onTouchEnd}
+              } : undefined}
+              onDragEnd={reorderMode ? () => { setDragIdx(null); setDragOverIdx(null); } : undefined}
+              onTouchStart={reorderMode ? onTouchStart(i) : undefined}
+              onTouchEnd={reorderMode ? onTouchEnd : undefined}
               style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 0", borderBottom: "0.5px solid " + BR, opacity: dragIdx === i ? 0.4 : 1, background: dragOverIdx === i && dragIdx !== i ? SF2 : "transparent", borderRadius: 6, transition: "background 0.1s" }}
             >
-              <span style={{ fontSize: 16, color: TX3, cursor: "grab", padding: "0 2px", flexShrink: 0, userSelect: "none", touchAction: "none" }}>⠿</span>
+              {reorderMode
+                ? <span style={{ fontSize: 16, color: TX3, cursor: "grab", padding: "0 2px", flexShrink: 0, userSelect: "none", touchAction: "none" }}>⠿</span>
+                : <span style={{ width: 22, flexShrink: 0 }} />}
               <span style={{ fontSize: 20, width: 28, textAlign: "center", flexShrink: 0 }}>{c.icon}</span>
               <p style={{ flex: 1, fontSize: 13, color: TX, margin: 0 }}>{c.label}</p>
-              <button onClick={() => { setEditCat(c); setEditCatFrm({ label: c.label, icon: c.icon }); setEditCatCustomIco(""); }} style={{ background: "none", border: "none", cursor: "pointer", color: AC, fontSize: 15, padding: "2px 6px" }}>✎</button>
-              <button onClick={() => setDelCat(c)} style={{ background: "none", border: "none", cursor: "pointer", color: RD, fontSize: 15, padding: "2px 6px" }}>🗑</button>
+              {!reorderMode && <button onClick={() => { setEditCat(c); setEditCatFrm({ label: c.label, icon: c.icon }); setEditCatCustomIco(""); }} style={{ background: "none", border: "none", cursor: "pointer", color: AC, fontSize: 15, padding: "2px 6px" }}>✎</button>}
+              {!reorderMode && <button onClick={() => setDelCat(c)} style={{ background: "none", border: "none", cursor: "pointer", color: RD, fontSize: 15, padding: "2px 6px" }}>🗑</button>}
             </div>
           ))}
         </div>
