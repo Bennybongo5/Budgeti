@@ -17,6 +17,7 @@ export default function Parametres({ user, cats, inp, card, updTxs, updRecs, upd
   const [clearStep, setClearStep] = useState(1);
   const [editCat, setEditCat] = useState(null);
   const [editCatFrm, setEditCatFrm] = useState({ label: "", icon: "" });
+  const [editCatCustomIco, setEditCatCustomIco] = useState("");
   const [delCat, setDelCat] = useState(null);
 
   const errMsg = code => ({
@@ -156,7 +157,7 @@ const handleSignOut = async () => {
           <div key={c.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: "0.5px solid " + BR }}>
             <span style={{ fontSize: 20, width: 28, textAlign: "center", flexShrink: 0 }}>{c.icon}</span>
             <p style={{ flex: 1, fontSize: 13, color: TX, margin: 0 }}>{c.label}</p>
-            <button onClick={() => { setEditCat(c); setEditCatFrm({ label: c.label, icon: c.icon }); }} style={{ background: "none", border: "none", cursor: "pointer", color: AC, fontSize: 15, padding: "2px 6px" }}>✎</button>
+            <button onClick={() => { setEditCat(c); setEditCatFrm({ label: c.label, icon: c.icon }); setEditCatCustomIco(""); }} style={{ background: "none", border: "none", cursor: "pointer", color: AC, fontSize: 15, padding: "2px 6px" }}>✎</button>
             <button onClick={() => setDelCat(c)} style={{ background: "none", border: "none", cursor: "pointer", color: RD, fontSize: 15, padding: "2px 6px" }}>🗑</button>
           </div>
         ))}
@@ -181,17 +182,17 @@ const handleSignOut = async () => {
             <label style={{ fontSize: 12, color: TX2, marginBottom: 6, display: "block" }}>Icone</label>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 10 }}>
               {ICONS_CAT.map(ic => (
-                <button key={ic} type="button" onClick={() => setEditCatFrm(f => ({ ...f, icon: ic }))} style={{ fontSize: 18, padding: "5px 7px", background: editCatFrm.icon === ic ? BT : SF, border: "1px solid " + (editCatFrm.icon === ic ? BTB : BR), borderRadius: 7, cursor: "pointer" }}>{ic}</button>
+                <button key={ic} type="button" onClick={() => { setEditCatFrm(f => ({ ...f, icon: ic })); setEditCatCustomIco(""); }} style={{ fontSize: 18, padding: "5px 7px", background: editCatFrm.icon === ic && !editCatCustomIco ? BT : SF, border: "1px solid " + (editCatFrm.icon === ic && !editCatCustomIco ? BTB : BR), borderRadius: 7, cursor: "pointer" }}>{ic}</button>
               ))}
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <span style={{ fontSize: 12, color: TX3, whiteSpace: "nowrap" }}>Ou coller un emoji :</span>
-              <input style={{ width: 54, padding: "6px", background: SF, border: "1px solid " + BR2, borderRadius: 8, fontSize: 22, textAlign: "center", boxSizing: "border-box" }} value={editCatFrm.icon} onChange={e => setEditCatFrm(f => ({ ...f, icon: e.target.value }))} placeholder="😀" />
+              <input style={{ width: 54, padding: "6px", background: SF, border: "1px solid " + (editCatCustomIco ? BTB : BR2), borderRadius: 8, fontSize: 22, textAlign: "center", boxSizing: "border-box" }} value={editCatCustomIco} onChange={e => { setEditCatCustomIco(e.target.value); if (e.target.value) setEditCatFrm(f => ({ ...f, icon: e.target.value })); }} placeholder="😀" />
             </div>
           </div>
           <div style={{ display: "flex", gap: 8 }}>
             <button style={{ flex: 1, padding: "11px", background: BT, border: "1px solid " + BTB, borderRadius: 10, color: BTT, fontSize: 13, fontWeight: 500, cursor: "pointer" }} onClick={() => { if (!editCatFrm.label.trim()) return; updCats(p => p.map(c => c.id === editCat.id ? { ...c, label: editCatFrm.label.trim(), icon: editCatFrm.icon } : c)); setEditCat(null); }}>Enregistrer</button>
-            <button style={{ padding: "11px 14px", background: SF2, border: "1px solid " + BR, borderRadius: 10, color: TX2, fontSize: 13, cursor: "pointer" }} onClick={() => setEditCat(null)}>Annuler</button>
+            <button style={{ padding: "11px 14px", background: SF2, border: "1px solid " + BR, borderRadius: 10, color: TX2, fontSize: 13, cursor: "pointer" }} onClick={() => { setEditCat(null); setEditCatCustomIco(""); }}>Annuler</button>
           </div>
         </Modal>
       )}

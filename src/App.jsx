@@ -34,6 +34,7 @@ export default function App() {
   const [showCat, setShowCat] = useState(false);
   const [newCatLbl, setNewCatLbl] = useState("");
   const [newCatIco, setNewCatIco] = useState("📦");
+  const [newCatCustomIco, setNewCatCustomIco] = useState("");
   const [catCb, setCatCb] = useState(null);
   const [txs, setTxs] = useState(initTx);
   const [recs, setRecs] = useState(initRec);
@@ -243,15 +244,15 @@ export default function App() {
           <div style={{ marginBottom: 12 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Nom</label><input autoFocus style={inp} value={newCatLbl} onChange={e => setNewCatLbl(e.target.value)} onKeyDown={e => e.key === "Enter" && addCat()} /></div>
           <div style={{ marginBottom: 14 }}>
             <label style={{ fontSize: 12, color: TX2, marginBottom: 6, display: "block" }}>Icone</label>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 10 }}>{ICONS_CAT.map(ic => <button key={ic} type="button" onClick={() => setNewCatIco(ic)} style={{ fontSize: 18, padding: "5px 7px", background: newCatIco === ic ? BT : SF, border: "1px solid " + (newCatIco === ic ? BTB : BR), borderRadius: 7, cursor: "pointer" }}>{ic}</button>)}</div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 10 }}>{ICONS_CAT.map(ic => <button key={ic} type="button" onClick={() => { setNewCatIco(ic); setNewCatCustomIco(""); }} style={{ fontSize: 18, padding: "5px 7px", background: newCatIco === ic && !newCatCustomIco ? BT : SF, border: "1px solid " + (newCatIco === ic && !newCatCustomIco ? BTB : BR), borderRadius: 7, cursor: "pointer" }}>{ic}</button>)}</div>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <span style={{ fontSize: 12, color: TX3, whiteSpace: "nowrap" }}>Ou coller un emoji :</span>
-              <input style={{ width: 54, padding: "6px", background: SF, border: "1px solid " + BR2, borderRadius: 8, fontSize: 22, textAlign: "center", boxSizing: "border-box" }} value={newCatIco} onChange={e => setNewCatIco(e.target.value)} placeholder="😀" />
+              <input style={{ width: 54, padding: "6px", background: SF, border: "1px solid " + (newCatCustomIco ? BTB : BR2), borderRadius: 8, fontSize: 22, textAlign: "center", boxSizing: "border-box" }} value={newCatCustomIco} onChange={e => { setNewCatCustomIco(e.target.value); if (e.target.value) setNewCatIco(e.target.value); }} placeholder="😀" />
             </div>
           </div>
           <div style={{ display: "flex", gap: 8 }}>
             <button style={{ flex: 1, padding: "12px", background: BT, border: "1px solid " + BTB, borderRadius: 12, color: BTT, fontSize: 14, fontWeight: 500, cursor: "pointer" }} onClick={addCat}>Creer</button>
-            <button style={{ width: 90, padding: "12px", background: SF2, border: "1px solid " + BTB, borderRadius: 12, color: TX2, fontSize: 14, cursor: "pointer" }} onClick={() => { setShowCat(false); setNewCatLbl(""); setNewCatIco("📦"); setCatCb(null); }}>Annuler</button>
+            <button style={{ width: 90, padding: "12px", background: SF2, border: "1px solid " + BTB, borderRadius: 12, color: TX2, fontSize: 14, cursor: "pointer" }} onClick={() => { setShowCat(false); setNewCatLbl(""); setNewCatIco("📦"); setNewCatCustomIco(""); setCatCb(null); }}>Annuler</button>
           </div>
         </Modal>
       )}
