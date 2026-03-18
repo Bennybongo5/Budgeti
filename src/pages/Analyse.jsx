@@ -168,12 +168,16 @@ export default function Analyse({
         const prop = calcProportionalMonth(paie, moStart, moEnd, paieM, recs, rrecs, dettes, projets);
         const totArgentRecu = txs.filter(x => x.type === "revenu" && x.desc !== "Paie" && x.date.startsWith(chartMo)).reduce((s, x) => s + x.amount, 0);
         const revTotal = prop.totPaie + prop.totRR + totArgentRecu;
+        const depTotal = txs.filter(x => x.type === "depense" && x.date.startsWith(chartMo)).reduce((s, x) => s + x.amount, 0) + prop.totRec + prop.totDette + prop.totProjet;
         return (
           <Modal title={"Dépenses — " + moLabel(chartMo)}>
             <p style={{ fontSize: 13, color: TX2, margin: "0 0 14px", padding: "8px 12px", background: "rgba(90,160,60,0.08)", border: "1px solid rgba(90,160,60,0.2)", borderRadius: 8 }}>
               Revenu total : <strong style={{ color: GN }}>{fmt(revTotal)}</strong>
             </p>
             <PieChart histItems={histItems} mo={chartMo} cats={cats} />
+            <p style={{ fontSize: 13, color: TX2, margin: "14px 0 0", padding: "8px 12px", background: "rgba(200,80,80,0.08)", border: "1px solid rgba(200,80,80,0.2)", borderRadius: 8 }}>
+              Dépense totale : <strong style={{ color: RD }}>{fmt(depTotal)}</strong>
+            </p>
             <button style={{ width: "100%", marginTop: 16, padding: "11px", background: BT, border: "1px solid " + BTB, borderRadius: 10, color: BTT, fontSize: 13, fontWeight: 500, cursor: "pointer" }} onClick={() => setChartMo(null)}>Fermer</button>
           </Modal>
         );
