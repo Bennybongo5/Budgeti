@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { FREQS, JOURS_SEM, JOURS_MOIS, PAR_PAIE_ROWS, SF, SF2, BR, BR2, TX, TX2, TX3, BT, BTB, BTT, AC, RD, GN } from "../constants.js";
 import { today, fmt, fd, ymd, ld } from "../utils/dates.js";
+import { getPaieBreakdownForMonth } from "../utils/calculs.js";
 import Modal from "../components/Modal.jsx";
 import SaveCancel from "../components/SaveCancel.jsx";
 import StatBox from "../components/StatBox.jsx";
@@ -207,7 +208,20 @@ export default function Dashboard({
         );
       })()}
 
-      {statModal === "paie" && <StatModal title="Paies ce mois" items={txs.filter(x => x.type === "revenu" && x.desc === "Paie" && x.date.startsWith(curMo)).sort((a, b) => b.date.localeCompare(a.date)).map(x => ({ key: x.id, label: "Paie", sub: fd(x.date), montant: x.amount, clr: GN, pfx: "+" }))} emptyMsg="Aucune paie ce mois." onClose={() => setStatModal(null)} trow={trow} />}
+      {statModal === "paie" && (() => {
+        const mStart = ymd(curY, curM, 1);
+        const mEnd = ymd(curY, curM, ld(curY, curM));
+        const breakdown = getPaieBreakdownForMonth(paie, mStart, mEnd, paieM);
+        const items = breakdown.map(b => ({
+          key: b.deb,
+          label: b.ratio < 0.999 ? `Paie du ${fd(b.deb)} (${Math.round(b.ratio * 100)}%)` : `Paie du ${fd(b.deb)}`,
+          sub: b.ratio < 0.999 ? `${fd(b.deb)} – ${fd(b.fin)} · Montant complet : ${fmt(b.fullAmount)}` : `${fd(b.deb)} – ${fd(b.fin)}`,
+          montant: b.proportionalAmount,
+          clr: GN,
+          pfx: "+",
+        }));
+        return <StatModal title="Paies ce mois" items={items} emptyMsg="Aucune paie ce mois." onClose={() => setStatModal(null)} trow={trow} />;
+      })()}
       {statModal === "argentRecu" && <StatModal title="Argent recu ce mois" items={txs.filter(x => x.type === "revenu" && x.desc !== "Paie" && x.date.startsWith(curMo)).sort((a, b) => b.date.localeCompare(a.date)).map(x => ({ key: x.id, label: x.desc, sub: fd(x.date), montant: x.amount, clr: GN, pfx: "+" }))} emptyMsg="Aucun argent recu ce mois." onClose={() => setStatModal(null)} trow={trow} />}
       {statModal === "depenses" && <StatModal title="Depenses ce mois" items={txs.filter(x => x.type === "depense" && x.date.startsWith(curMo)).sort((a, b) => b.date.localeCompare(a.date)).map(x => ({ key: x.id, label: x.desc, sub: fd(x.date), montant: x.amount, clr: RD, pfx: "-", catId: x.cat }))} emptyMsg="Aucune depense ce mois." onClose={() => setStatModal(null)} trow={trow} cats={cats} />}
       {statModal === "rrecs" && <StatModal title="Autres revenus" items={rrecs.map(r => ({ key: r.id, label: r.desc, sub: "Le " + r.jour + " de chaque mois", montant: r.amount, clr: GN, pfx: "+" }))} emptyMsg="Aucun autre revenu." onClose={() => setStatModal(null)} trow={trow} />}
