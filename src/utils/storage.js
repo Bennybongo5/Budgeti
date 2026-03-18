@@ -7,5 +7,8 @@ export const storage = {
   },
   set: (key, value) => {
     try { localStorage.setItem(key, value); } catch {}
+  },
+  remove: (key) => {
+    try { localStorage.removeItem(key); } catch {}
   }
 };

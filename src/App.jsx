@@ -122,6 +122,12 @@ export default function App() {
         } catch (e) {
           console.error("Firestore sync error:", e);
         }
+      } else {
+        // Déconnexion — vider l'état et le localStorage
+        setTxs([]); setRecs([]); setRrecs([]); setDettes([]); setProjets([]);
+        setCats(DEFAULT_CATS); setPaie(initPaie); setPaieM({});
+        setDetSel(null); setPrjSel(null);
+        ["budgeti-txs","budgeti-recs","budgeti-rrecs","budgeti-dettes","budgeti-projets","budgeti-cats","paie-config","paie-montants"].forEach(k => storage.remove(k));
       }
     });
     return unsub;
