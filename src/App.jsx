@@ -194,6 +194,7 @@ export default function App() {
   const totRec = useMemo(() => recs.reduce((s, r) => s + r.amount, 0), [recs]);
   const totRR = useMemo(() => rrecs.reduce((s, r) => s + r.amount, 0), [rrecs]);
   const totRev = useMemo(() => txs.filter(x => x.type === "revenu" && x.date.startsWith(curY + "-" + String(curM).padStart(2, "0"))).reduce((s, x) => s + x.amount, 0), [txs, curY, curM]);
+  const totArgentRecu = useMemo(() => txs.filter(x => x.type === "revenu" && x.desc !== "Paie" && x.date.startsWith(curY + "-" + String(curM).padStart(2, "0"))).reduce((s, x) => s + x.amount, 0), [txs, curY, curM]);
   const totDep = useMemo(() => txs.filter(x => x.type === "depense").reduce((s, x) => s + x.amount, 0), [txs]);
   const totDettesMois = useMemo(() => calcAutoInPeriod(dettes, mStart, addD(mEnd, 1)) + calcManuelsInPeriod(dettes, mStart, addD(mEnd, 1), "paiements"), [dettes, mStart, mEnd]);
   const totProjetsMois = useMemo(() => calcAutoInPeriod(projets, mStart, addD(mEnd, 1)) + calcManuelsInPeriod(projets, mStart, addD(mEnd, 1), "versements"), [projets, mStart, mEnd]);
@@ -282,7 +283,7 @@ export default function App() {
             paie={paie} paieOpen={paieOpen} paieM={paieM} paieIdx={paieIdx}
             txs={txs} cats={cats} periodes={periodes} paies={paies}
             recs={recs} rrecs={rrecs} dettes={dettes} projets={projets}
-            totRev={totRev} totDep={totDep} totRR={totRR} totRec={totRec}
+            totRev={totRev} totArgentRecu={totArgentRecu} totDep={totDep} totRR={totRR} totRec={totRec}
             totDettesMois={totDettesMois} totProjetsMois={totProjetsMois} solde={solde}
             dbc={dbc} maxD={maxD}
             setPaieOpen={setPaieOpen} updPaie={updPaie} updPaieM={updPaieM}

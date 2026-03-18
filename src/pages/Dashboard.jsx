@@ -50,7 +50,7 @@ function StatModal({ title, items, emptyMsg, onClose, trow, cats }) {
 export default function Dashboard({
   paie, paieOpen, paieM, paieIdx, txs, cats, periodes, paies,
   recs, rrecs, dettes, projets,
-  totRev, totDep, totRR, totRec, totDettesMois, totProjetsMois, solde, dbc, maxD,
+  totArgentRecu, totDep, totRR, totRec, totDettesMois, totProjetsMois, solde, dbc, maxD,
   setPaieOpen, updPaie, updPaieM, updTxs, setPaieIdx, setTxForm, setShowTx, navigate, startETx,
   inp, inpSm, card, trow, ico, fbtn,
 }) {
@@ -159,7 +159,7 @@ export default function Dashboard({
 
       <p style={{ fontSize: 13, fontWeight: 500, color: TX2, margin: "0 0 8px" }}>Vue mensuelle</p>
       <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
-        <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("revenus")}><StatBox label="Revenus" value={fmt(totRev)} color={GN} /></div>
+        <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("argentRecu")}><StatBox label="Argent recu" value={"+" + fmt(totArgentRecu)} color={GN} /></div>
         <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("depenses")}><StatBox label="Depenses" value={fmt(totDep)} color={RD} /></div>
       </div>
       <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
@@ -203,7 +203,7 @@ export default function Dashboard({
         );
       })()}
 
-      {statModal === "revenus" && <StatModal title="Revenus ce mois" items={txs.filter(x => x.type === "revenu" && x.date.startsWith(curMo)).sort((a, b) => b.date.localeCompare(a.date)).map(x => ({ key: x.id, label: x.desc, sub: fd(x.date), montant: x.amount, clr: GN, pfx: "+" }))} emptyMsg="Aucun revenu ce mois." onClose={() => setStatModal(null)} trow={trow} />}
+      {statModal === "argentRecu" && <StatModal title="Argent recu ce mois" items={txs.filter(x => x.type === "revenu" && x.desc !== "Paie" && x.date.startsWith(curMo)).sort((a, b) => b.date.localeCompare(a.date)).map(x => ({ key: x.id, label: x.desc, sub: fd(x.date), montant: x.amount, clr: GN, pfx: "+" }))} emptyMsg="Aucun argent recu ce mois." onClose={() => setStatModal(null)} trow={trow} />}
       {statModal === "depenses" && <StatModal title="Depenses ce mois" items={txs.filter(x => x.type === "depense" && x.date.startsWith(curMo)).sort((a, b) => b.date.localeCompare(a.date)).map(x => ({ key: x.id, label: x.desc, sub: fd(x.date), montant: x.amount, clr: RD, pfx: "-", catId: x.cat }))} emptyMsg="Aucune depense ce mois." onClose={() => setStatModal(null)} trow={trow} cats={cats} />}
       {statModal === "rrecs" && <StatModal title="Autres revenus" items={rrecs.map(r => ({ key: r.id, label: r.desc, sub: "Le " + r.jour + " de chaque mois", montant: r.amount, clr: GN, pfx: "+" }))} emptyMsg="Aucun autre revenu." onClose={() => setStatModal(null)} trow={trow} />}
       {statModal === "recs" && <StatModal title="Paiements fixes" items={recs.map(r => ({ key: r.id, label: r.desc, sub: "Le " + r.jour + " de chaque mois", montant: r.amount, clr: RD, pfx: "-", catId: r.cat }))} emptyMsg="Aucun paiement fixe." onClose={() => setStatModal(null)} trow={trow} cats={cats} />}

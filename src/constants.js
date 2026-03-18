@@ -5,7 +5,7 @@ export const JOURS_SEM=["Lundi","Mardi","Mercredi","Jeudi","Vendredi"];
 export const JOURS_MOIS=[...Array.from({length:28},(_,i)=>i+1),"fin"];
 export const ICONS_CAT=["🏠","🛒","🚗","🎭","💊","📦","🐾","👗","🍔","💡","📱","🎓","💰","🏋","✈","🎮","🛁","🌿","🍷","🎵"];
 export const ICONS_PRJ=["🎯","🏖","🚗","🏠","💻","✈","🎓","💍","🎁","🏋","🎮","📷","🛋","🐾","🌿"];
-export const PAR_PAIE_ROWS=[{l:"Paie",k:"mp",c:"#4a7a4a",b:true},{l:"Autres rev.",k:"aRev",c:"#4a7a4a"},{l:"Autres rev.",k:"rrP",c:"#4a7a4a"},{l:"Paiements fixes",k:"ch",c:"#b85a4a",s:true},{l:"Depenses",k:"deps",c:"#b85a4a",s:true},{l:"Paiements dettes",k:"detP",c:"#b85a4a",s:true},{l:"Versements projets",k:"prjP",c:"#b85a4a",s:true}];
+export const PAR_PAIE_ROWS=[{l:"Paie",k:"mp",c:"#4a7a4a",b:true},{l:"Argent recu",k:"aRev",c:"#4a7a4a"},{l:"Autres rev.",k:"rrP",c:"#4a7a4a"},{l:"Paiements fixes",k:"ch",c:"#b85a4a",s:true},{l:"Depenses",k:"deps",c:"#b85a4a",s:true},{l:"Paiements dettes",k:"detP",c:"#b85a4a",s:true},{l:"Versements projets",k:"prjP",c:"#b85a4a",s:true}];
 
 // ── Colors ────────────────────────────────────────────────────────────────────
 export const BG="#fdf8e1",SF="#fffde8",SF2="#fef9d0",BR="#e8dfa0",BR2="#d4c87a";
