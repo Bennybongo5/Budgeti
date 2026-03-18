@@ -50,7 +50,7 @@ function StatModal({ title, items, emptyMsg, onClose, trow, cats }) {
 export default function Dashboard({
   paie, paieOpen, paieM, paieIdx, txs, cats, periodes, paies,
   recs, rrecs, dettes, projets,
-  totArgentRecu, totDep, totRR, totRec, totDettesMois, totProjetsMois, solde, dbc, maxD,
+  totDep, totRR, totRec, totDettesMois, totProjetsMois, solde, dbc, maxD,
   setPaieOpen, updPaie, updPaieM, updTxs, setPaieIdx, setTxForm, setShowTx, navigate, startETx,
   inp, inpSm, card, trow, ico, fbtn,
 }) {
@@ -160,18 +160,15 @@ export default function Dashboard({
       <p style={{ fontSize: 13, fontWeight: 500, color: TX2, margin: "0 0 8px" }}>Vue mensuelle</p>
       <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
         {(() => { const totPaie = txs.filter(x => x.type === "revenu" && x.desc === "Paie" && x.date.startsWith(curMo)).reduce((s, x) => s + x.amount, 0); return <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("paie")}><StatBox label="Paies" value={"+" + fmt(totPaie)} color={GN} /></div>; })()}
-        <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("argentRecu")}><StatBox label="Argent recu" value={"+" + fmt(totArgentRecu)} color={GN} /></div>
-      </div>
-      <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
-        <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("rrecs")}><StatBox label="Autres revenus" value={"+" + fmt(totRR)} color={GN} /></div>
         <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("depenses")}><StatBox label="Depenses" value={"-" + fmt(totDep)} color={RD} /></div>
       </div>
       <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
+        <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("rrecs")}><StatBox label="Autres revenus" value={"+" + fmt(totRR)} color={GN} /></div>
         <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("recs")}><StatBox label="Paiements fixes" value={"-" + fmt(totRec)} color={RD} /></div>
-        <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("dettes")}><StatBox label="Paiements dettes" value={"-" + fmt(totDettesMois)} color={RD} /></div>
       </div>
       <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
         <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("projets")}><StatBox label="Versements projets" value={"-" + fmt(totProjetsMois)} color={RD} /></div>
+        <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("dettes")}><StatBox label="Paiements dettes" value={"-" + fmt(totDettesMois)} color={RD} /></div>
       </div>
       <div style={{ display: "flex", gap: 10, marginBottom: 12 }}><StatBox label="Solde" value={fmt(solde)} color={solde >= 0 ? "#5a7a3a" : RD} /></div>
       {periodes.length > 0 && <div style={{ background: SF2, border: "1px solid " + BR2, borderRadius: 12, padding: "12px 14px", marginBottom: 12 }}><p style={{ fontSize: 13, fontWeight: 500, color: TX2, margin: "0 0 10px" }}>Par paie</p><div style={{ overflowX: "auto" }}>{buildPaieGrid()}</div></div>}
