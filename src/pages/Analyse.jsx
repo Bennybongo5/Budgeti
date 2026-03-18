@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
-import { SF, SF2, BR, BR2, TX, TX2, TX3, GN, RD } from "../constants.js";
+import { SF, SF2, BR, BR2, TX, TX2, TX3, GN, RD, BT, BTB, BTT } from "../constants.js";
 import { fmt } from "../constants.js";
 import TxRow from "../components/TxRow.jsx";
+import Modal from "../components/Modal.jsx";
 
 const shortFmt = v => {
   if (v >= 1000) return (v / 1000).toFixed(1).replace(/\.0$/, "") + "k";
@@ -71,7 +72,7 @@ function PieChart({ histItems, mo, cats }) {
   );
 }
 
-function BarChart({ histItems, months }) {
+function BarChart({ histItems, months, onClickMo }) {
   const data = useMemo(() => {
     return [...months].reverse().slice(0, 12).reverse().map(mo => {
       const items = histItems.filter(x => x.date.startsWith(mo));
@@ -106,7 +107,8 @@ function BarChart({ histItems, months }) {
           const revH = Math.max((d.rev / maxVal) * barH, d.rev > 0 ? 2 : 0);
           const depH = Math.max((d.dep / maxVal) * barH, d.dep > 0 ? 2 : 0);
           return (
-            <g key={d.mo}>
+            <g key={d.mo} onClick={() => onClickMo(d.mo)} style={{ cursor: "pointer" }}>
+              <rect x={x - 2} y={0} width={groupW - 2} height={baseY + 28} fill="transparent" />
               <rect x={x} y={baseY - revH} width={barW} height={revH} fill={GN} rx={3} opacity={0.8} />
               <rect x={x + barW + gap} y={baseY - depH} width={barW} height={depH} fill={RD} rx={3} opacity={0.8} />
               <text x={x + barW + gap / 2} y={baseY + 12} textAnchor="middle" fontSize={9} fill={TX3}>{moLabel(d.mo)}</text>
@@ -139,32 +141,24 @@ export default function Analyse({
   setFilCat, setSelMo, startETx,
   trow, ico, chip, card,
 }) {
-  const [chartMo, setChartMo] = useState("tout");
+  const [chartMo, setChartMo] = useState(null);
 
   return (
     <div>
       <p style={{ fontSize: 15, fontWeight: 500, margin: "0 0 12px", color: TX }}>Analyse</p>
 
       <div style={card}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
-          <p style={{ fontSize: 13, fontWeight: 500, color: TX2, margin: 0 }}>
-            {chartMo === "tout" ? "Revenus vs Dépenses par mois" : "Dépenses par catégorie — " + moLabel(chartMo)}
-          </p>
-          <select
-            style={{ background: SF, border: "0.5px solid " + BR2, borderRadius: 10, padding: "5px 8px", color: TX, fontSize: 11 }}
-            value={chartMo}
-            onChange={e => setChartMo(e.target.value)}
-          >
-            <option value="tout">Tous les mois</option>
-            {months.map(m => { const [y, mo] = m.split("-"); const lb = new Date(+y, +mo - 1, 1).toLocaleDateString("fr-CA", { month: "long", year: "numeric" }); return <option key={m} value={m}>{lb.charAt(0).toUpperCase() + lb.slice(1)}</option>; })}
-          </select>
-        </div>
-
-        {chartMo === "tout"
-          ? <BarChart histItems={histItems} months={months} />
-          : <PieChart histItems={histItems} mo={chartMo} cats={cats} />
-        }
+        <p style={{ fontSize: 13, fontWeight: 500, color: TX2, margin: "0 0 6px" }}>Revenus vs Dépenses par mois</p>
+        <p style={{ fontSize: 11, color: TX3, margin: "0 0 12px" }}>Appuie sur un mois pour voir le détail des dépenses.</p>
+        <BarChart histItems={histItems} months={months} onClickMo={mo => setChartMo(mo)} />
       </div>
+
+      {chartMo && (
+        <Modal title={"Dépenses — " + moLabel(chartMo)}>
+          <PieChart histItems={histItems} mo={chartMo} cats={cats} />
+          <button style={{ width: "100%", marginTop: 16, padding: "11px", background: BT, border: "1px solid " + BTB, borderRadius: 10, color: BTT, fontSize: 13, fontWeight: 500, cursor: "pointer" }} onClick={() => setChartMo(null)}>Fermer</button>
+        </Modal>
+      )}
 
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", margin: "14px 0 8px" }}>
         <p style={{ fontSize: 13, fontWeight: 500, margin: 0, color: TX }}>Transactions</p>
