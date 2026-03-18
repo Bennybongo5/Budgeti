@@ -10,7 +10,7 @@ const shortFmt = v => {
 
 const moLabel = mo => {
   const [y, m] = mo.split("-");
-  return new Date(+y, +m - 1, 1).toLocaleDateString("fr-CA", { month: "short" });
+  return new Date(+y, +m - 1, 1).toLocaleDateString("fr-CA", { month: "short" }) + " " + y;
 };
 
 function BarChart({ histItems, months }) {
@@ -32,7 +32,7 @@ function BarChart({ histItems, months }) {
   const baseY = barH + 10;
   const barW = 16;
   const gap = 4;
-  const groupW = barW * 2 + gap + 18;
+  const groupW = barW * 2 + gap + 34;
   const padL = 36;
   const svgW = padL + data.length * groupW + 10;
   const svgH = baseY + 42;
