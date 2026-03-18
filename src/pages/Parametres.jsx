@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, signInWithRedirect, GoogleAuthProvider, signOut } from "firebase/auth";
 import { auth } from "../firebase.js";
 import { DEFAULT_CATS, ICONS_CAT, SF, SF2, BR, BR2, TX, TX2, TX3, BT, BTB, BTT, AC, RD } from "../constants.js";
@@ -25,6 +25,41 @@ export default function Parametres({ user, cats, inp, card, updTxs, updRecs, upd
   const [newCatCustomIco, setNewCatCustomIco] = useState("");
   const [dragIdx, setDragIdx] = useState(null);
   const [dragOverIdx, setDragOverIdx] = useState(null);
+  const listRef = useRef(null);
+  const dragState = useRef({ from: null, over: null, moveHandler: null });
+
+  const onTouchStart = (i) => () => {
+    dragState.current.from = i;
+    setDragIdx(i);
+    const moveHandler = (e) => {
+      e.preventDefault();
+      const touch = e.touches[0];
+      const el = document.elementFromPoint(touch.clientX, touch.clientY);
+      const row = el?.closest('[data-catrow]');
+      if (row) {
+        const idx = +row.dataset.catrow;
+        if (dragState.current.over !== idx) {
+          dragState.current.over = idx;
+          setDragOverIdx(idx);
+        }
+      }
+    };
+    dragState.current.moveHandler = moveHandler;
+    listRef.current?.addEventListener('touchmove', moveHandler, { passive: false });
+  };
+
+  const onTouchEnd = () => {
+    if (dragState.current.moveHandler) {
+      listRef.current?.removeEventListener('touchmove', dragState.current.moveHandler);
+    }
+    const { from, over } = dragState.current;
+    if (from !== null && over !== null && from !== over) {
+      updCats(p => { const a = [...p]; const [m] = a.splice(from, 1); a.splice(over, 0, m); return a; });
+    }
+    dragState.current = { from: null, over: null, moveHandler: null };
+    setDragIdx(null);
+    setDragOverIdx(null);
+  };
 
   const addCat = () => {
     if (!newCatLbl.trim()) return;
@@ -169,27 +204,34 @@ const handleSignOut = async () => {
           <p style={{ fontSize: 13, fontWeight: 500, color: TX2, margin: 0 }}>Categories</p>
           <button onClick={() => { setNewCatLbl(""); setNewCatIco("📦"); setNewCatCustomIco(""); setShowAddCat(true); }} style={{ background: BT, border: "1px solid " + BTB, borderRadius: 8, color: BTT, fontSize: 16, width: 28, height: 28, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}>+</button>
         </div>
-        {(cats || []).map((c, i) => (
-          <div
-            key={c.id}
-            draggable
-            onDragStart={() => setDragIdx(i)}
-            onDragOver={e => { e.preventDefault(); setDragOverIdx(i); }}
-            onDrop={() => {
-              if (dragIdx === null || dragIdx === i) { setDragIdx(null); setDragOverIdx(null); return; }
-              updCats(p => { const a = [...p]; const [moved] = a.splice(dragIdx, 1); a.splice(i, 0, moved); return a; });
-              setDragIdx(null); setDragOverIdx(null);
-            }}
-            onDragEnd={() => { setDragIdx(null); setDragOverIdx(null); }}
-            style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 0", borderBottom: "0.5px solid " + BR, opacity: dragIdx === i ? 0.4 : 1, background: dragOverIdx === i && dragIdx !== i ? SF2 : "transparent", borderRadius: 6, transition: "background 0.1s" }}
-          >
-            <span style={{ fontSize: 16, color: TX3, cursor: "grab", padding: "0 2px", flexShrink: 0, userSelect: "none" }}>⠿</span>
-            <span style={{ fontSize: 20, width: 28, textAlign: "center", flexShrink: 0 }}>{c.icon}</span>
-            <p style={{ flex: 1, fontSize: 13, color: TX, margin: 0 }}>{c.label}</p>
-            <button onClick={() => { setEditCat(c); setEditCatFrm({ label: c.label, icon: c.icon }); setEditCatCustomIco(""); }} style={{ background: "none", border: "none", cursor: "pointer", color: AC, fontSize: 15, padding: "2px 6px" }}>✎</button>
-            <button onClick={() => setDelCat(c)} style={{ background: "none", border: "none", cursor: "pointer", color: RD, fontSize: 15, padding: "2px 6px" }}>🗑</button>
-          </div>
-        ))}
+        <div ref={listRef}>
+          {(cats || []).map((c, i) => (
+            <div
+              key={c.id}
+              data-catrow={i}
+              draggable
+              onDragStart={() => { dragState.current.from = i; setDragIdx(i); }}
+              onDragOver={e => { e.preventDefault(); dragState.current.over = i; setDragOverIdx(i); }}
+              onDrop={() => {
+                const { from, over } = dragState.current;
+                if (from === null || from === over) { setDragIdx(null); setDragOverIdx(null); return; }
+                updCats(p => { const a = [...p]; const [m] = a.splice(from, 1); a.splice(over, 0, m); return a; });
+                dragState.current = { from: null, over: null, moveHandler: null };
+                setDragIdx(null); setDragOverIdx(null);
+              }}
+              onDragEnd={() => { setDragIdx(null); setDragOverIdx(null); }}
+              onTouchStart={onTouchStart(i)}
+              onTouchEnd={onTouchEnd}
+              style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 0", borderBottom: "0.5px solid " + BR, opacity: dragIdx === i ? 0.4 : 1, background: dragOverIdx === i && dragIdx !== i ? SF2 : "transparent", borderRadius: 6, transition: "background 0.1s" }}
+            >
+              <span style={{ fontSize: 16, color: TX3, cursor: "grab", padding: "0 2px", flexShrink: 0, userSelect: "none", touchAction: "none" }}>⠿</span>
+              <span style={{ fontSize: 20, width: 28, textAlign: "center", flexShrink: 0 }}>{c.icon}</span>
+              <p style={{ flex: 1, fontSize: 13, color: TX, margin: 0 }}>{c.label}</p>
+              <button onClick={() => { setEditCat(c); setEditCatFrm({ label: c.label, icon: c.icon }); setEditCatCustomIco(""); }} style={{ background: "none", border: "none", cursor: "pointer", color: AC, fontSize: 15, padding: "2px 6px" }}>✎</button>
+              <button onClick={() => setDelCat(c)} style={{ background: "none", border: "none", cursor: "pointer", color: RD, fontSize: 15, padding: "2px 6px" }}>🗑</button>
+            </div>
+          ))}
+        </div>
       </div>
 
       <div style={card}>
