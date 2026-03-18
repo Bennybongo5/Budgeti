@@ -239,7 +239,7 @@ export default function App() {
       )}
 
       {showCat && (
-        <Modal title="Nouvelle categorie">
+        <Modal title="Nouvelle categorie" zIndex={200}>
           <div style={{ marginBottom: 12 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Nom</label><input autoFocus style={inp} value={newCatLbl} onChange={e => setNewCatLbl(e.target.value)} onKeyDown={e => e.key === "Enter" && addCat()} /></div>
           <div style={{ marginBottom: 14 }}>
             <label style={{ fontSize: 12, color: TX2, marginBottom: 6, display: "block" }}>Icone</label>
