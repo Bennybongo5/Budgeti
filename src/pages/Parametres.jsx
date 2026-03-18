@@ -187,7 +187,7 @@ const handleSignOut = async () => {
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <span style={{ fontSize: 12, color: TX3, whiteSpace: "nowrap" }}>Ou coller un emoji :</span>
-              <input style={{ width: 54, padding: "6px", background: SF, border: "1px solid " + (editCatCustomIco ? BTB : BR2), borderRadius: 8, fontSize: 22, textAlign: "center", boxSizing: "border-box" }} value={editCatCustomIco} onChange={e => { setEditCatCustomIco(e.target.value); if (e.target.value) setEditCatFrm(f => ({ ...f, icon: e.target.value })); }} placeholder="😀" />
+              <input style={{ width: 54, padding: "6px", background: SF, border: "1px solid " + (editCatCustomIco ? BTB : BR2), borderRadius: 8, fontSize: 22, textAlign: "center", boxSizing: "border-box" }} value={editCatCustomIco} onChange={e => { setEditCatCustomIco(e.target.value); if (e.target.value) setEditCatFrm(f => ({ ...f, icon: e.target.value })); }} />
             </div>
           </div>
           <div style={{ display: "flex", gap: 8 }}>

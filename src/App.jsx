@@ -247,7 +247,7 @@ export default function App() {
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 10 }}>{ICONS_CAT.map(ic => <button key={ic} type="button" onClick={() => { setNewCatIco(ic); setNewCatCustomIco(""); }} style={{ fontSize: 18, padding: "5px 7px", background: newCatIco === ic && !newCatCustomIco ? BT : SF, border: "1px solid " + (newCatIco === ic && !newCatCustomIco ? BTB : BR), borderRadius: 7, cursor: "pointer" }}>{ic}</button>)}</div>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <span style={{ fontSize: 12, color: TX3, whiteSpace: "nowrap" }}>Ou coller un emoji :</span>
-              <input style={{ width: 54, padding: "6px", background: SF, border: "1px solid " + (newCatCustomIco ? BTB : BR2), borderRadius: 8, fontSize: 22, textAlign: "center", boxSizing: "border-box" }} value={newCatCustomIco} onChange={e => { setNewCatCustomIco(e.target.value); if (e.target.value) setNewCatIco(e.target.value); }} placeholder="😀" />
+              <input style={{ width: 54, padding: "6px", background: SF, border: "1px solid " + (newCatCustomIco ? BTB : BR2), borderRadius: 8, fontSize: 22, textAlign: "center", boxSizing: "border-box" }} value={newCatCustomIco} onChange={e => { setNewCatCustomIco(e.target.value); if (e.target.value) setNewCatIco(e.target.value); }} />
             </div>
           </div>
           <div style={{ display: "flex", gap: 8 }}>
