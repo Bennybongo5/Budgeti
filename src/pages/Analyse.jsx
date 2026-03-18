@@ -48,8 +48,8 @@ function PieChart({ histItems, mo, cats }) {
   let angle = 0;
 
   return (
-    <div style={{ display: "flex", gap: 16, alignItems: "flex-start", flexWrap: "wrap" }}>
-      <svg width={160} height={160} style={{ flexShrink: 0 }}>
+    <div>
+      <svg width="100%" viewBox="0 0 160 160" style={{ display: "block", maxWidth: 200, margin: "0 auto 14px" }}>
         {slices.map((s, i) => {
           const start = angle;
           const end = angle + s.pct * 360;
@@ -57,14 +57,14 @@ function PieChart({ histItems, mo, cats }) {
           return <path key={s.catId} d={slicePath(cx, cy, r, start, end)} fill={PIE_COLORS[i % PIE_COLORS.length]} stroke="#fff" strokeWidth={1.5} />;
         })}
       </svg>
-      <div style={{ flex: 1, minWidth: 140 }}>
+      <div>
         {slices.map((s, i) => (
-          <div key={s.catId} style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 7 }}>
+          <div key={s.catId} style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8, padding: "4px 0", borderBottom: "0.5px solid " + BR }}>
             <div style={{ width: 10, height: 10, borderRadius: 2, background: PIE_COLORS[i % PIE_COLORS.length], flexShrink: 0 }} />
             <span style={{ fontSize: 13 }}>{s.cat.icon}</span>
-            <span style={{ fontSize: 12, color: TX }}>{s.cat.label}</span>
+            <span style={{ fontSize: 12, color: TX, flex: 1 }}>{s.cat.label}</span>
             <span style={{ fontSize: 11, color: TX3 }}>{Math.round(s.pct * 100)}%</span>
-            <span style={{ fontSize: 11, color: RD, fontWeight: 500 }}>{fmt(s.amount)}</span>
+            <span style={{ fontSize: 12, color: RD, fontWeight: 500 }}>{fmt(s.amount)}</span>
           </div>
         ))}
       </div>
