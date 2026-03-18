@@ -43,11 +43,12 @@ export function calcProportionalMonth(paie,moStart,moEnd,paieM,recs,rrecs,dettes
     for(let i=-1;i<=1;i++){let mo=mm-1+i,yr=my+Math.floor(mo/12);mo=((mo%12)+12)%12;tryAdd(ymd(yr,mo+1,gj(paie.jour1,yr,mo+1)));if(paie.jour2!=null)tryAdd(ymd(yr,mo+1,gj(paie.jour2,yr,mo+1)));}
   }
   found.sort((a,b)=>a.deb.localeCompare(b.deb));
-  const recSum=recs.reduce((s,r)=>s+r.amount,0);
-  const rrSum=rrecs.reduce((s,r)=>s+r.amount,0);
-  const detSum=dettes.reduce((s,d)=>s+(d.paiementsAuto||[]).reduce((ss,pa)=>ss+(+pa.montant||0),0),0);
-  const prjSum=projets.reduce((s,p)=>s+(p.paiementsAuto||[]).reduce((ss,pa)=>ss+(+pa.montant||0),0),0);
-  let totPaie=0,totRec=0,totRR=0,totDette=0,totProjet=0;
+  const lastDay=ld(my,mm);
+  // "per paie" items: proportional per period | "per day" items: once if day falls in month
+  const recPaieSum=recs.filter(r=>r.jour==="paie").reduce((s,r)=>s+r.amount,0);
+  const recDaySum=recs.filter(r=>r.jour!=="paie").reduce((s,r)=>{const j=r.jour==="fin"?lastDay:Math.min(+r.jour||1,lastDay);return ymd(my,mm,j)>=moStart&&ymd(my,mm,j)<=moEnd?s+r.amount:s;},0);
+  const rrDaySum=rrecs.reduce((s,r)=>{const j=Math.min(+r.jour||1,lastDay);return ymd(my,mm,j)>=moStart&&ymd(my,mm,j)<=moEnd?s+r.amount:s;},0);
+  let totPaie=0,totRecPaie=0,totDettePaie=0,totProjetPaie=0;
   found.forEach(({deb,fin})=>{
     const totalD=daysBetween(deb,fin);
     const oStart=deb>moStart?deb:moStart;
@@ -56,12 +57,17 @@ export function calcProportionalMonth(paie,moStart,moEnd,paieM,recs,rrecs,dettes
     if(totalD<=0||oD<=0)return;
     const ratio=oD/totalD;
     totPaie+=(paieM[deb]||0)*ratio;
-    totRec+=recSum*ratio;
-    totRR+=rrSum*ratio;
-    totDette+=detSum*ratio;
-    totProjet+=prjSum*ratio;
+    totRecPaie+=recPaieSum*ratio;
+    dettes.forEach(d=>(d.paiementsAuto||[]).filter(pa=>pa.jour==="paie"&&+pa.montant>0).forEach(pa=>{totDettePaie+=(+pa.montant)*ratio;}));
+    projets.forEach(p=>(p.paiementsAuto||[]).filter(pa=>pa.jour==="paie"&&+pa.montant>0).forEach(pa=>{totProjetPaie+=(+pa.montant)*ratio;}));
   });
-  totDette+=calcManuelsInPeriod(dettes,moStart,moEnd1,"paiements");
-  totProjet+=calcManuelsInPeriod(projets,moStart,moEnd1,"versements");
-  return{totPaie,totRec,totRR,totDette,totProjet};
+  const detDaySum=dettes.reduce((s,d)=>s+(d.paiementsAuto||[]).filter(pa=>pa.jour!=="paie"&&+pa.montant>0).reduce((ss,pa)=>{const j=pa.jour==="fin"?lastDay:Math.min(+pa.jour||1,lastDay);return ymd(my,mm,j)>=moStart&&ymd(my,mm,j)<=moEnd?ss+(+pa.montant):ss;},0),0);
+  const prjDaySum=projets.reduce((s,p)=>s+(p.paiementsAuto||[]).filter(pa=>pa.jour!=="paie"&&+pa.montant>0).reduce((ss,pa)=>{const j=pa.jour==="fin"?lastDay:Math.min(+pa.jour||1,lastDay);return ymd(my,mm,j)>=moStart&&ymd(my,mm,j)<=moEnd?ss+(+pa.montant):ss;},0),0);
+  return{
+    totPaie,
+    totRec:totRecPaie+recDaySum,
+    totRR:rrDaySum,
+    totDette:totDettePaie+detDaySum+calcManuelsInPeriod(dettes,moStart,moEnd1,"paiements"),
+    totProjet:totProjetPaie+prjDaySum+calcManuelsInPeriod(projets,moStart,moEnd1,"versements"),
+  };
 }
