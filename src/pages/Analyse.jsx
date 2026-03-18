@@ -161,12 +161,23 @@ export default function Analyse({
         <BarChart histItems={histItems} months={months} onClickMo={mo => setChartMo(mo)} txs={txs} paie={paie} paieM={paieM} recs={recs} rrecs={rrecs} dettes={dettes} projets={projets} />
       </div>
 
-      {chartMo && (
-        <Modal title={"Dépenses — " + moLabel(chartMo)}>
-          <PieChart histItems={histItems} mo={chartMo} cats={cats} />
-          <button style={{ width: "100%", marginTop: 16, padding: "11px", background: BT, border: "1px solid " + BTB, borderRadius: 10, color: BTT, fontSize: 13, fontWeight: 500, cursor: "pointer" }} onClick={() => setChartMo(null)}>Fermer</button>
-        </Modal>
-      )}
+      {chartMo && (() => {
+        const [cmy, cmm] = chartMo.split("-").map(Number);
+        const moStart = ymd(cmy, cmm, 1);
+        const moEnd = ymd(cmy, cmm, ld(cmy, cmm));
+        const prop = calcProportionalMonth(paie, moStart, moEnd, paieM, recs, rrecs, dettes, projets);
+        const totArgentRecu = txs.filter(x => x.type === "revenu" && x.desc !== "Paie" && x.date.startsWith(chartMo)).reduce((s, x) => s + x.amount, 0);
+        const revTotal = prop.totPaie + prop.totRR + totArgentRecu;
+        return (
+          <Modal title={"Dépenses — " + moLabel(chartMo)}>
+            <p style={{ fontSize: 13, color: TX2, margin: "0 0 14px", padding: "8px 12px", background: "rgba(90,160,60,0.08)", border: "1px solid rgba(90,160,60,0.2)", borderRadius: 8 }}>
+              Revenu total : <strong style={{ color: GN }}>{fmt(revTotal)}</strong>
+            </p>
+            <PieChart histItems={histItems} mo={chartMo} cats={cats} />
+            <button style={{ width: "100%", marginTop: 16, padding: "11px", background: BT, border: "1px solid " + BTB, borderRadius: 10, color: BTT, fontSize: 13, fontWeight: 500, cursor: "pointer" }} onClick={() => setChartMo(null)}>Fermer</button>
+          </Modal>
+        );
+      })()}
 
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", margin: "14px 0 8px" }}>
         <p style={{ fontSize: 13, fontWeight: 500, margin: 0, color: TX }}>Transactions</p>
