@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, signInWithRedirect, GoogleAuthProvider, signOut } from "firebase/auth";
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, signInWithRedirect, GoogleAuthProvider, signOut, sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "../firebase.js";
 import { DEFAULT_CATS, ICONS_CAT, SF, SF2, BR, BR2, TX, TX2, TX3, BT, BTB, BTT, AC, RD } from "../constants.js";
 import Modal from "../components/Modal.jsx";
@@ -9,6 +9,9 @@ const googleProvider = new GoogleAuthProvider();
 export default function Parametres({ user, cats, inp, card, updTxs, updRecs, updRrecs, updDettes, updProjets, updCats, updPaieM, setDetSel, setPrjSel }) {
   const [showEmail, setShowEmail] = useState(false);
   const [mode, setMode] = useState("login");
+  const [showReset, setShowReset] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetMsg, setResetMsg] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -104,6 +107,18 @@ export default function Parametres({ user, cats, inp, card, updTxs, updRecs, upd
     }
   };
 
+
+  const handleReset = async () => {
+    if (!resetEmail.trim()) return;
+    setLoading(true); setResetMsg("");
+    try {
+      await sendPasswordResetEmail(auth, resetEmail.trim());
+      setResetMsg("Un courriel de réinitialisation a été envoyé.");
+    } catch (e) {
+      setResetMsg(errMsg(e.code));
+    }
+    setLoading(false);
+  };
 
 const handleSignOut = async () => {
     await signOut(auth);
@@ -219,7 +234,10 @@ const handleSignOut = async () => {
                   <input style={inp} type="email" placeholder="votre@courriel.com" value={email} onChange={e => setEmail(e.target.value)} onKeyDown={e => e.key === "Enter" && handleEmail()} />
                 </div>
                 <div style={{ marginBottom: error ? 10 : 14 }}>
-                  <label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Mot de passe</label>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
+                    <label style={{ fontSize: 12, color: TX2 }}>Mot de passe</label>
+                    {mode === "login" && <button type="button" onClick={() => { setShowReset(true); setResetEmail(email); setResetMsg(""); }} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 11, color: AC, padding: 0 }}>Mot de passe oublié ?</button>}
+                  </div>
                   <input style={inp} type="password" placeholder="••••••" value={password} onChange={e => setPassword(e.target.value)} onKeyDown={e => e.key === "Enter" && handleEmail()} />
                 </div>
                 {error && <p style={{ fontSize: 12, color: RD, marginBottom: 10 }}>{error}</p>}
@@ -305,6 +323,21 @@ const handleSignOut = async () => {
           <div style={{ display: "flex", gap: 8 }}>
             <button style={{ flex: 1, padding: "11px", background: BT, border: "1px solid " + BTB, borderRadius: 10, color: BTT, fontSize: 13, fontWeight: 500, cursor: "pointer" }} onClick={addCat}>Creer</button>
             <button style={{ padding: "11px 14px", background: SF2, border: "1px solid " + BR, borderRadius: 10, color: TX2, fontSize: 13, cursor: "pointer" }} onClick={() => setShowAddCat(false)}>Annuler</button>
+          </div>
+        </Modal>
+      )}
+
+      {showReset && (
+        <Modal title="Réinitialiser le mot de passe">
+          <p style={{ fontSize: 12, color: TX3, margin: "0 0 12px" }}>Entre ton courriel et on t'enverra un lien pour créer un nouveau mot de passe.</p>
+          <div style={{ marginBottom: 12 }}>
+            <label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Courriel</label>
+            <input autoFocus style={inp} type="email" placeholder="votre@courriel.com" value={resetEmail} onChange={e => setResetEmail(e.target.value)} onKeyDown={e => e.key === "Enter" && handleReset()} />
+          </div>
+          {resetMsg && <p style={{ fontSize: 12, color: resetMsg.includes("envoyé") ? "#3a7a2a" : RD, marginBottom: 10 }}>{resetMsg}</p>}
+          <div style={{ display: "flex", gap: 8 }}>
+            {!resetMsg.includes("envoyé") && <button onClick={handleReset} disabled={loading} style={{ flex: 1, padding: "11px", background: BT, border: "1px solid " + BTB, borderRadius: 10, color: BTT, fontSize: 13, fontWeight: 500, cursor: "pointer", opacity: loading ? 0.7 : 1 }}>{loading ? "..." : "Envoyer le lien"}</button>}
+            <button onClick={() => { setShowReset(false); setResetMsg(""); }} style={{ flex: 1, padding: "11px", background: SF2, border: "1px solid " + BR, borderRadius: 10, color: TX2, fontSize: 13, cursor: "pointer" }}>{resetMsg.includes("envoyé") ? "Fermer" : "Annuler"}</button>
           </div>
         </Modal>
       )}
