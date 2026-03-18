@@ -75,7 +75,7 @@ function PieChart({ histItems, mo, cats }) {
 function BarChart({ histItems, months, onClickMo }) {
   const data = useMemo(() => {
     return [...months].reverse().slice(0, 12).reverse().map(mo => {
-      const items = histItems.filter(x => x.date.startsWith(mo));
+      const items = histItems.filter(x => x.date.startsWith(mo) && !x.source);
       const rev = items.filter(x => x.type === "revenu").reduce((s, x) => s + x.amount, 0);
       const dep = items.filter(x => x.type === "depense").reduce((s, x) => s + x.amount, 0);
       return { mo, rev, dep, solde: rev - dep };
