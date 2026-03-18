@@ -145,7 +145,13 @@ export default function App() {
 
   // ── Handlers ──────────────────────────────────────────────────────────────
   const addTx = () => { if (!txForm.desc || !txForm.amount || isNaN(+txForm.amount)) return; updTxs(p => [...p, { id: Date.now(), ...txForm, amount: +txForm.amount }]); setTxForm(f => ({ ...f, desc: "", amount: "" })); };
-  const delTx = id => updTxs(p => p.filter(x => x.id !== id));
+  const delTx = id => {
+    const tx = txs.find(x => x.id === id);
+    updTxs(p => p.filter(x => x.id !== id));
+    if (tx && tx.type === "revenu" && tx.desc === "Paie") {
+      updPaieM(p => { const n = { ...p }; delete n[tx.date]; return n; });
+    }
+  };
   const startETx = x => { setETxId(x.id); setETxFrm({ type: x.type, desc: x.desc, amount: x.amount, cat: x.cat, date: x.date }); };
   const saveETx = () => { if (!eTxFrm.desc || !eTxFrm.amount || isNaN(+eTxFrm.amount)) return; updTxs(p => p.map(x => x.id === eTxId ? { ...x, ...eTxFrm, amount: +eTxFrm.amount } : x)); setETxId(null); setETxFrm(null); };
   const addRec = () => { if (eRecId !== null) { if (!eRecFrm.desc || !eRecFrm.amount || isNaN(+eRecFrm.amount)) return; updRecs(p => p.map(r => r.id === eRecId ? { ...r, ...eRecFrm, amount: +eRecFrm.amount } : r)); setERecId(null); } else { if (!recFrm.desc || !recFrm.amount || isNaN(+recFrm.amount)) return; updRecs(p => [...p, { id: Date.now(), ...recFrm, amount: +recFrm.amount }]); setRecFrm({ desc: "", amount: "", cat: cats[0]?.id || "", jour: 1 }); } };
