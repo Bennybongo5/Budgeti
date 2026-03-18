@@ -363,7 +363,7 @@ export default function App() {
           { id: "dashboard",   icon: "◈",  label: "Tableau"    },
           { id: "dettes",      icon: "📊", label: "Dettes"     },
           { id: "projets",     icon: "🎯", label: "Projets"    },
-          { id: "recurrents",  icon: "↻",  label: "Recurrent"  },
+          { id: "recurrents",  icon: "🔄", label: "Recurrent"  },
           { id: "analyse",     icon: "📈", label: "Analyse" },
           { id: "parametres",  icon: "⚙",  label: "Params",    dot: !!user },
         ].map(n => (
