@@ -100,19 +100,20 @@ export default function Dashboard({
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <span style={{ fontSize: 12, color: TX2 }}>Frequence :</span>
           <div style={{ background: BT, border: "1px solid " + BTB, borderRadius: 20, padding: "4px 12px" }}><span style={{ fontSize: 12, fontWeight: 500, color: BTT }}>{FREQS.find(f => f.id === paie.frequence)?.label}</span></div>
-          <button onClick={() => setPaieOpen(o => !o)} style={{ marginLeft: "auto", background: paieOpen ? SF2 : "none", border: "1px solid " + (paieOpen ? BR2 : BR), borderRadius: 8, padding: "4px 10px", cursor: "pointer", fontSize: 12, color: TX2 }}>{paieOpen ? "Fermer" : "Modifier"}</button>
+          <button onClick={() => setPaieOpen(true)} style={{ marginLeft: "auto", background: "none", border: "1px solid " + BR, borderRadius: 8, padding: "4px 10px", cursor: "pointer", fontSize: 12, color: TX2 }}>Modifier</button>
         </div>
         {paieOpen && (
-          <div style={{ background: SF2, border: "1px solid " + BR, borderRadius: 10, padding: "12px", marginTop: 12 }}>
-            <div style={{ marginBottom: 10 }}>
-              <label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Frequence</label>
-              <div style={{ display: "flex", gap: 6 }}>{FREQS.map(f => <button key={f.id} style={fbtn(paie.frequence === f.id)} onClick={() => updPaie(p => ({ ...p, frequence: f.id }))}>{f.label}</button>)}</div>
+          <Modal title="Frequence de paie">
+            <div style={{ marginBottom: 14 }}>
+              <label style={{ fontSize: 12, color: TX2, marginBottom: 6, display: "block" }}>Frequence</label>
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>{FREQS.map(f => <button key={f.id} style={fbtn(paie.frequence === f.id)} onClick={() => updPaie(p => ({ ...p, frequence: f.id }))}>{f.label}</button>)}</div>
             </div>
-            {paie.frequence === "semaine" && <div><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Jour de paie</label><div style={{ display: "flex", gap: 6 }}>{JOURS_SEM.map(j => <button key={j} style={{ ...fbtn(paie.jourSemaine === j), flex: "none", padding: "7px 10px" }} onClick={() => updPaie(p => ({ ...p, jourSemaine: j }))}>{j.slice(0, 3)}</button>)}</div></div>}
-            {paie.frequence === "2semaines" && <SemaineRef t={t} paie={paie} updPaie={updPaie} fbtn={fbtn} />}
-            {paie.frequence === "mois" && <div><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Jour du mois</label><select style={inpSm} value={paie.jour1} onChange={e => updPaie(p => ({ ...p, jour1: e.target.value === "fin" ? "fin" : +e.target.value }))}>{JOURS_MOIS.map(j => <option key={j} value={j}>{j === "fin" ? "Dernier jour" : "Le " + j}</option>)}</select></div>}
-            {paie.frequence === "2mois" && <div style={{ display: "flex", gap: 10 }}><div style={{ flex: 1 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>1re paie</label><select style={inpSm} value={paie.jour1} onChange={e => updPaie(p => ({ ...p, jour1: e.target.value === "fin" ? "fin" : +e.target.value }))}>{JOURS_MOIS.map(j => <option key={j} value={j}>{j === "fin" ? "Dernier jour" : "Le " + j}</option>)}</select></div><div style={{ flex: 1 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>2e paie</label><select style={inpSm} value={paie.jour2} onChange={e => updPaie(p => ({ ...p, jour2: e.target.value === "fin" ? "fin" : +e.target.value }))}>{JOURS_MOIS.map(j => <option key={j} value={j}>{j === "fin" ? "Dernier jour" : "Le " + j}</option>)}</select></div></div>}
-          </div>
+            {paie.frequence === "semaine" && <div style={{ marginBottom: 14 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 6, display: "block" }}>Jour de paie</label><div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>{JOURS_SEM.map(j => <button key={j} style={{ ...fbtn(paie.jourSemaine === j), flex: "none", padding: "7px 10px" }} onClick={() => updPaie(p => ({ ...p, jourSemaine: j }))}>{j.slice(0, 3)}</button>)}</div></div>}
+            {paie.frequence === "2semaines" && <div style={{ marginBottom: 14 }}><SemaineRef t={t} paie={paie} updPaie={updPaie} fbtn={fbtn} /></div>}
+            {paie.frequence === "mois" && <div style={{ marginBottom: 14 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 6, display: "block" }}>Jour du mois</label><select style={inpSm} value={paie.jour1} onChange={e => updPaie(p => ({ ...p, jour1: e.target.value === "fin" ? "fin" : +e.target.value }))}>{JOURS_MOIS.map(j => <option key={j} value={j}>{j === "fin" ? "Dernier jour" : "Le " + j}</option>)}</select></div>}
+            {paie.frequence === "2mois" && <div style={{ display: "flex", gap: 10, marginBottom: 14 }}><div style={{ flex: 1 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>1re paie</label><select style={inpSm} value={paie.jour1} onChange={e => updPaie(p => ({ ...p, jour1: e.target.value === "fin" ? "fin" : +e.target.value }))}>{JOURS_MOIS.map(j => <option key={j} value={j}>{j === "fin" ? "Dernier jour" : "Le " + j}</option>)}</select></div><div style={{ flex: 1 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>2e paie</label><select style={inpSm} value={paie.jour2} onChange={e => updPaie(p => ({ ...p, jour2: e.target.value === "fin" ? "fin" : +e.target.value }))}>{JOURS_MOIS.map(j => <option key={j} value={j}>{j === "fin" ? "Dernier jour" : "Le " + j}</option>)}</select></div></div>}
+            <button style={{ width: "100%", padding: "11px", background: BT, border: "1px solid " + BTB, borderRadius: 10, color: BTT, fontSize: 13, fontWeight: 500, cursor: "pointer" }} onClick={() => setPaieOpen(false)}>Fermer</button>
+          </Modal>
         )}
         {paies.length > 0 && (
           <div>
