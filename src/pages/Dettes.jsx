@@ -56,7 +56,7 @@ export default function Dettes({
         const curJour = jourPickerTarget === "edit" ? editPaiFrm.jour : paiFrm.jour;
         const setJour = j => jourPickerTarget === "edit" ? setEditPaiFrm(f => ({ ...f, jour: j })) : setPaiFrm(f => ({ ...f, jour: j }));
         return (
-          <Modal title="Choix de la journee">
+          <Modal title="Choix de la journee" zIndex={200}>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 14 }}>
               {Array.from({ length: 31 }, (_, i) => i + 1).map(j => (
                 <button key={j} type="button" onClick={() => { setJour(j); setShowJourPicker(false); }} style={{ width: 46, height: 46, background: +curJour === j ? BT : SF, border: "1px solid " + (+curJour === j ? BTB : BR), borderRadius: 10, color: +curJour === j ? BTT : TX, fontSize: 14, fontWeight: 500, cursor: "pointer" }}>{j}</button>
