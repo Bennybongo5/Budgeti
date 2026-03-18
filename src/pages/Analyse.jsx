@@ -171,12 +171,20 @@ export default function Analyse({
         const depTotal = txs.filter(x => x.type === "depense" && x.date.startsWith(chartMo)).reduce((s, x) => s + x.amount, 0) + prop.totRec + prop.totDette + prop.totProjet;
         return (
           <Modal title={"Dépenses — " + moLabel(chartMo)}>
-            <p style={{ fontSize: 13, color: TX2, margin: "0 0 14px", padding: "8px 12px", background: "rgba(90,160,60,0.08)", border: "1px solid rgba(90,160,60,0.2)", borderRadius: 8 }}>
-              Revenu total : <strong style={{ color: GN }}>{fmt(revTotal)}</strong>
-            </p>
-            <p style={{ fontSize: 13, color: TX2, margin: "0 0 14px", padding: "8px 12px", background: "rgba(200,80,80,0.08)", border: "1px solid rgba(200,80,80,0.2)", borderRadius: 8 }}>
-              Dépense totale : <strong style={{ color: RD }}>{fmt(depTotal)}</strong>
-            </p>
+            <div style={{ display: "flex", gap: 6, marginBottom: 6 }}>
+              <div style={{ flex: 1, padding: "6px 10px", background: "rgba(90,160,60,0.08)", border: "1px solid rgba(90,160,60,0.2)", borderRadius: 8 }}>
+                <p style={{ fontSize: 10, color: TX3, margin: "0 0 2px" }}>Revenus</p>
+                <p style={{ fontSize: 13, fontWeight: 600, color: GN, margin: 0 }}>{fmt(revTotal)}</p>
+              </div>
+              <div style={{ flex: 1, padding: "6px 10px", background: "rgba(200,80,80,0.08)", border: "1px solid rgba(200,80,80,0.2)", borderRadius: 8 }}>
+                <p style={{ fontSize: 10, color: TX3, margin: "0 0 2px" }}>Dépenses</p>
+                <p style={{ fontSize: 13, fontWeight: 600, color: RD, margin: 0 }}>{fmt(depTotal)}</p>
+              </div>
+            </div>
+            <div style={{ padding: "6px 10px", background: SF2, border: "1px solid " + BR, borderRadius: 8, marginBottom: 14 }}>
+              <p style={{ fontSize: 10, color: TX3, margin: "0 0 2px" }}>Solde</p>
+              <p style={{ fontSize: 13, fontWeight: 600, color: revTotal - depTotal >= 0 ? GN : RD, margin: 0 }}>{revTotal - depTotal >= 0 ? "+" : ""}{fmt(revTotal - depTotal)}</p>
+            </div>
             <PieChart histItems={histItems} mo={chartMo} cats={cats} />
             <button style={{ width: "100%", marginTop: 16, padding: "11px", background: BT, border: "1px solid " + BTB, borderRadius: 10, color: BTT, fontSize: 13, fontWeight: 500, cursor: "pointer" }} onClick={() => setChartMo(null)}>Fermer</button>
           </Modal>
