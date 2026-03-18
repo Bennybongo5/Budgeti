@@ -163,8 +163,8 @@ export default function Dashboard({
         <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("argentRecu")}><StatBox label="Argent recu" value={"+" + fmt(totArgentRecu)} color={GN} /></div>
       </div>
       <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
-        <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("depenses")}><StatBox label="Depenses" value={fmt(totDep)} color={RD} /></div>
         <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("rrecs")}><StatBox label="Autres revenus" value={"+" + fmt(totRR)} color={GN} /></div>
+        <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("depenses")}><StatBox label="Depenses" value={"-" + fmt(totDep)} color={RD} /></div>
       </div>
       <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
         <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("recs")}><StatBox label="Paiements fixes" value={"-" + fmt(totRec)} color={RD} /></div>
