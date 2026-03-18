@@ -63,7 +63,7 @@ export default function Dashboard({
 
   const buildPaieGrid = () => {
     const cols = "100px " + periodes.map(() => "minmax(80px, 1fr)").join(" ");
-    const hdr = [<div key="h0" />, ...periodes.map((p, i) => (
+    const hdr = [<div key="hlbl" />, ...periodes.map((p, i) => (
       <div key={"h" + i} style={{ textAlign: "center", background: p.isCur ? BT : p.isPast ? SF2 : BR, border: "1px solid " + (p.isCur ? BTB : BR2), borderRadius: 8, padding: "4px 3px" }}>
         <p style={{ fontSize: 9, fontWeight: 500, color: p.isCur ? BTT : TX3, margin: "0 0 1px" }}>{p.isPast ? "Passee" : p.isCur ? "En cours" : "Prochaine"}</p>
         <p style={{ fontSize: 10, color: p.isCur ? BTT : TX3, margin: 0 }}>{fd(p.deb)}</p>
