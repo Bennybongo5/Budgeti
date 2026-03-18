@@ -58,12 +58,12 @@ function PieChart({ histItems, mo, cats }) {
       </svg>
       <div style={{ flex: 1, minWidth: 140 }}>
         {slices.map((s, i) => (
-          <div key={s.catId} style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 7 }}>
+          <div key={s.catId} style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 7 }}>
             <div style={{ width: 10, height: 10, borderRadius: 2, background: PIE_COLORS[i % PIE_COLORS.length], flexShrink: 0 }} />
             <span style={{ fontSize: 13 }}>{s.cat.icon}</span>
-            <span style={{ fontSize: 12, color: TX, flex: 1 }}>{s.cat.label}</span>
-            <span style={{ fontSize: 11, color: TX3, whiteSpace: "nowrap" }}>{Math.round(s.pct * 100)}%</span>
-            <span style={{ fontSize: 11, color: RD, fontWeight: 500, whiteSpace: "nowrap" }}>{fmt(s.amount)}</span>
+            <span style={{ fontSize: 12, color: TX }}>{s.cat.label}</span>
+            <span style={{ fontSize: 11, color: TX3 }}>{Math.round(s.pct * 100)}%</span>
+            <span style={{ fontSize: 11, color: RD, fontWeight: 500 }}>{fmt(s.amount)}</span>
           </div>
         ))}
       </div>
