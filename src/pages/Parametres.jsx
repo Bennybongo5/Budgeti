@@ -167,8 +167,12 @@ const handleSignOut = async () => {
           <p style={{ fontSize: 13, fontWeight: 500, color: TX2, margin: 0 }}>Categories</p>
           <button onClick={() => { setNewCatLbl(""); setNewCatIco("📦"); setNewCatCustomIco(""); setShowAddCat(true); }} style={{ background: BT, border: "1px solid " + BTB, borderRadius: 8, color: BTT, fontSize: 16, width: 28, height: 28, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}>+</button>
         </div>
-        {(cats || []).map(c => (
-          <div key={c.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: "0.5px solid " + BR }}>
+        {(cats || []).map((c, i, arr) => (
+          <div key={c.id} style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 0", borderBottom: "0.5px solid " + BR }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 1, flexShrink: 0 }}>
+              <button onClick={() => { if (i === 0) return; updCats(p => { const a = [...p]; [a[i - 1], a[i]] = [a[i], a[i - 1]]; return a; }); }} style={{ background: "none", border: "none", cursor: i === 0 ? "default" : "pointer", color: i === 0 ? BR : TX3, fontSize: 11, padding: "1px 4px", lineHeight: 1 }}>▲</button>
+              <button onClick={() => { if (i === arr.length - 1) return; updCats(p => { const a = [...p]; [a[i], a[i + 1]] = [a[i + 1], a[i]]; return a; }); }} style={{ background: "none", border: "none", cursor: i === arr.length - 1 ? "default" : "pointer", color: i === arr.length - 1 ? BR : TX3, fontSize: 11, padding: "1px 4px", lineHeight: 1 }}>▼</button>
+            </div>
             <span style={{ fontSize: 20, width: 28, textAlign: "center", flexShrink: 0 }}>{c.icon}</span>
             <p style={{ flex: 1, fontSize: 13, color: TX, margin: 0 }}>{c.label}</p>
             <button onClick={() => { setEditCat(c); setEditCatFrm({ label: c.label, icon: c.icon }); setEditCatCustomIco(""); }} style={{ background: "none", border: "none", cursor: "pointer", color: AC, fontSize: 15, padding: "2px 6px" }}>✎</button>
