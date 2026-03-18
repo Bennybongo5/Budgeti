@@ -9,7 +9,7 @@ class ErrorBoundary extends Component {
     if (this.state.error) {
       return (
         <div style={{ fontFamily: "system-ui,sans-serif", padding: 30, textAlign: "center", background: "#fdf8e1", minHeight: "100vh" }}>
-          <p style={{ fontSize: 24, fontWeight: 700, fontFamily: "Georgia,serif", marginBottom: 12 }}>Budgeti</p>
+          <p style={{ fontSize: 24, fontWeight: 800, fontFamily: "'Montserrat', sans-serif", marginBottom: 12 }}>Budgeti</p>
           <p style={{ fontSize: 14, color: "#888", marginBottom: 20 }}>Une erreur est survenue. Rechargez la page.</p>
           <button onClick={() => window.location.reload()} style={{ padding: "12px 24px", background: "#8ab87a", border: "none", borderRadius: 10, color: "#fff", fontSize: 14, cursor: "pointer" }}>Recharger</button>
         </div>

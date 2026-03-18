@@ -39,7 +39,7 @@ export default function Auth() {
   return (
     <div style={{ fontFamily: "system-ui,sans-serif", background: BG, minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px" }}>
       <style>{NS}</style>
-      <p style={{ fontSize: 32, fontWeight: 700, color: TX, fontFamily: "Georgia, serif", marginBottom: 6, letterSpacing: "0.04em" }}>Budgeti</p>
+      <p style={{ fontSize: 32, fontWeight: 800, color: TX, fontFamily: "'Montserrat', sans-serif", marginBottom: 6, letterSpacing: "-0.01em" }}>Budgeti</p>
       <p style={{ fontSize: 14, color: TX2, marginBottom: 28 }}>Votre budget personnel</p>
       <div style={{ width: "100%", maxWidth: 360, background: SF, border: "1px solid " + BR, borderRadius: 16, padding: "24px 20px" }}>
         <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
