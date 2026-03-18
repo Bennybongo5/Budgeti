@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { fmt, today, TX, TX2, TX3, AC, GN, RD, BT, BTB, BTT, SF, SF2, BR } from "../constants.js";
 import Modal from "./Modal.jsx";
 import SaveCancel from "./SaveCancel.jsx";
@@ -11,6 +12,8 @@ function ProjetDetail({
   setEditVer, setEditVerFrm,
   inp, card, trow, ico,
 }) {
+  const [showJourPicker, setShowJourPicker] = useState(false);
+  const jourLabel = j => j === "paie" ? "Paie" : j === "fin" ? "Fin du mois" : "Le " + j;
   const sp = gSoldeP(projet);
   const pp = gPctP(projet);
   const rest = Math.max(0, projet.objectif - sp);
@@ -88,8 +91,11 @@ function ProjetDetail({
             </div>
             {verType === "fixe" ? (
               <div style={{ flex: 1 }}>
-                <label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Jour du mois</label>
-                <input style={inp} type="number" min="1" max="31" placeholder="1" value={verFrm.jour} onChange={(e) => setVerFrm((f) => ({ ...f, jour: e.target.value }))} />
+                <label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Quand</label>
+                <div style={{ display: "flex", gap: 6 }}>
+                  <button type="button" style={{ flex: 1, padding: "7px 4px", background: verFrm.jour !== "paie" ? BT : SF, border: "1px solid " + (verFrm.jour !== "paie" ? BTB : BR), borderRadius: 8, color: verFrm.jour !== "paie" ? BTT : TX2, fontSize: 11, cursor: "pointer" }} onClick={() => { setVerFrm(f => ({ ...f, jour: f.jour === "paie" ? 1 : f.jour })); setShowJourPicker(true); }}>{verFrm.jour !== "paie" ? jourLabel(verFrm.jour) : "Jour du mois"}</button>
+                  <button type="button" style={{ flex: 1, padding: "7px 4px", background: verFrm.jour === "paie" ? BT : SF, border: "1px solid " + (verFrm.jour === "paie" ? BTB : BR), borderRadius: 8, color: verFrm.jour === "paie" ? BTT : TX2, fontSize: 11, cursor: "pointer" }} onClick={() => setVerFrm(f => ({ ...f, jour: "paie" }))}>Paie</button>
+                </div>
               </div>
             ) : (
               <div style={{ flex: 1 }}>
@@ -99,6 +105,18 @@ function ProjetDetail({
             )}
           </div>
           <SaveCancel onS={addVer} onC={() => { setVerType(null); setVerFrm({ montant: "", date: today(), jour: "1" }); }} />
+        </Modal>
+      )}
+
+      {showJourPicker && (
+        <Modal title="Choix de la journee">
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 14 }}>
+            {Array.from({ length: 31 }, (_, i) => i + 1).map(j => (
+              <button key={j} type="button" onClick={() => { setVerFrm(f => ({ ...f, jour: j })); setShowJourPicker(false); }} style={{ width: 46, height: 46, background: +verFrm.jour === j ? BT : SF, border: "1px solid " + (+verFrm.jour === j ? BTB : BR), borderRadius: 10, color: +verFrm.jour === j ? BTT : TX, fontSize: 14, fontWeight: 500, cursor: "pointer" }}>{j}</button>
+            ))}
+            <button type="button" onClick={() => { setVerFrm(f => ({ ...f, jour: "fin" })); setShowJourPicker(false); }} style={{ padding: "0 14px", height: 46, background: verFrm.jour === "fin" ? BT : SF, border: "1px solid " + (verFrm.jour === "fin" ? BTB : BR), borderRadius: 10, color: verFrm.jour === "fin" ? BTT : TX, fontSize: 12, cursor: "pointer" }}>Fin du mois</button>
+          </div>
+          <button type="button" onClick={() => setShowJourPicker(false)} style={{ width: "100%", padding: "11px", background: SF2, border: "1px solid " + BR, borderRadius: 10, color: TX2, fontSize: 13, cursor: "pointer" }}>Annuler</button>
         </Modal>
       )}
 
@@ -121,7 +139,7 @@ function ProjetDetail({
             <div style={{ ...ico, background: BT }}>🔁</div>
             <div style={{ flex: 1 }}>
               <p style={{ fontSize: 13, color: TX, margin: 0, fontWeight: 500 }}>{fmt(+x.montant)}</p>
-              <p style={{ fontSize: 11, color: TX3, margin: 0 }}>Le {x.jour} du mois</p>
+              <p style={{ fontSize: 11, color: TX3, margin: 0 }}>{x.jour === "paie" ? "Paie" : x.jour === "fin" ? "Fin du mois" : "Le " + x.jour}</p>
             </div>
             <button style={{ background: "none", border: "none", cursor: "pointer", color: AC, fontSize: 14, padding: "2px 4px" }} onClick={() => { setEditVer({ id: x.id, type: "fixe" }); setEditVerFrm({ montant: x.montant, jour: x.jour, date: "" }); }}>✎</button>
           </div>

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { ICONS_PRJ, SF, SF2, BR, BR2, TX, TX2, TX3, BT, BTB, BTT, AC } from "../constants.js";
 import Modal from "../components/Modal.jsx";
 import DelBtn from "../components/DelBtn.jsx";
@@ -15,6 +16,8 @@ export default function Projets({
   setVerType, setVerFrm, setEditVer, setEditVerFrm,
   inp, card, trow, ico, bigBtn,
 }) {
+  const [showJourPicker, setShowJourPicker] = useState(false);
+  const jourLabel = j => j === "paie" ? "Paie" : j === "fin" ? "Fin du mois" : "Le " + j;
   const gSoldeP = p => p.versements.reduce((s, v) => s + v.montant, 0);
   const gPctP = p => Math.min(100, Math.round(gSoldeP(p) / p.objectif * 100));
   const projet = projets.find(p => p.id === prjSel);
@@ -39,13 +42,25 @@ export default function Projets({
           <div style={{ display: "flex", gap: 10, marginBottom: 14 }}>
             <div style={{ flex: 1 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Montant (CAD)</label><input style={inp} type="number" value={editVerFrm.montant} onChange={e => setEditVerFrm(f => ({ ...f, montant: e.target.value }))} /></div>
             {editVer.type === "fixe"
-              ? <div style={{ flex: 1 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Jour du mois</label><input style={inp} type="number" min="1" max="31" value={editVerFrm.jour} onChange={e => setEditVerFrm(f => ({ ...f, jour: e.target.value }))} /></div>
+              ? <div style={{ flex: 1 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Quand</label><div style={{ display: "flex", gap: 6 }}><button type="button" style={{ flex: 1, padding: "7px 4px", background: editVerFrm.jour !== "paie" ? BT : SF, border: "1px solid " + (editVerFrm.jour !== "paie" ? BTB : BR), borderRadius: 8, color: editVerFrm.jour !== "paie" ? BTT : TX2, fontSize: 11, cursor: "pointer" }} onClick={() => { setEditVerFrm(f => ({ ...f, jour: f.jour === "paie" ? 1 : f.jour })); setShowJourPicker(true); }}>{editVerFrm.jour !== "paie" ? jourLabel(editVerFrm.jour) : "Jour du mois"}</button><button type="button" style={{ flex: 1, padding: "7px 4px", background: editVerFrm.jour === "paie" ? BT : SF, border: "1px solid " + (editVerFrm.jour === "paie" ? BTB : BR), borderRadius: 8, color: editVerFrm.jour === "paie" ? BTT : TX2, fontSize: 11, cursor: "pointer" }} onClick={() => setEditVerFrm(f => ({ ...f, jour: "paie" }))}>Paie</button></div></div>
               : <div style={{ flex: 1 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Date</label><input style={inp} type="date" value={editVerFrm.date} onChange={e => setEditVerFrm(f => ({ ...f, date: e.target.value }))} /></div>}
           </div>
           <SaveCancel onS={saveEditVer} onC={() => setEditVer(null)} />
           {editVer.type === "fixe"
             ? <DelBtn onClick={() => { delVerFixe(prjSel, editVer.id); setEditVer(null); }} />
             : <DelBtn onClick={() => { delVer(prjSel, editVer.id); setEditVer(null); }} />}
+        </Modal>
+      )}
+
+      {showJourPicker && (
+        <Modal title="Choix de la journee">
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 14 }}>
+            {Array.from({ length: 31 }, (_, i) => i + 1).map(j => (
+              <button key={j} type="button" onClick={() => { setEditVerFrm(f => ({ ...f, jour: j })); setShowJourPicker(false); }} style={{ width: 46, height: 46, background: +editVerFrm.jour === j ? BT : SF, border: "1px solid " + (+editVerFrm.jour === j ? BTB : BR), borderRadius: 10, color: +editVerFrm.jour === j ? BTT : TX, fontSize: 14, fontWeight: 500, cursor: "pointer" }}>{j}</button>
+            ))}
+            <button type="button" onClick={() => { setEditVerFrm(f => ({ ...f, jour: "fin" })); setShowJourPicker(false); }} style={{ padding: "0 14px", height: 46, background: editVerFrm.jour === "fin" ? BT : SF, border: "1px solid " + (editVerFrm.jour === "fin" ? BTB : BR), borderRadius: 10, color: editVerFrm.jour === "fin" ? BTT : TX, fontSize: 12, cursor: "pointer" }}>Fin du mois</button>
+          </div>
+          <button type="button" onClick={() => setShowJourPicker(false)} style={{ width: "100%", padding: "11px", background: SF2, border: "1px solid " + BR, borderRadius: 10, color: TX2, fontSize: 13, cursor: "pointer" }}>Annuler</button>
         </Modal>
       )}
 

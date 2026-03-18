@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { SF, SF2, BR, BR2, TX, TX2, TX3, BT, BTB, BTT, AC, RD, GN } from "../constants.js";
 import { today, fmt } from "../utils/dates.js";
 import Modal from "../components/Modal.jsx";
@@ -15,6 +16,9 @@ export default function Dettes({
   setPaiType, setPaiFrm, setEditPai, setEditPaiFrm,
   inp, card, trow, ico, bigBtn,
 }) {
+  const [showJourPicker, setShowJourPicker] = useState(false);
+  const [jourPickerTarget, setJourPickerTarget] = useState("add");
+  const jourLabel = j => j === "paie" ? "Paie" : j === "fin" ? "Fin du mois" : "Le " + j;
   const gSolde = d => Math.max(0, d.montantInitial - d.paiements.reduce((s, p) => s + p.montant, 0));
   const gPct = d => Math.min(100, Math.round(d.paiements.reduce((s, p) => s + p.montant, 0) / d.montantInitial * 100));
   const dette = dettes.find(d => d.id === detSel);
@@ -38,7 +42,7 @@ export default function Dettes({
           <div style={{ display: "flex", gap: 10, marginBottom: 14 }}>
             <div style={{ flex: 1 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Montant (CAD)</label><input style={inp} type="number" value={editPaiFrm.montant} onChange={e => setEditPaiFrm(f => ({ ...f, montant: e.target.value }))} /></div>
             {editPai.type === "fixe"
-              ? <div style={{ flex: 1 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Jour du mois</label><input style={inp} type="number" min="1" max="31" value={editPaiFrm.jour} onChange={e => setEditPaiFrm(f => ({ ...f, jour: e.target.value }))} /></div>
+              ? <div style={{ flex: 1 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Quand</label><div style={{ display: "flex", gap: 6 }}><button type="button" style={{ flex: 1, padding: "7px 4px", background: editPaiFrm.jour !== "paie" ? BT : SF, border: "1px solid " + (editPaiFrm.jour !== "paie" ? BTB : BR), borderRadius: 8, color: editPaiFrm.jour !== "paie" ? BTT : TX2, fontSize: 11, cursor: "pointer" }} onClick={() => { setEditPaiFrm(f => ({ ...f, jour: f.jour === "paie" ? 1 : f.jour })); setJourPickerTarget("edit"); setShowJourPicker(true); }}>{editPaiFrm.jour !== "paie" ? jourLabel(editPaiFrm.jour) : "Jour du mois"}</button><button type="button" style={{ flex: 1, padding: "7px 4px", background: editPaiFrm.jour === "paie" ? BT : SF, border: "1px solid " + (editPaiFrm.jour === "paie" ? BTB : BR), borderRadius: 8, color: editPaiFrm.jour === "paie" ? BTT : TX2, fontSize: 11, cursor: "pointer" }} onClick={() => setEditPaiFrm(f => ({ ...f, jour: "paie" }))}>Paie</button></div></div>
               : <div style={{ flex: 1 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Date</label><input style={inp} type="date" value={editPaiFrm.date} onChange={e => setEditPaiFrm(f => ({ ...f, date: e.target.value }))} /></div>}
           </div>
           <SaveCancel onS={saveEditPai} onC={() => setEditPai(null)} />
@@ -47,6 +51,22 @@ export default function Dettes({
             : <DelBtn onClick={() => { delPai(detSel, editPai.id); setEditPai(null); }} />}
         </Modal>
       )}
+
+      {showJourPicker && (() => {
+        const curJour = jourPickerTarget === "edit" ? editPaiFrm.jour : paiFrm.jour;
+        const setJour = j => jourPickerTarget === "edit" ? setEditPaiFrm(f => ({ ...f, jour: j })) : setPaiFrm(f => ({ ...f, jour: j }));
+        return (
+          <Modal title="Choix de la journee">
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 14 }}>
+              {Array.from({ length: 31 }, (_, i) => i + 1).map(j => (
+                <button key={j} type="button" onClick={() => { setJour(j); setShowJourPicker(false); }} style={{ width: 46, height: 46, background: +curJour === j ? BT : SF, border: "1px solid " + (+curJour === j ? BTB : BR), borderRadius: 10, color: +curJour === j ? BTT : TX, fontSize: 14, fontWeight: 500, cursor: "pointer" }}>{j}</button>
+              ))}
+              <button type="button" onClick={() => { setJour("fin"); setShowJourPicker(false); }} style={{ padding: "0 14px", height: 46, background: curJour === "fin" ? BT : SF, border: "1px solid " + (curJour === "fin" ? BTB : BR), borderRadius: 10, color: curJour === "fin" ? BTT : TX, fontSize: 12, cursor: "pointer" }}>Fin du mois</button>
+            </div>
+            <button type="button" onClick={() => setShowJourPicker(false)} style={{ width: "100%", padding: "11px", background: SF2, border: "1px solid " + BR, borderRadius: 10, color: TX2, fontSize: 13, cursor: "pointer" }}>Annuler</button>
+          </Modal>
+        );
+      })()}
 
       <p style={{ fontSize: 15, fontWeight: 500, marginBottom: 12, color: TX }}>Dettes</p>
 
@@ -101,7 +121,7 @@ export default function Dettes({
               <div style={{ display: "flex", gap: 10, marginBottom: 14 }}>
                 <div style={{ flex: 1 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Montant (CAD)</label><input autoFocus style={inp} type="number" placeholder="0.00" value={paiFrm.montant} onChange={e => setPaiFrm(f => ({ ...f, montant: e.target.value }))} /></div>
                 {paiType === "fixe"
-                  ? <div style={{ flex: 1 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Jour du mois</label><input style={inp} type="number" min="1" max="31" placeholder="1" value={paiFrm.jour} onChange={e => setPaiFrm(f => ({ ...f, jour: e.target.value }))} /></div>
+                  ? <div style={{ flex: 1 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Quand</label><div style={{ display: "flex", gap: 6 }}><button type="button" style={{ flex: 1, padding: "7px 4px", background: paiFrm.jour !== "paie" ? BT : SF, border: "1px solid " + (paiFrm.jour !== "paie" ? BTB : BR), borderRadius: 8, color: paiFrm.jour !== "paie" ? BTT : TX2, fontSize: 11, cursor: "pointer" }} onClick={() => { setPaiFrm(f => ({ ...f, jour: f.jour === "paie" ? 1 : f.jour })); setJourPickerTarget("add"); setShowJourPicker(true); }}>{paiFrm.jour !== "paie" ? jourLabel(paiFrm.jour) : "Jour du mois"}</button><button type="button" style={{ flex: 1, padding: "7px 4px", background: paiFrm.jour === "paie" ? BT : SF, border: "1px solid " + (paiFrm.jour === "paie" ? BTB : BR), borderRadius: 8, color: paiFrm.jour === "paie" ? BTT : TX2, fontSize: 11, cursor: "pointer" }} onClick={() => setPaiFrm(f => ({ ...f, jour: "paie" }))}>Paie</button></div></div>
                   : <div style={{ flex: 1 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Date</label><input style={inp} type="date" value={paiFrm.date} onChange={e => setPaiFrm(f => ({ ...f, date: e.target.value }))} /></div>}
               </div>
               <SaveCancel onS={addPai} onC={() => { setPaiType(null); setPaiFrm({ montant: "", date: today(), jour: "1" }); }} />
@@ -119,7 +139,7 @@ export default function Dettes({
             {(dette.paiementsAuto || []).filter(x => +x.montant > 0).map((x, i) => (
               <div key={"auto" + i} style={trow}>
                 <div style={{ ...ico, background: BT }}>🔁</div>
-                <div style={{ flex: 1 }}><p style={{ fontSize: 13, color: TX, margin: 0, fontWeight: 500 }}>{fmt(+x.montant)}</p><p style={{ fontSize: 11, color: TX3, margin: 0 }}>Le {x.jour} du mois</p></div>
+                <div style={{ flex: 1 }}><p style={{ fontSize: 13, color: TX, margin: 0, fontWeight: 500 }}>{fmt(+x.montant)}</p><p style={{ fontSize: 11, color: TX3, margin: 0 }}>{x.jour === "paie" ? "Paie" : x.jour === "fin" ? "Fin du mois" : "Le " + x.jour}</p></div>
                 <button style={{ background: "none", border: "none", cursor: "pointer", color: AC, fontSize: 14, padding: "2px 4px" }} onClick={() => { setEditPai({ id: x.id, type: "fixe" }); setEditPaiFrm({ montant: x.montant, jour: x.jour, date: today() }); }}>✎</button>
               </div>
             ))}

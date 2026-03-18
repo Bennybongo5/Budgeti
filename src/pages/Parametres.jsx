@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, signInWithRedirect, GoogleAuthProvider, signOut } from "firebase/auth";
 import { auth } from "../firebase.js";
-import { DEFAULT_CATS, SF, SF2, BR, BR2, TX, TX2, TX3, BT, BTB, BTT, RD } from "../constants.js";
+import { DEFAULT_CATS, ICONS_CAT, SF, SF2, BR, BR2, TX, TX2, TX3, BT, BTB, BTT, AC, RD } from "../constants.js";
 import Modal from "../components/Modal.jsx";
 
 const googleProvider = new GoogleAuthProvider();
 
-export default function Parametres({ user, inp, card, updTxs, updRecs, updRrecs, updDettes, updProjets, updCats, updPaieM, setDetSel, setPrjSel }) {
+export default function Parametres({ user, cats, inp, card, updTxs, updRecs, updRrecs, updDettes, updProjets, updCats, updPaieM, setDetSel, setPrjSel }) {
   const [showEmail, setShowEmail] = useState(false);
   const [mode, setMode] = useState("login");
   const [email, setEmail] = useState("");
@@ -15,6 +15,9 @@ export default function Parametres({ user, inp, card, updTxs, updRecs, updRrecs,
   const [loading, setLoading] = useState(false);
   const [showClear, setShowClear] = useState(false);
   const [clearStep, setClearStep] = useState(1);
+  const [editCat, setEditCat] = useState(null);
+  const [editCatFrm, setEditCatFrm] = useState({ label: "", icon: "" });
+  const [delCat, setDelCat] = useState(null);
 
   const errMsg = code => ({
     "auth/invalid-email": "Adresse courriel invalide.",
@@ -148,6 +151,18 @@ const handleSignOut = async () => {
       </div>
 
       <div style={card}>
+        <p style={{ fontSize: 13, fontWeight: 500, color: TX2, margin: "0 0 12px" }}>Categories</p>
+        {(cats || []).map(c => (
+          <div key={c.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: "0.5px solid " + BR }}>
+            <span style={{ fontSize: 20, width: 28, textAlign: "center", flexShrink: 0 }}>{c.icon}</span>
+            <p style={{ flex: 1, fontSize: 13, color: TX, margin: 0 }}>{c.label}</p>
+            <button onClick={() => { setEditCat(c); setEditCatFrm({ label: c.label, icon: c.icon }); }} style={{ background: "none", border: "none", cursor: "pointer", color: AC, fontSize: 15, padding: "2px 6px" }}>✎</button>
+            <button onClick={() => setDelCat(c)} style={{ background: "none", border: "none", cursor: "pointer", color: RD, fontSize: 15, padding: "2px 6px" }}>🗑</button>
+          </div>
+        ))}
+      </div>
+
+      <div style={card}>
         <p style={{ fontSize: 13, fontWeight: 500, color: TX2, margin: "0 0 8px" }}>Donnees</p>
         <p style={{ fontSize: 11, color: TX3, margin: "0 0 12px" }}>Efface toutes les donnees de l'application de facon permanente.</p>
         <button
@@ -155,6 +170,41 @@ const handleSignOut = async () => {
           style={{ width: "100%", padding: "11px", background: "none", border: "1px solid " + RD, borderRadius: 10, color: RD, fontSize: 13, fontWeight: 500, cursor: "pointer" }}
         >Tout effacer</button>
       </div>
+
+      {editCat && (
+        <Modal title="Modifier la categorie">
+          <div style={{ marginBottom: 12 }}>
+            <label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Nom</label>
+            <input autoFocus style={inp} value={editCatFrm.label} onChange={e => setEditCatFrm(f => ({ ...f, label: e.target.value }))} />
+          </div>
+          <div style={{ marginBottom: 16 }}>
+            <label style={{ fontSize: 12, color: TX2, marginBottom: 6, display: "block" }}>Icone</label>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 10 }}>
+              {ICONS_CAT.map(ic => (
+                <button key={ic} type="button" onClick={() => setEditCatFrm(f => ({ ...f, icon: ic }))} style={{ fontSize: 18, padding: "5px 7px", background: editCatFrm.icon === ic ? BT : SF, border: "1px solid " + (editCatFrm.icon === ic ? BTB : BR), borderRadius: 7, cursor: "pointer" }}>{ic}</button>
+              ))}
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ fontSize: 12, color: TX3, whiteSpace: "nowrap" }}>Ou coller un emoji :</span>
+              <input style={{ width: 54, padding: "6px", background: SF, border: "1px solid " + BR2, borderRadius: 8, fontSize: 22, textAlign: "center", boxSizing: "border-box" }} value={editCatFrm.icon} onChange={e => setEditCatFrm(f => ({ ...f, icon: e.target.value }))} placeholder="😀" />
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button style={{ flex: 1, padding: "11px", background: BT, border: "1px solid " + BTB, borderRadius: 10, color: BTT, fontSize: 13, fontWeight: 500, cursor: "pointer" }} onClick={() => { if (!editCatFrm.label.trim()) return; updCats(p => p.map(c => c.id === editCat.id ? { ...c, label: editCatFrm.label.trim(), icon: editCatFrm.icon } : c)); setEditCat(null); }}>Enregistrer</button>
+            <button style={{ padding: "11px 14px", background: SF2, border: "1px solid " + BR, borderRadius: 10, color: TX2, fontSize: 13, cursor: "pointer" }} onClick={() => setEditCat(null)}>Annuler</button>
+          </div>
+        </Modal>
+      )}
+
+      {delCat && (
+        <Modal title="Supprimer la categorie">
+          <p style={{ fontSize: 13, color: TX2, margin: "0 0 16px" }}>Supprimer <strong>{delCat.icon} {delCat.label}</strong> ? Les transactions et charges liees a cette categorie ne seront pas supprimees.</p>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button style={{ flex: 1, padding: "11px", background: RD, border: "1px solid " + RD, borderRadius: 10, color: "#fff", fontSize: 13, fontWeight: 500, cursor: "pointer" }} onClick={() => { updCats(p => p.filter(c => c.id !== delCat.id)); setDelCat(null); }}>Supprimer</button>
+            <button style={{ padding: "11px 14px", background: SF2, border: "1px solid " + BR, borderRadius: 10, color: TX2, fontSize: 13, cursor: "pointer" }} onClick={() => setDelCat(null)}>Annuler</button>
+          </div>
+        </Modal>
+      )}
 
       {showClear && (
         <Modal title={clearStep === 1 ? "Effacer toutes les donnees ?" : "Derniere confirmation"}>

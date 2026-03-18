@@ -2,7 +2,7 @@ import { SF, BR2, TX, TX3 } from "../constants.js";
 import TxRow from "../components/TxRow.jsx";
 
 export default function Historique({
-  txs, cats, filtTx, months, filCat, selMo,
+  cats, filtTx, months, filCat, selMo,
   setFilCat, setSelMo,
   startETx,
   trow, ico, chip,
@@ -18,8 +18,8 @@ export default function Historique({
       </div>
 
       <div style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 6, marginBottom: 4 }}>
-        {[{ id: "tout", label: "Tout" }, { id: "revenu", label: "Revenus" }, { id: "paie", label: "Paies" }, ...cats].map(c => (
-          <button key={c.id} style={chip(filCat === c.id)} onClick={() => setFilCat(c.id)}>{c.icon && c.id !== "paie" ? c.icon + " " : ""}{c.label}</button>
+        {[{ id: "tout", label: "Tout" }, { id: "revenu", label: "Revenus" }, { id: "paie", label: "Paies" }, { id: "recurrents", label: "Recurrents" }, { id: "dettes", label: "Dettes" }, { id: "projets", label: "Projets" }, ...cats].map(c => (
+          <button key={c.id} style={chip(filCat === c.id)} onClick={() => setFilCat(c.id)}>{c.icon && !["tout","revenu","paie","recurrents","dettes","projets"].includes(c.id) ? c.icon + " " : ""}{c.label}</button>
         ))}
       </div>
       {filtTx.length === 0 && <div style={{ textAlign: "center", color: TX3, padding: "30px 20px", fontSize: 13 }}>Aucune transaction.</div>}

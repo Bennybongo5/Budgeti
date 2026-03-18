@@ -49,7 +49,7 @@ export default function App() {
   const [recFrm, setRecFrm] = useState({ desc: "", amount: "", cat: DEFAULT_CATS[0].id, jour: 1 });
   const [rrFrm, setRrFrm] = useState({ desc: "", amount: "", jour: 1 });
   const [eTxId, setETxId] = useState(null); const [eTxFrm, setETxFrm] = useState(null);
-  const [eRecId, setERecId] = useState(null); const [eRecMod, setERecMod] = useState(false);
+  const [eRecId, setERecId] = useState(null); const [eRecMod, setERecMod] = useState(false); const [eRecFrm, setERecFrm] = useState({ desc: "", amount: "", cat: DEFAULT_CATS[0].id, jour: 1 });
   const [eRrId, setERrId] = useState(null); const [eRrMod, setERrMod] = useState(false);
   const [filCat, setFilCat] = useState("tout");
   const [selMo, setSelMo] = useState("tout");
@@ -147,9 +147,9 @@ export default function App() {
   const delTx = id => updTxs(p => p.filter(x => x.id !== id));
   const startETx = x => { setETxId(x.id); setETxFrm({ type: x.type, desc: x.desc, amount: x.amount, cat: x.cat, date: x.date }); };
   const saveETx = () => { if (!eTxFrm.desc || !eTxFrm.amount || isNaN(+eTxFrm.amount)) return; updTxs(p => p.map(x => x.id === eTxId ? { ...x, ...eTxFrm, amount: +eTxFrm.amount } : x)); setETxId(null); setETxFrm(null); };
-  const addRec = () => { if (!recFrm.desc || !recFrm.amount || isNaN(+recFrm.amount)) return; if (eRecId !== null) { updRecs(p => p.map(r => r.id === eRecId ? { ...r, ...recFrm, amount: +recFrm.amount } : r)); setERecId(null); } else updRecs(p => [...p, { id: Date.now(), ...recFrm, amount: +recFrm.amount }]); setRecFrm({ desc: "", amount: "", cat: cats[0]?.id || "", jour: 1 }); };
+  const addRec = () => { if (eRecId !== null) { if (!eRecFrm.desc || !eRecFrm.amount || isNaN(+eRecFrm.amount)) return; updRecs(p => p.map(r => r.id === eRecId ? { ...r, ...eRecFrm, amount: +eRecFrm.amount } : r)); setERecId(null); } else { if (!recFrm.desc || !recFrm.amount || isNaN(+recFrm.amount)) return; updRecs(p => [...p, { id: Date.now(), ...recFrm, amount: +recFrm.amount }]); setRecFrm({ desc: "", amount: "", cat: cats[0]?.id || "", jour: 1 }); } };
   const delRec = id => { updRecs(p => p.filter(r => r.id !== id)); setERecId(null); setERecMod(false); };
-  const openERec = r => { setERecId(r.id); setRecFrm({ desc: r.desc, amount: r.amount, cat: r.cat, jour: r.jour }); setERecMod(true); };
+  const openERec = r => { setERecId(r.id); setERecFrm({ desc: r.desc, amount: r.amount, cat: r.cat, jour: r.jour }); setERecMod(true); };
   const addRr = () => { if (!rrFrm.desc || !rrFrm.amount || isNaN(+rrFrm.amount)) return; if (eRrId !== null) { updRrecs(p => p.map(r => r.id === eRrId ? { ...r, ...rrFrm, amount: +rrFrm.amount } : r)); setERrId(null); } else updRrecs(p => [...p, { id: Date.now(), ...rrFrm, amount: +rrFrm.amount }]); setRrFrm({ desc: "", amount: "", jour: 1 }); };
   const delRr = id => { updRrecs(p => p.filter(r => r.id !== id)); setERrId(null); setERrMod(false); };
   const openERr = r => { setERrId(r.id); setRrFrm({ desc: r.desc, amount: r.amount, jour: r.jour }); setERrMod(true); };
@@ -187,8 +187,9 @@ export default function App() {
   const mStart = ymd(curY, curM, 1);
   const mEnd = ymd(curY, curM, ld(curY, curM));
   const paies = useMemo(() => getPaies(paie), [paie]);
-  const months = useMemo(() => { const s = new Set(txs.map(x => x.date.slice(0, 7))); return [...s].sort((a, b) => b.localeCompare(a)); }, [txs]);
-  const filtTx = useMemo(() => txs.filter(x => (selMo === "tout" || x.date.startsWith(selMo)) && (filCat === "tout" || x.cat === filCat || (filCat === "revenu" && x.type === "revenu") || (filCat === "paie" && x.desc === "Paie"))).sort((a, b) => b.date.localeCompare(a.date)), [txs, selMo, filCat]);
+  const months = useMemo(() => { const s = new Set(txs.map(x => x.date.slice(0, 7))); dettes.forEach(d => d.paiements.forEach(p => s.add(p.date.slice(0, 7)))); projets.forEach(p => p.versements.forEach(v => s.add(v.date.slice(0, 7)))); return [...s].sort((a, b) => b.localeCompare(a)); }, [txs, dettes, projets]);
+  const histItems = useMemo(() => { const curMoStr = curY + "-" + String(curM).padStart(2, "0"); const moSet = new Set([...months, curMoStr]); const items = [...txs]; moSet.forEach(mo => { const [y, m] = mo.split("-").map(Number); const lastD = ld(y, m); recs.forEach(r => { const j = r.jour === "paie" ? 1 : r.jour === "fin" ? lastD : Math.min(r.jour, lastD); items.push({ id: "rc-" + r.id + "-" + mo, type: "depense", desc: r.desc, amount: r.amount, cat: r.cat, date: ymd(y, m, j), source: "rec" }); }); rrecs.forEach(r => { const j = Math.min(r.jour, lastD); items.push({ id: "rr-" + r.id + "-" + mo, type: "revenu", desc: r.desc, amount: r.amount, date: ymd(y, m, j), source: "rr" }); }); dettes.forEach(d => { (d.paiementsAuto || []).filter(pa => +pa.montant > 0).forEach(pa => { const j = pa.jour === "paie" ? 1 : pa.jour === "fin" ? lastD : Math.min(+pa.jour || 1, lastD); items.push({ id: "dp-" + pa.id + "-" + mo, type: "depense", desc: d.nom, amount: +pa.montant, date: ymd(y, m, j), source: "dette" }); }); }); projets.forEach(p => { (p.paiementsAuto || []).filter(pa => +pa.montant > 0).forEach(pa => { const j = pa.jour === "paie" ? 1 : pa.jour === "fin" ? lastD : Math.min(+pa.jour || 1, lastD); items.push({ id: "pp-" + pa.id + "-" + mo, type: "depense", desc: p.nom, amount: +pa.montant, date: ymd(y, m, j), source: "projet", icon: p.icon }); }); }); }); dettes.forEach(d => d.paiements.forEach(p => items.push({ id: "dm-" + p.id, type: "depense", desc: d.nom, amount: p.montant, date: p.date, source: "dette" }))); projets.forEach(p => p.versements.forEach(v => items.push({ id: "pm-" + v.id, type: "depense", desc: p.nom, amount: v.montant, date: v.date, source: "projet", icon: p.icon }))); return items.sort((a, b) => b.date.localeCompare(a.date)); }, [txs, recs, rrecs, dettes, projets, months, curY, curM]);
+  const filtTx = useMemo(() => histItems.filter(x => (selMo === "tout" || x.date.startsWith(selMo)) && (filCat === "tout" || x.cat === filCat || (filCat === "revenu" && x.type === "revenu") || (filCat === "paie" && x.desc === "Paie") || (filCat === "recurrents" && (x.source === "rec" || x.source === "rr")) || (filCat === "dettes" && x.source === "dette") || (filCat === "projets" && x.source === "projet"))), [histItems, selMo, filCat]);
   const totRec = useMemo(() => recs.reduce((s, r) => s + r.amount, 0), [recs]);
   const totRR = useMemo(() => rrecs.reduce((s, r) => s + r.amount, 0), [rrecs]);
   const totRev = useMemo(() => txs.filter(x => x.type === "revenu" && x.date.startsWith(curY + "-" + String(curM).padStart(2, "0"))).reduce((s, x) => s + x.amount, 0), [txs, curY, curM]);
@@ -206,7 +207,7 @@ export default function App() {
       const aRev = txs.filter(x => x.type === "revenu" && x.desc !== "Paie" && x.date >= deb && (fin ? x.date < fin : true)).reduce((s, x) => s + x.amount, 0);
       const [dy, dm] = deb.split("-").map(Number);
       const rrP = rrecs.reduce((s, r) => { for (let mo = 0; mo <= 1; mo++) { let mc = dm - 1 + mo, yc = dy + Math.floor(mc / 12); mc = ((mc % 12) + 12) % 12; const ds = ymd(yc, mc + 1, Math.min(r.jour, ld(yc, mc + 1))); if (ds >= deb && (fin ? ds < fin : true)) return s + r.amount; } return s; }, 0);
-      const ch = recs.reduce((s, r) => { for (let mo = 0; mo <= 1; mo++) { let mc = dm - 1 + mo, yc = dy + Math.floor(mc / 12); mc = ((mc % 12) + 12) % 12; const j = r.jour === "fin" ? ld(yc, mc + 1) : Math.min(r.jour, ld(yc, mc + 1)); const ds = ymd(yc, mc + 1, j); if (ds >= deb && (fin ? ds < fin : true)) return s + r.amount; } return s; }, 0);
+      const ch = recs.reduce((s, r) => { if (r.jour === "paie") return s + r.amount; for (let mo = 0; mo <= 1; mo++) { let mc = dm - 1 + mo, yc = dy + Math.floor(mc / 12); mc = ((mc % 12) + 12) % 12; const j = r.jour === "fin" ? ld(yc, mc + 1) : Math.min(r.jour, ld(yc, mc + 1)); const ds = ymd(yc, mc + 1, j); if (ds >= deb && (fin ? ds < fin : true)) return s + r.amount; } return s; }, 0);
       const deps = txs.filter(x => x.type === "depense" && x.date >= deb && (fin ? x.date < fin : true)).reduce((s, x) => s + x.amount, 0);
       const detP = calcAutoInPeriod(dettes, deb, fin) + calcManuelsInPeriod(dettes, deb, fin, "paiements");
       const prjP = calcAutoInPeriod(projets, deb, fin) + calcManuelsInPeriod(projets, deb, fin, "versements");
@@ -240,7 +241,14 @@ export default function App() {
       {showCat && (
         <Modal title="Nouvelle categorie">
           <div style={{ marginBottom: 12 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Nom</label><input autoFocus style={inp} value={newCatLbl} onChange={e => setNewCatLbl(e.target.value)} onKeyDown={e => e.key === "Enter" && addCat()} /></div>
-          <div style={{ marginBottom: 14 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 6, display: "block" }}>Icone</label><div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>{ICONS_CAT.map(ic => <button key={ic} type="button" onClick={() => setNewCatIco(ic)} style={{ fontSize: 18, padding: "5px 7px", background: newCatIco === ic ? BT : SF, border: "1px solid " + (newCatIco === ic ? BTB : BR), borderRadius: 7, cursor: "pointer" }}>{ic}</button>)}</div></div>
+          <div style={{ marginBottom: 14 }}>
+            <label style={{ fontSize: 12, color: TX2, marginBottom: 6, display: "block" }}>Icone</label>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 10 }}>{ICONS_CAT.map(ic => <button key={ic} type="button" onClick={() => setNewCatIco(ic)} style={{ fontSize: 18, padding: "5px 7px", background: newCatIco === ic ? BT : SF, border: "1px solid " + (newCatIco === ic ? BTB : BR), borderRadius: 7, cursor: "pointer" }}>{ic}</button>)}</div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ fontSize: 12, color: TX3, whiteSpace: "nowrap" }}>Ou coller un emoji :</span>
+              <input style={{ width: 54, padding: "6px", background: SF, border: "1px solid " + BR2, borderRadius: 8, fontSize: 22, textAlign: "center", boxSizing: "border-box" }} value={newCatIco} onChange={e => setNewCatIco(e.target.value)} placeholder="😀" />
+            </div>
+          </div>
           <div style={{ display: "flex", gap: 8 }}>
             <button style={{ flex: 1, padding: "12px", background: BT, border: "1px solid " + BTB, borderRadius: 12, color: BTT, fontSize: 14, fontWeight: 500, cursor: "pointer" }} onClick={addCat}>Creer</button>
             <button style={{ width: 90, padding: "12px", background: SF2, border: "1px solid " + BTB, borderRadius: 12, color: TX2, fontSize: 14, cursor: "pointer" }} onClick={() => { setShowCat(false); setNewCatLbl(""); setNewCatIco("📦"); setCatCb(null); }}>Annuler</button>
@@ -312,6 +320,7 @@ export default function App() {
             eRecId={eRecId} eRecMod={eRecMod} eRrId={eRrId} eRrMod={eRrMod}
             addType={addType} cats={cats} totRec={totRec} totRR={totRR}
             updRecs={updRecs} updRrecs={updRrecs}
+            eRecFrm={eRecFrm} setERecFrm={setERecFrm}
             setRecFrm={setRecFrm} setRrFrm={setRrFrm}
             setERecId={setERecId} setERecMod={setERecMod} setERrId={setERrId} setERrMod={setERrMod}
             addRec={addRec} delRec={delRec} openERec={openERec}
@@ -331,7 +340,7 @@ export default function App() {
         )}
         {view === "parametres" && (
           <Parametres
-            user={user}
+            user={user} cats={cats}
             updTxs={updTxs} updRecs={updRecs} updRrecs={updRrecs}
             updDettes={updDettes} updProjets={updProjets} updCats={updCats} updPaieM={updPaieM}
             setDetSel={setDetSel} setPrjSel={setPrjSel}

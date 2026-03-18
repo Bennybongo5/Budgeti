@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { SF, SF2, BR, BR2, TX, TX2, TX3, BT, BTB, BTT, AC, RD, GN } from "../constants.js";
 import { fmt } from "../utils/dates.js";
 import Modal from "../components/Modal.jsx";
@@ -6,21 +7,30 @@ import SaveCancel from "../components/SaveCancel.jsx";
 
 export default function Recurrents({
   recs, rrecs, recFrm, rrFrm, eRecId, eRecMod, eRrId, eRrMod, addType, cats,
+  eRecFrm, setERecFrm,
   updRecs, updRrecs, setRecFrm, setRrFrm, setERecId, setERecMod, setERrId, setERrMod,
   addRec, delRec, openERec, addRr, delRr, openERr, setAddType,
   totRec, totRR,
   inp, card, tbtn, bigBtn, CatSel,
 }) {
+  const [showJourPicker, setShowJourPicker] = useState(false);
+  const [jourPickerTarget, setJourPickerTarget] = useState("add"); // "add" | "edit"
+  const [addOpen, setAddOpen] = useState(false);
+  const jourLabel = j => j === "paie" ? "Paie" : j === "fin" ? "Fin du mois" : "Le " + j;
   return (
     <div>
       {eRecMod && eRecId && (
         <Modal title="Modifier la charge">
-          <div style={{ marginBottom: 10 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Description</label><input style={inp} value={recFrm.desc} onChange={e => setRecFrm(f => ({ ...f, desc: e.target.value }))} /></div>
-          <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
-            <div style={{ flex: 1 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Montant</label><input style={inp} type="number" value={recFrm.amount} onChange={e => setRecFrm(f => ({ ...f, amount: e.target.value }))} /></div>
-            <div style={{ flex: 1 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Jour</label><input style={inp} type="number" min="1" max="31" value={recFrm.jour} onChange={e => setRecFrm(f => ({ ...f, jour: +e.target.value }))} /></div>
+          <div style={{ marginBottom: 10 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Description</label><input style={inp} value={eRecFrm.desc} onChange={e => setERecFrm(f => ({ ...f, desc: e.target.value }))} /></div>
+          <div style={{ marginBottom: 10 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Montant</label><input style={inp} type="number" value={eRecFrm.amount} onChange={e => setERecFrm(f => ({ ...f, amount: e.target.value }))} /></div>
+          <div style={{ marginBottom: 10 }}>
+            <label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Quand</label>
+            <div style={{ display: "flex", gap: 6 }}>
+              <button type="button" style={{ flex: 1, padding: "7px 4px", background: eRecFrm.jour !== "paie" ? BT : SF, border: "1px solid " + (eRecFrm.jour !== "paie" ? BTB : BR), borderRadius: 8, color: eRecFrm.jour !== "paie" ? BTT : TX2, fontSize: 11, cursor: "pointer" }} onClick={() => { setERecFrm(f => ({ ...f, jour: typeof f.jour === "number" || f.jour === "fin" ? f.jour : 1 })); setJourPickerTarget("edit"); setShowJourPicker(true); }}>{eRecFrm.jour !== "paie" ? jourLabel(eRecFrm.jour) : "Jour du mois"}</button>
+              <button type="button" style={{ flex: 1, padding: "7px 4px", background: eRecFrm.jour === "paie" ? BT : SF, border: "1px solid " + (eRecFrm.jour === "paie" ? BTB : BR), borderRadius: 8, color: eRecFrm.jour === "paie" ? BTT : TX2, fontSize: 11, cursor: "pointer" }} onClick={() => setERecFrm(f => ({ ...f, jour: "paie" }))}>Paie</button>
+            </div>
           </div>
-          <div style={{ marginBottom: 14 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Categorie</label><CatSel value={recFrm.cat} onChange={v => setRecFrm(f => ({ ...f, cat: v }))} /></div>
+          <div style={{ marginBottom: 14 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Categorie</label><CatSel value={eRecFrm.cat} onChange={v => setERecFrm(f => ({ ...f, cat: v }))} /></div>
           <SaveCancel onS={() => { addRec(); setERecMod(false); }} onC={() => { setERecId(null); setERecMod(false); }} />
           <DelBtn onClick={() => delRec(eRecId)} />
         </Modal>
@@ -38,6 +48,21 @@ export default function Recurrents({
         </Modal>
       )}
 
+      {showJourPicker && (() => {
+        const curJour = jourPickerTarget === "edit" ? eRecFrm.jour : recFrm.jour;
+        const setJour = j => jourPickerTarget === "edit" ? setERecFrm(f => ({ ...f, jour: j })) : setRecFrm(f => ({ ...f, jour: j }));
+        return (
+          <Modal title="Choix de la journee">
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 14 }}>
+              {Array.from({ length: 31 }, (_, i) => i + 1).map(j => (
+                <button key={j} type="button" onClick={() => { setJour(j); setShowJourPicker(false); }} style={{ width: 46, height: 46, background: curJour === j ? BT : SF, border: "1px solid " + (curJour === j ? BTB : BR), borderRadius: 10, color: curJour === j ? BTT : TX, fontSize: 14, fontWeight: 500, cursor: "pointer" }}>{j}</button>
+              ))}
+              <button type="button" onClick={() => { setJour("fin"); setShowJourPicker(false); }} style={{ padding: "0 14px", height: 46, background: curJour === "fin" ? BT : SF, border: "1px solid " + (curJour === "fin" ? BTB : BR), borderRadius: 10, color: curJour === "fin" ? BTT : TX, fontSize: 12, cursor: "pointer" }}>Fin du mois</button>
+            </div>
+            <button type="button" onClick={() => setShowJourPicker(false)} style={{ width: "100%", padding: "11px", background: SF2, border: "1px solid " + BR, borderRadius: 10, color: TX2, fontSize: 13, cursor: "pointer" }}>Annuler</button>
+          </Modal>
+        );
+      })()}
       <p style={{ fontSize: 15, fontWeight: 500, marginBottom: 12, color: TX }}>Recurrent</p>
 
       <div style={{ background: SF2, border: "1px solid " + BR2, borderRadius: 12, padding: "11px 14px", marginBottom: 12 }}>
@@ -63,7 +88,7 @@ export default function Recurrents({
                 <span style={{ fontSize: 14, flexShrink: 0 }}>{c.icon}</span>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <p style={{ fontSize: 12, color: TX, margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.desc}</p>
-                  <p style={{ fontSize: 10, color: TX3, margin: 0 }}>{r.jour === "fin" ? "Fin du mois" : "Le " + r.jour}</p>
+                  <p style={{ fontSize: 10, color: TX3, margin: 0 }}>{r.jour === "paie" ? "Paie" : r.jour === "fin" ? "Fin du mois" : "Le " + r.jour}</p>
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 2, flexShrink: 0 }}>
                   <span style={{ fontSize: 12, fontWeight: 500, color: RD }}>-{fmt(r.amount)}</span>
@@ -94,17 +119,33 @@ export default function Recurrents({
 
       <div style={card}>
         <p style={{ fontSize: 13, fontWeight: 500, color: TX2, marginBottom: 10, marginTop: 0 }}>Ajouter</p>
-        <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
-          <button style={tbtn(addType === "depense", "depense")} onClick={() => setAddType("depense")}>Depense</button>
-          <button style={tbtn(addType === "revenu", "revenu")} onClick={() => setAddType("revenu")}>Revenu</button>
+        <div style={{ display: "flex", gap: 8, marginBottom: addOpen ? 12 : 0 }}>
+          <button style={tbtn(addOpen && addType === "depense", "depense")} onClick={() => { setAddType("depense"); setAddOpen(true); }}>Depense</button>
+          <button style={tbtn(addOpen && addType === "revenu", "revenu")} onClick={() => { setAddType("revenu"); setAddOpen(true); }}>Revenu</button>
         </div>
-        <div style={{ marginBottom: 10 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Description</label><input style={inp} placeholder={addType === "depense" ? "Ex: Loyer..." : "Ex: Allocations..."} value={addType === "depense" ? recFrm.desc : rrFrm.desc} onChange={e => addType === "depense" ? setRecFrm(f => ({ ...f, desc: e.target.value })) : setRrFrm(f => ({ ...f, desc: e.target.value }))} /></div>
-        <div style={{ display: "flex", gap: 10, marginBottom: addType === "depense" ? 10 : 0 }}>
-          <div style={{ flex: 1 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Montant (CAD)</label><input style={inp} type="number" placeholder="0.00" value={addType === "depense" ? recFrm.amount : rrFrm.amount} onChange={e => addType === "depense" ? setRecFrm(f => ({ ...f, amount: e.target.value })) : setRrFrm(f => ({ ...f, amount: e.target.value }))} /></div>
-          <div style={{ flex: 1 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Jour du mois</label><input style={inp} type="number" min="1" max="31" value={addType === "depense" ? recFrm.jour : rrFrm.jour} onChange={e => addType === "depense" ? setRecFrm(f => ({ ...f, jour: +e.target.value })) : setRrFrm(f => ({ ...f, jour: +e.target.value }))} /></div>
-        </div>
-        {addType === "depense" && <div style={{ marginTop: 10 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Categorie</label><CatSel value={recFrm.cat} onChange={v => setRecFrm(f => ({ ...f, cat: v }))} /></div>}
-        <button style={bigBtn()} onClick={() => addType === "depense" ? addRec() : addRr()}>Ajouter</button>
+        {addOpen && (
+          <>
+            <div style={{ marginBottom: 10 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Description</label><input autoFocus style={inp} placeholder={addType === "depense" ? "Ex: Loyer..." : "Ex: Allocations..."} value={addType === "depense" ? recFrm.desc : rrFrm.desc} onChange={e => addType === "depense" ? setRecFrm(f => ({ ...f, desc: e.target.value })) : setRrFrm(f => ({ ...f, desc: e.target.value }))} /></div>
+            <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
+              <div style={{ flex: 1 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Montant (CAD)</label><input style={inp} type="number" placeholder="0.00" value={addType === "depense" ? recFrm.amount : rrFrm.amount} onChange={e => addType === "depense" ? setRecFrm(f => ({ ...f, amount: e.target.value })) : setRrFrm(f => ({ ...f, amount: e.target.value }))} /></div>
+              {addType === "revenu" && <div style={{ flex: 1 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Jour du mois</label><input style={inp} type="number" min="1" max="31" value={rrFrm.jour} onChange={e => setRrFrm(f => ({ ...f, jour: +e.target.value }))} /></div>}
+            </div>
+            {addType === "depense" && (
+              <div style={{ marginBottom: 10 }}>
+                <label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Quand</label>
+                <div style={{ display: "flex", gap: 6 }}>
+                  <button type="button" style={{ flex: 1, padding: "7px 4px", background: recFrm.jour !== "paie" ? BT : SF, border: "1px solid " + (recFrm.jour !== "paie" ? BTB : BR), borderRadius: 8, color: recFrm.jour !== "paie" ? BTT : TX2, fontSize: 11, cursor: "pointer" }} onClick={() => { setRecFrm(f => ({ ...f, jour: typeof f.jour === "number" || f.jour === "fin" ? f.jour : 1 })); setJourPickerTarget("add"); setShowJourPicker(true); }}>{recFrm.jour !== "paie" ? jourLabel(recFrm.jour) : "Jour du mois"}</button>
+                  <button type="button" style={{ flex: 1, padding: "7px 4px", background: recFrm.jour === "paie" ? BT : SF, border: "1px solid " + (recFrm.jour === "paie" ? BTB : BR), borderRadius: 8, color: recFrm.jour === "paie" ? BTT : TX2, fontSize: 11, cursor: "pointer" }} onClick={() => setRecFrm(f => ({ ...f, jour: "paie" }))}>Paie</button>
+                </div>
+              </div>
+            )}
+            {addType === "depense" && <div style={{ marginBottom: 10 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Categorie</label><CatSel value={recFrm.cat} onChange={v => setRecFrm(f => ({ ...f, cat: v }))} /></div>}
+            <div style={{ display: "flex", gap: 8 }}>
+              <button style={{ flex: 1, padding: "12px", background: BT, border: "1px solid " + BTB, borderRadius: 12, color: BTT, fontSize: 14, fontWeight: 500, cursor: "pointer" }} onClick={() => { addType === "depense" ? addRec() : addRr(); setAddOpen(false); }}>Ajouter</button>
+              <button style={{ padding: "12px 16px", background: SF2, border: "1px solid " + BR, borderRadius: 12, color: TX2, fontSize: 14, cursor: "pointer" }} onClick={() => setAddOpen(false)}>Annuler</button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
