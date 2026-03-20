@@ -74,7 +74,7 @@ export default function App() {
   const [verFrm, setVerFrm] = useState({ montant: "", date: today(), jour: "1" });
   const [editVer, setEditVer] = useState(null);
   const [editVerFrm, setEditVerFrm] = useState({ montant: "", date: "", jour: "" });
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  // Bottom nav replaces drawer — no drawerOpen state needed
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem("budgeti-theme");
     if (saved !== null) return saved === "dark";
@@ -209,7 +209,7 @@ export default function App() {
   const ico = { width: 32, height: 32, borderRadius: 9, background: BT, border: "1px solid " + BTB, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, flexShrink: 0 };
   const fbtn = a => ({ flex: 1, padding: "8px 4px", background: a ? BT : SF, border: "1px solid " + (a ? BTB : BR), borderRadius: 9, color: a ? BTT : TX2, fontSize: 11, cursor: "pointer", textAlign: "center", fontWeight: a ? 500 : 400 });
   const chip = a => ({ padding: "5px 11px", background: a ? BT : SF, border: "1px solid " + (a ? BTB : BR), borderRadius: 20, color: a ? BTT : TX2, fontSize: 12, cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 });
-  const navBtn = a => ({ flex: 1, padding: "8px 2px 6px", background: a ? "#EEF2FF" : "none", border: "none", cursor: "pointer", color: a ? BT : TX3, fontSize: 10, display: "flex", flexDirection: "column", alignItems: "center", gap: 3, borderTop: a ? "2px solid " + BT : "2px solid transparent" });
+  const navBtn = a => ({ flex: 1, padding: "8px 2px 6px", background: a ? "#F0FDF4" : "none", border: "none", cursor: "pointer", color: a ? BT : TX3, fontSize: 10, display: "flex", flexDirection: "column", alignItems: "center", gap: 3, borderTop: a ? "2px solid " + BT : "2px solid transparent" });
   const tbtn = (a, tp) => { const r = tp === "depense"; return { flex: 1, padding: "8px", background: a ? (r ? "var(--c-dep)" : BT) : SF, border: "1px solid " + (a ? (r ? "var(--c-dep-b)" : BTB) : BR), borderRadius: 9, color: a ? "#FFFFFF" : TX2, fontSize: 13, cursor: "pointer", fontWeight: a ? 500 : 400 }; };
   const bigBtn = () => ({ width: "100%", padding: "12px", background: BT, border: "1px solid " + BTB, borderRadius: 12, color: BTT, fontSize: 14, fontWeight: 500, cursor: "pointer", marginTop: 6 });
   const CatSel = ({ value, onChange }) => <CatSelect cats={cats} value={value} onChange={onChange} inp={inp} setCatCb={setCatCb} setShowCat={setShowCat} />;
@@ -256,25 +256,25 @@ export default function App() {
   const styles = { inp, inpSm, card, trow, ico, fbtn, chip, navBtn, tbtn, bigBtn };
 
   return (
-    <div style={{ fontFamily: "system-ui,sans-serif", background: BG, minHeight: "100vh", color: TX, paddingBottom: 24 }}>
+    <div style={{ fontFamily: "system-ui,sans-serif", background: BG, minHeight: "100vh", color: TX, paddingBottom: 80 }}>
       <style>{NS + `
         :root {
           --c-bg:#FFFFFF; --c-sf:#F1F5F9; --c-sf2:#E2E8F0; --c-br:#E2E8F0; --c-br2:#CBD5E1;
           --c-tx:#1E293B; --c-tx2:#64748B; --c-tx3:#94A3B8;
-          --c-bt:#6366F1; --c-btb:#4F46E5; --c-btt:#FFFFFF;
-          --c-ac:#8B5CF6; --c-rd:#F43F5E; --c-gn:#10B981;
+          --c-bt:#15803D; --c-btb:#166534; --c-btt:#FFFFFF;
+          --c-ac:#15803D; --c-rd:#F43F5E; --c-gn:#10B981;
           --c-dep:#F43F5E; --c-dep-b:#E11D48;
           --c-rd-light:#FFE4E6; --c-rd-light-b:#FB7185;
-          --c-bt-light:#EEF2FF;
+          --c-bt-light:#F0FDF4;
         }
         :root.dark {
           --c-bg:#0F172A; --c-sf:#1E293B; --c-sf2:#334155; --c-br:#334155; --c-br2:#475569;
           --c-tx:#F1F5F9; --c-tx2:#94A3B8; --c-tx3:#64748B;
-          --c-bt:#6366F1; --c-btb:#4F46E5; --c-btt:#FFFFFF;
-          --c-ac:#A78BFA; --c-rd:#F87171; --c-gn:#34D399;
+          --c-bt:#15803D; --c-btb:#166534; --c-btt:#FFFFFF;
+          --c-ac:#15803D; --c-rd:#F87171; --c-gn:#34D399;
           --c-dep:#F87171; --c-dep-b:#EF4444;
           --c-rd-light:#3D1520; --c-rd-light-b:#F87171;
-          --c-bt-light:#1E1B4B;
+          --c-bt-light:#052E16;
         }
       `}</style>
 
@@ -322,48 +322,40 @@ export default function App() {
         </Modal>
       )}
 
-      {/* Drawer overlay */}
-      {drawerOpen && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: 199 }} onClick={() => setDrawerOpen(false)} />
-      )}
-
-      {/* Drawer */}
-      <div style={{ position: "fixed", top: 0, left: 0, height: "100vh", width: "75%", maxWidth: 280, background: "var(--c-bg)", zIndex: 200, transform: drawerOpen ? "translateX(0)" : "translateX(-100%)", transition: "transform 0.25s ease", display: "flex", flexDirection: "column", boxShadow: "4px 0 20px rgba(0,0,0,0.15)" }}>
-        <div style={{ padding: "20px 20px 16px", borderBottom: "1px solid " + BR, display: "flex", alignItems: "center", gap: 10 }}>
-          <img src="/logotransparant.png" alt="Budgeti" style={{ width: 40, height: 40, borderRadius: 8, flexShrink: 0 }} />
-          <p style={{ fontSize: 22, fontWeight: 800, margin: 0, color: TX, fontFamily: "'Montserrat', sans-serif" }}>Budgeti</p>
-        </div>
-        <div style={{ flex: 1, overflowY: "auto", padding: "8px 0" }}>
-          {[
-            { id: "dashboard",  icon: "🏠", label: "Tableau" },
-            { id: "dettes",     icon: "📊", label: "Dettes" },
-            { id: "projets",    icon: "🎯", label: "Projets" },
-            { id: "recurrents", icon: "🔄", label: "Recurrents" },
-            { id: "analyse",    icon: "📈", label: "Analyse" },
-            { id: "parametres", icon: "⚙",  label: "Parametres" },
-          ].map(n => (
-            <button key={n.id} onClick={() => navigate(n.id)} style={{ width: "100%", display: "flex", alignItems: "center", gap: 14, padding: "14px 20px", background: view === n.id ? "var(--c-bt-light)" : "none", border: "none", borderLeft: "3px solid " + (view === n.id ? BT : "transparent"), cursor: "pointer", color: view === n.id ? BT : TX2, fontSize: 15, fontWeight: view === n.id ? 600 : 400, textAlign: "left" }}>
-              <span style={{ fontSize: 20 }}>{n.icon}</span>
-              {n.label}
-            </button>
-          ))}
-        </div>
-        <div style={{ padding: "12px 20px", borderTop: "1px solid " + BR, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <span style={{ fontSize: 13, color: TX2 }}>{darkMode ? "🌙 Sombre" : "☀️ Clair"}</span>
-          <button onClick={() => setDarkMode(d => !d)} style={{ width: 48, height: 26, borderRadius: 13, background: darkMode ? BT : BR2, border: "none", cursor: "pointer", position: "relative", transition: "background 0.2s", flexShrink: 0 }}>
-            <span style={{ position: "absolute", top: 3, left: darkMode ? 25 : 3, width: 20, height: 20, borderRadius: "50%", background: "#FFFFFF", transition: "left 0.2s", display: "block" }} />
-          </button>
-        </div>
-      </div>
-
-      {/* Header */}
-      <div style={{ background: "var(--c-bg)", borderBottom: "1px solid " + BR, padding: "10px 16px", display: "flex", alignItems: "center", gap: 12, position: "sticky", top: 0, zIndex: 100, boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}>
-        <button onClick={() => setDrawerOpen(true)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 22, padding: "4px 6px", color: TX, lineHeight: 1, flexShrink: 0 }}>☰</button>
-        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-          <img src="/logotransparant.png" alt="Budgeti" style={{ width: 36, height: 36, borderRadius: 8, flexShrink: 0 }} />
+      {/* Header — simplified, no hamburger */}
+      <div style={{ background: "var(--c-bg)", borderBottom: "1px solid " + BR, padding: "10px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 100, boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <img src="/logotransparant.png" alt="Budgeti" style={{ width: 36, height: 36, borderRadius: 8 }} />
           <p style={{ fontSize: 22, fontWeight: 800, margin: 0, color: TX, fontFamily: "'Montserrat', sans-serif", letterSpacing: "-0.01em" }}>Budgeti</p>
         </div>
-        <div style={{ width: 38 }} />
+        {/* Dark mode toggle in header */}
+        <button onClick={() => setDarkMode(d => !d)} style={{ width: 48, height: 26, borderRadius: 13, background: darkMode ? BT : BR2, border: "none", cursor: "pointer", position: "relative", transition: "background 0.2s", flexShrink: 0 }}>
+          <span style={{ position: "absolute", top: 3, left: darkMode ? 25 : 3, width: 20, height: 20, borderRadius: "50%", background: "#FFFFFF", transition: "left 0.2s", display: "block" }} />
+        </button>
+      </div>
+
+      {/* Bottom navigation bar */}
+      <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 100, background: "var(--c-bg)", borderTop: "1px solid " + BR, boxShadow: "0 -4px 20px rgba(0,0,0,0.08)", display: "flex", alignItems: "stretch", paddingBottom: "env(safe-area-inset-bottom)" }}>
+        {[
+          { id: "dashboard",  icon: "🏠", label: "Tableau" },
+          { id: "dettes",     icon: "📊", label: "Dettes" },
+          { id: "projets",    icon: "🎯", label: "Projets" },
+          { id: "recurrents", icon: "🔄", label: "Récurrents" },
+          { id: "analyse",    icon: "📈", label: "Analyse" },
+          { id: "parametres", icon: "⚙️",  label: "Réglages" },
+        ].map(n => {
+          const active = view === n.id;
+          return (
+            <button key={n.id} onClick={() => navigate(n.id)} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 3, padding: "8px 2px 10px", background: "none", border: "none", cursor: "pointer", position: "relative" }}>
+              {/* Active indicator pill behind icon */}
+              {active && (
+                <span style={{ position: "absolute", top: 6, width: 36, height: 28, borderRadius: 14, background: "var(--c-ac)", opacity: 0.15 }} />
+              )}
+              <span style={{ fontSize: 20, lineHeight: 1 }}>{n.icon}</span>
+              <span style={{ fontSize: 10, fontWeight: active ? 600 : 400, color: active ? "var(--c-ac)" : TX3, letterSpacing: 0.1, whiteSpace: "nowrap" }}>{n.label}</span>
+            </button>
+          );
+        })}
       </div>
 
       {/* Page content */}
