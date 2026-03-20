@@ -66,7 +66,7 @@ export default function Auth() {
           onClick={handle}
           disabled={loading}
         >
-          {loading ? "..." : mode === "login" ? "Se connecter" : "Creer un compte"}
+          {loading ? "..." : mode === "login" ? "Se connecter" : "Créer un compte"}
         </button>
       </div>
     </div>

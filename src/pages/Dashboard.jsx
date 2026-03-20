@@ -66,7 +66,7 @@ export default function Dashboard({
     const cols = "100px " + periodes.map(() => "minmax(80px, 1fr)").join(" ");
     const hdr = [<div key="hlbl" />, ...periodes.map((p, i) => (
       <div key={"h" + i} style={{ textAlign: "center", background: p.isCur ? BT : p.isPast ? SF2 : BR, border: "1px solid " + (p.isCur ? BTB : BR2), borderRadius: 8, padding: "4px 3px" }}>
-        <p style={{ fontSize: 9, fontWeight: 500, color: p.isCur ? BTT : TX3, margin: "0 0 1px" }}>{p.isPast ? "Passee" : p.isCur ? "En cours" : "Prochaine"}</p>
+        <p style={{ fontSize: 9, fontWeight: 500, color: p.isCur ? BTT : TX3, margin: "0 0 1px" }}>{p.isPast ? "Passée" : p.isCur ? "En cours" : "Prochaine"}</p>
         <p style={{ fontSize: 10, color: p.isCur ? BTT : TX3, margin: 0 }}>{fd(p.deb)}</p>
         <p style={{ fontSize: 9, color: p.isCur ? BTT : TX3, margin: "1px 0 0", opacity: 0.7 }}>au {p.fin ? fd(p.fin) : "?"}</p>
       </div>
@@ -83,7 +83,7 @@ export default function Dashboard({
     const sep = [<div key="sep" style={{ gridColumn: "1 / " + (periodes.length + 2), borderTop: "0.5px solid " + BR2, margin: "3px 0" }} />];
     const rl = <span key="rl" style={{ fontSize: 11, fontWeight: 500, color: TX, whiteSpace: "nowrap" }}>Reste libre</span>;
     const rv = periodes.map((p, i) => (
-      <div key={"rv" + i} style={{ textAlign: "center", background: !p.hasPaie ? SF : p.reste >= 0 ? BT : "#ffd5d0", border: "1px solid " + (!p.hasPaie ? BR : p.reste >= 0 ? BTB : "#e08070"), borderRadius: 8, padding: "4px 3px" }}>
+      <div key={"rv" + i} style={{ textAlign: "center", background: !p.hasPaie ? SF : p.reste >= 0 ? BT : "var(--c-rd-light)", border: "1px solid " + (!p.hasPaie ? BR : p.reste >= 0 ? BTB : "var(--c-rd-light-b)"), borderRadius: 8, padding: "4px 3px" }}>
         <p style={{ fontSize: 12, fontWeight: 500, color: !p.hasPaie ? TX3 : p.reste >= 0 ? BTT : RD, margin: 0 }}>{p.hasPaie ? fmt(p.reste) : "—"}</p>
       </div>
     ));
@@ -93,20 +93,20 @@ export default function Dashboard({
   return (
     <div>
       <div style={{ display: "flex", gap: 10, marginBottom: 14 }}>
-        <button style={{ flex: 1, padding: "14px 8px", background: "#f5d5d0", border: "1px solid #d4877a", borderRadius: 12, color: "#7a2a1a", fontSize: 14, fontWeight: 500, cursor: "pointer" }} onClick={() => { setTxForm(f => ({ ...f, type: "depense", desc: "", amount: "", date: today() })); setShowTx(true); }}>Depense</button>
-        <button style={{ flex: 1, padding: "14px 8px", background: BT, border: "1px solid " + BTB, borderRadius: 12, color: BTT, fontSize: 14, fontWeight: 500, cursor: "pointer" }} onClick={() => { setTxForm(f => ({ ...f, type: "revenu", desc: "", amount: "", date: today() })); setShowTx(true); }}>Argent recu</button>
+        <button style={{ flex: 1, padding: "14px 8px", background: "var(--c-dep)", border: "1px solid var(--c-dep-b)", borderRadius: 12, color: "#FFFFFF", fontSize: 14, fontWeight: 500, cursor: "pointer" }} onClick={() => { setTxForm(f => ({ ...f, type: "depense", desc: "", amount: "", date: today() })); setShowTx(true); }}>Dépense</button>
+        <button style={{ flex: 1, padding: "14px 8px", background: BT, border: "1px solid " + BTB, borderRadius: 12, color: BTT, fontSize: 14, fontWeight: 500, cursor: "pointer" }} onClick={() => { setTxForm(f => ({ ...f, type: "revenu", desc: "", amount: "", date: today() })); setShowTx(true); }}>Argent reçu</button>
       </div>
 
       <div style={card}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ fontSize: 12, color: TX2 }}>Frequence :</span>
+          <span style={{ fontSize: 12, color: TX2 }}>Fréquence :</span>
           <div style={{ background: BT, border: "1px solid " + BTB, borderRadius: 20, padding: "4px 12px" }}><span style={{ fontSize: 12, fontWeight: 500, color: BTT }}>{FREQS.find(f => f.id === paie.frequence)?.label}</span></div>
           <button onClick={() => setPaieOpen(true)} style={{ marginLeft: "auto", background: "none", border: "1px solid " + BR, borderRadius: 8, padding: "4px 10px", cursor: "pointer", fontSize: 12, color: TX2 }}>Modifier</button>
         </div>
         {paieOpen && (
-          <Modal title="Frequence de paie">
+          <Modal title="Fréquence de paie">
             <div style={{ marginBottom: 14 }}>
-              <label style={{ fontSize: 12, color: TX2, marginBottom: 6, display: "block" }}>Frequence</label>
+              <label style={{ fontSize: 12, color: TX2, marginBottom: 6, display: "block" }}>Fréquence</label>
               <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>{FREQS.map(f => <button key={f.id} style={fbtn(paie.frequence === f.id)} onClick={() => updPaie(p => ({ ...p, frequence: f.id }))}>{f.label}</button>)}</div>
             </div>
             {paie.frequence === "semaine" && <div style={{ marginBottom: 14 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 6, display: "block" }}>Jour de paie</label><div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>{JOURS_SEM.map(j => <button key={j} style={{ ...fbtn(paie.jourSemaine === j), flex: "none", padding: "7px 10px" }} onClick={() => updPaie(p => ({ ...p, jourSemaine: j }))}>{j.slice(0, 3)}</button>)}</div></div>}
@@ -147,7 +147,7 @@ export default function Dashboard({
                 return (
                   <div key={i} style={{ flex: 1 }} onClick={() => { setPaieIdx(i); setPaieInput(m || ""); }}>
                     <div style={{ background: m ? BT : p?.isCur ? SF2 : SF, border: "2px solid " + (p?.isCur ? BTB : BR), borderRadius: 10, padding: "8px 6px", cursor: "pointer", textAlign: "center" }}>
-                      <p style={{ fontSize: 9, color: p?.isCur ? BTT : TX3, margin: "0 0 1px", fontWeight: 500 }}>{p?.isPast ? "Passee" : p?.isCur ? "En cours" : "Prochaine"}</p>
+                      <p style={{ fontSize: 9, color: p?.isCur ? BTT : TX3, margin: "0 0 1px", fontWeight: 500 }}>{p?.isPast ? "Passée" : p?.isCur ? "En cours" : "Prochaine"}</p>
                       <p style={{ fontSize: 11, color: m ? BTT : TX2, margin: 0 }}>{fd(deb)}</p>
                       <p style={{ fontSize: 12, fontWeight: 500, color: m ? BTT : TX3, margin: "2px 0 0" }}>{m ? fmt(m) : "—"}</p>
                     </div>
@@ -162,23 +162,23 @@ export default function Dashboard({
       <p style={{ fontSize: 13, fontWeight: 500, color: TX2, margin: "0 0 8px" }}>Vue mensuelle</p>
       <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
         <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("paie")}><StatBox label="Paies" value={"+" + fmt(totPaieMois)} color={GN} /></div>
-        <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("depenses")}><StatBox label="Depenses" value={"-" + fmt(totDep)} color={RD} /></div>
+        <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("depenses")}><StatBox label="Dépenses" value={"-" + fmt(totDep)} color={RD} /></div>
       </div>
       <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
         <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("rrecs")}><StatBox label="Autres revenus" value={"+" + fmt(totRR)} color={GN} /></div>
         <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("recs")}><StatBox label="Paiements fixes" value={"-" + fmt(totRec)} color={RD} /></div>
       </div>
       <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
-        <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("argentRecu")}><StatBox label="Argent recu" value={"+" + fmt(totArgentRecu)} color={GN} /></div>
+        <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("argentRecu")}><StatBox label="Argent reçu" value={"+" + fmt(totArgentRecu)} color={GN} /></div>
         <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("dettes")}><StatBox label="Paiements dettes" value={"-" + fmt(totDettesMois)} color={RD} /></div>
       </div>
       <div style={{ display: "flex", gap: 10, marginBottom: 12 }}>
-        <StatBox label="Solde" value={fmt(solde)} color={solde >= 0 ? "#5a7a3a" : RD} />
+        <StatBox label="Solde" value={fmt(solde)} color={solde >= 0 ? GN : RD} />
         <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("projets")}><StatBox label="Versements projets" value={"-" + fmt(totProjetsMois)} color={RD} /></div>
       </div>
       {periodes.length > 0 && <div style={{ background: SF2, border: "1px solid " + BR2, borderRadius: 12, padding: "12px 14px", marginBottom: 12 }}><p style={{ fontSize: 13, fontWeight: 500, color: TX2, margin: "0 0 10px" }}>Par paie</p><div style={{ overflowX: "auto" }}>{buildPaieGrid()}</div></div>}
 
-      <p style={{ fontSize: 13, fontWeight: 500, color: TX2, margin: "4px 0 8px" }}>Depenses par categorie</p>
+      <p style={{ fontSize: 13, fontWeight: 500, color: TX2, margin: "4px 0 8px" }}>Dépenses par catégorie</p>
       {[...cats].sort((a, b) => (dbc[b.id] || 0) - (dbc[a.id] || 0)).map(c => { const a = dbc[c.id] || 0; if (!a) return null; return <div key={c.id} onClick={() => setCatModal(c)} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 7, cursor: "pointer", borderRadius: 8, padding: "3px 4px", margin: "0 -4px 7px" }}><span style={{ fontSize: 15, width: 22, textAlign: "center" }}>{c.icon}</span><span style={{ fontSize: 12, color: TX2, width: 88, flexShrink: 0 }}>{c.label}</span><div style={{ flex: 1, height: 6, background: BR, borderRadius: 3, overflow: "hidden" }}><div style={{ height: "100%", width: (a / maxD * 100) + "%", background: AC, borderRadius: 3 }} /></div><span style={{ fontSize: 12, color: TX, width: 68, textAlign: "right", flexShrink: 0 }}>{fmt(a)}</span></div>; })}
 
       {catModal && (() => {
@@ -187,7 +187,7 @@ export default function Dashboard({
         return (
           <Modal title={catModal.icon + " " + catModal.label}>
             <p style={{ fontSize: 12, color: TX3, margin: "0 0 12px" }}>{txsCat.length} transaction{txsCat.length !== 1 ? "s" : ""} ce mois</p>
-            {txsCat.length === 0 && <p style={{ fontSize: 13, color: TX3, textAlign: "center", padding: "10px 0" }}>Aucune depense ce mois.</p>}
+            {txsCat.length === 0 && <p style={{ fontSize: 13, color: TX3, textAlign: "center", padding: "10px 0" }}>Aucune dépense ce mois.</p>}
             {txsCat.map(x => (
               <div key={x.id} style={trow}>
                 <div style={{ flex: 1 }}>
@@ -222,8 +222,8 @@ export default function Dashboard({
         }));
         return <StatModal title="Paies ce mois" items={items} emptyMsg="Aucune paie ce mois." onClose={() => setStatModal(null)} trow={trow} />;
       })()}
-      {statModal === "argentRecu" && <StatModal title="Argent recu ce mois" items={txs.filter(x => x.type === "revenu" && x.desc !== "Paie" && x.date.startsWith(curMo)).sort((a, b) => b.date.localeCompare(a.date)).map(x => ({ key: x.id, label: x.desc, sub: fd(x.date), montant: x.amount, clr: GN, pfx: "+" }))} emptyMsg="Aucun argent recu ce mois." onClose={() => setStatModal(null)} trow={trow} />}
-      {statModal === "depenses" && <StatModal title="Depenses ce mois" items={txs.filter(x => x.type === "depense" && x.date.startsWith(curMo)).sort((a, b) => b.date.localeCompare(a.date)).map(x => ({ key: x.id, label: x.desc, sub: fd(x.date), montant: x.amount, clr: RD, pfx: "-", catId: x.cat }))} emptyMsg="Aucune depense ce mois." onClose={() => setStatModal(null)} trow={trow} cats={cats} />}
+      {statModal === "argentRecu" && <StatModal title="Argent reçu ce mois" items={txs.filter(x => x.type === "revenu" && x.desc !== "Paie" && x.date.startsWith(curMo)).sort((a, b) => b.date.localeCompare(a.date)).map(x => ({ key: x.id, label: x.desc, sub: fd(x.date), montant: x.amount, clr: GN, pfx: "+" }))} emptyMsg="Aucun argent reçu ce mois." onClose={() => setStatModal(null)} trow={trow} />}
+      {statModal === "depenses" && <StatModal title="Dépenses ce mois" items={txs.filter(x => x.type === "depense" && x.date.startsWith(curMo)).sort((a, b) => b.date.localeCompare(a.date)).map(x => ({ key: x.id, label: x.desc, sub: fd(x.date), montant: x.amount, clr: RD, pfx: "-", catId: x.cat }))} emptyMsg="Aucune dépense ce mois." onClose={() => setStatModal(null)} trow={trow} cats={cats} />}
       {statModal === "rrecs" && <StatModal title="Autres revenus" items={rrecs.map(r => ({ key: r.id, label: r.desc, sub: "Le " + r.jour + " de chaque mois", montant: r.amount, clr: GN, pfx: "+" }))} emptyMsg="Aucun autre revenu." onClose={() => setStatModal(null)} trow={trow} />}
       {statModal === "recs" && <StatModal title="Paiements fixes" items={recs.map(r => ({ key: r.id, label: r.desc, sub: "Le " + r.jour + " de chaque mois", montant: r.amount, clr: RD, pfx: "-", catId: r.cat }))} emptyMsg="Aucun paiement fixe." onClose={() => setStatModal(null)} trow={trow} cats={cats} />}
       {statModal === "dettes" && <StatModal title="Paiements dettes ce mois" items={dettes.flatMap(d => [...(d.paiementsAuto || []).map(p => ({ key: p.id, label: d.nom, sub: "Le " + p.jour + " (fixe)", montant: p.montant, clr: RD, pfx: "-" })), ...(d.paiements || []).filter(p => p.date.startsWith(curMo)).map(p => ({ key: p.id, label: d.nom, sub: fd(p.date), montant: p.montant, clr: RD, pfx: "-" }))])} emptyMsg="Aucun paiement ce mois." onClose={() => setStatModal(null)} trow={trow} />}

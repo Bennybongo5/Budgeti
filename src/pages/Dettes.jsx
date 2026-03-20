@@ -56,7 +56,7 @@ export default function Dettes({
         const curJour = jourPickerTarget === "edit" ? editPaiFrm.jour : paiFrm.jour;
         const setJour = j => jourPickerTarget === "edit" ? setEditPaiFrm(f => ({ ...f, jour: j })) : setPaiFrm(f => ({ ...f, jour: j }));
         return (
-          <Modal title="Choix de la journee" zIndex={200}>
+          <Modal title="Choix de la journée" zIndex={200}>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 14 }}>
               {Array.from({ length: 31 }, (_, i) => i + 1).map(j => (
                 <button key={j} type="button" onClick={() => { setJour(j); setShowJourPicker(false); }} style={{ width: 46, height: 46, background: +curJour === j ? BT : SF, border: "1px solid " + (+curJour === j ? BTB : BR), borderRadius: 10, color: +curJour === j ? BTT : TX, fontSize: 14, fontWeight: 500, cursor: "pointer" }}>{j}</button>
@@ -76,7 +76,7 @@ export default function Dettes({
             <p style={{ fontSize: 12, fontWeight: 500, color: detSel === d.id ? BTT : TX, margin: "0 0 3px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 110 }}>{d.nom}</p>
             <p style={{ fontSize: 11, color: detSel === d.id ? BTT : RD, margin: 0 }}>{fmt(gSolde(d))}</p>
             <div style={{ marginTop: 5, height: 4, background: detSel === d.id ? "#8ab87a55" : BR, borderRadius: 2 }}><div style={{ height: "100%", width: gPct(d) + "%", background: detSel === d.id ? BTT : AC, borderRadius: 2 }} /></div>
-            <p style={{ fontSize: 10, color: detSel === d.id ? BTT : TX3, margin: "3px 0 0" }}>{gPct(d)}% rembourse</p>
+            <p style={{ fontSize: 10, color: detSel === d.id ? BTT : TX3, margin: "3px 0 0" }}>{gPct(d)}% remboursé</p>
           </div>
         ))}
         <div onClick={() => setShowAddDet(true)} style={{ flexShrink: 0, background: SF2, border: "1px dashed " + BR2, borderRadius: 12, padding: "10px 14px", cursor: "pointer", minWidth: 100, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 4 }}>
@@ -94,7 +94,7 @@ export default function Dettes({
             <div style={{ flex: 1 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Taux (%)</label><input style={inp} type="number" placeholder="0" value={detFrm.tauxInteret} onChange={e => setDetFrm(f => ({ ...f, tauxInteret: e.target.value }))} /></div>
           </div>
           <div style={{ display: "flex", gap: 8 }}>
-            <button style={{ flex: 1, padding: "12px", background: BT, border: "1px solid " + BTB, borderRadius: 12, color: BTT, fontSize: 14, fontWeight: 500, cursor: "pointer" }} onClick={addDette}>Creer</button>
+            <button style={{ flex: 1, padding: "12px", background: BT, border: "1px solid " + BTB, borderRadius: 12, color: BTT, fontSize: 14, fontWeight: 500, cursor: "pointer" }} onClick={addDette}>Créer</button>
             <button style={{ width: 90, padding: "12px", background: SF2, border: "1px solid " + BTB, borderRadius: 12, color: TX2, fontSize: 14, cursor: "pointer" }} onClick={() => { setShowAddDet(false); setDetFrm(emptyD); }}>Annuler</button>
           </div>
         </div>
@@ -109,7 +109,7 @@ export default function Dettes({
             </div>
             <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
               <div style={{ flex: 1, background: SF2, borderRadius: 10, padding: "8px 10px" }}><p style={{ fontSize: 11, color: TX3, margin: 0 }}>Solde restant</p><p style={{ fontSize: 15, fontWeight: 500, color: RD, margin: "2px 0 0" }}>{fmt(gSolde(dette))}</p></div>
-              <div style={{ flex: 1, background: SF2, borderRadius: 10, padding: "8px 10px" }}><p style={{ fontSize: 11, color: TX3, margin: 0 }}>Total paye</p><p style={{ fontSize: 15, fontWeight: 500, color: GN, margin: "2px 0 0" }}>{fmt(dette.paiements.reduce((s, p) => s + p.montant, 0))}</p></div>
+              <div style={{ flex: 1, background: SF2, borderRadius: 10, padding: "8px 10px" }}><p style={{ fontSize: 11, color: TX3, margin: 0 }}>Total payé</p><p style={{ fontSize: 15, fontWeight: 500, color: GN, margin: "2px 0 0" }}>{fmt(dette.paiements.reduce((s, p) => s + p.montant, 0))}</p></div>
               <div style={{ flex: 1, background: SF2, borderRadius: 10, padding: "8px 10px" }}><p style={{ fontSize: 11, color: TX3, margin: 0 }}>Progression</p><p style={{ fontSize: 15, fontWeight: 500, color: AC, margin: "2px 0 0" }}>{gPct(dette)}%</p></div>
             </div>
             <div style={{ height: 8, background: BR, borderRadius: 4, overflow: "hidden" }}><div style={{ height: "100%", width: gPct(dette) + "%", background: AC, borderRadius: 4 }} /></div>

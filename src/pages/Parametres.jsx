@@ -6,7 +6,7 @@ import Modal from "../components/Modal.jsx";
 
 const googleProvider = new GoogleAuthProvider();
 
-export default function Parametres({ user, cats, inp, card, updTxs, updRecs, updRrecs, updDettes, updProjets, updCats, updPaieM, setDetSel, setPrjSel }) {
+export default function Parametres({ user, cats, inp, card, updTxs, updRecs, updRrecs, updDettes, updProjets, updCats, updPaieM, setDetSel, setPrjSel, darkMode, setDarkMode }) {
   const [showEmail, setShowEmail] = useState(false);
   const [mode, setMode] = useState("login");
   const [showReset, setShowReset] = useState(false);
@@ -76,10 +76,10 @@ export default function Parametres({ user, cats, inp, card, updTxs, updRecs, upd
     "auth/invalid-email": "Adresse courriel invalide.",
     "auth/user-not-found": "Aucun compte avec ce courriel.",
     "auth/wrong-password": "Mot de passe incorrect.",
-    "auth/email-already-in-use": "Ce courriel est deja utilise.",
-    "auth/weak-password": "Au moins 6 caracteres requis.",
+    "auth/email-already-in-use": "Ce courriel est déjà utilisé.",
+    "auth/weak-password": "Au moins 6 caractères requis.",
     "auth/invalid-credential": "Courriel ou mot de passe incorrect.",
-    "auth/too-many-requests": "Trop de tentatives. Reessayez plus tard.",
+    "auth/too-many-requests": "Trop de tentatives. Réessayez plus tard.",
   }[code] || "Une erreur est survenue.");
 
   const handleEmail = async () => {
@@ -128,11 +128,11 @@ const handleSignOut = async () => {
 
   return (
     <div>
-      <p style={{ fontSize: 15, fontWeight: 500, marginBottom: 12, color: TX }}>Parametres</p>
+      <p style={{ fontSize: 15, fontWeight: 500, marginBottom: 12, color: TX }}>Paramètres</p>
 
       <div style={card}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-          <p style={{ fontSize: 13, fontWeight: 500, color: TX2, margin: 0 }}>Categories</p>
+          <p style={{ fontSize: 13, fontWeight: 500, color: TX2, margin: 0 }}>Catégories</p>
           <div style={{ display: "flex", gap: 6 }}>
             <button onClick={() => { setReorderMode(r => !r); setDragIdx(null); setDragOverIdx(null); }} style={{ background: reorderMode ? BT : "none", border: "1px solid " + (reorderMode ? BTB : BR), borderRadius: 8, color: reorderMode ? BTT : TX3, fontSize: 11, padding: "4px 8px", cursor: "pointer", fontWeight: reorderMode ? 600 : 400 }}>{reorderMode ? "Terminer" : "Modifier l'ordre"}</button>
             {!reorderMode && <button onClick={() => { setNewCatLbl(""); setNewCatIco("📦"); setNewCatCustomIco(""); setShowAddCat(true); }} style={{ background: BT, border: "1px solid " + BTB, borderRadius: 8, color: BTT, fontSize: 16, width: 28, height: 28, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}>+</button>}
@@ -186,21 +186,21 @@ const handleSignOut = async () => {
               <div style={{ flex: 1, minWidth: 0 }}>
                 {user.displayName && <p style={{ fontSize: 14, fontWeight: 600, color: TX, margin: "0 0 2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.displayName}</p>}
                 <p style={{ fontSize: 12, color: TX2, margin: "0 0 5px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.email}</p>
-                <span style={{ fontSize: 10, fontWeight: 600, color: "#3a7a2a", background: "#e0f0d8", border: "1px solid #a8d898", borderRadius: 20, padding: "2px 8px" }}>● Connecte</span>
+                <span style={{ fontSize: 10, fontWeight: 600, color: "#3a7a2a", background: "#e0f0d8", border: "1px solid #a8d898", borderRadius: 20, padding: "2px 8px" }}>● Connecté</span>
               </div>
             </div>
 
-            <p style={{ fontSize: 11, color: TX3, margin: "0 0 14px" }}>Vos donnees sont synchronisees avec le nuage.</p>
+            <p style={{ fontSize: 11, color: TX3, margin: "0 0 14px" }}>Vos données sont synchronisées avec le nuage.</p>
 
             <button
               onClick={handleSignOut}
               style={{ width: "100%", padding: "11px", background: RD, border: "1px solid " + RD, borderRadius: 10, color: "#fff", fontSize: 13, fontWeight: 500, cursor: "pointer" }}
-            >Se deconnecter</button>
+            >Se déconnecter</button>
           </div>
         ) : (
           <div>
             <p style={{ fontSize: 11, color: TX3, margin: "0 0 14px" }}>
-              Connectez-vous pour synchroniser vos donnees sur tous vos appareils. L'application fonctionne normalement sans compte.
+              Connectez-vous pour synchroniser vos données sur tous vos appareils. L'application fonctionne normalement sans compte.
             </p>
 
             {!showEmail ? (
@@ -246,7 +246,7 @@ const handleSignOut = async () => {
                   <button
                     onClick={handleEmail} disabled={loading}
                     style={{ flex: 1, padding: "11px", background: BT, border: "1px solid " + BTB, borderRadius: 10, color: BTT, fontSize: 13, fontWeight: 500, cursor: "pointer", opacity: loading ? 0.7 : 1 }}
-                  >{loading ? "..." : mode === "login" ? "Se connecter" : "Creer un compte"}</button>
+                  >{loading ? "..." : mode === "login" ? "Se connecter" : "Créer un compte"}</button>
                   <button
                     onClick={() => { setShowEmail(false); setError(""); setEmail(""); setPassword(""); }}
                     style={{ padding: "11px 14px", background: SF2, border: "1px solid " + BR, borderRadius: 10, color: TX2, fontSize: 13, cursor: "pointer" }}
@@ -259,8 +259,8 @@ const handleSignOut = async () => {
       </div>
 
       <div style={card}>
-        <p style={{ fontSize: 13, fontWeight: 500, color: TX2, margin: "0 0 8px" }}>Donnees</p>
-        <p style={{ fontSize: 11, color: TX3, margin: "0 0 12px" }}>Efface toutes les donnees de l'application de facon permanente.</p>
+        <p style={{ fontSize: 13, fontWeight: 500, color: TX2, margin: "0 0 8px" }}>Données</p>
+        <p style={{ fontSize: 11, color: TX3, margin: "0 0 12px" }}>Efface toutes les données de l'application de façon permanente.</p>
         <button
           onClick={() => { setShowClear(true); setClearStep(1); }}
           style={{ width: "100%", padding: "11px", background: "none", border: "1px solid " + RD, borderRadius: 10, color: RD, fontSize: 13, fontWeight: 500, cursor: "pointer" }}
@@ -268,13 +268,13 @@ const handleSignOut = async () => {
       </div>
 
       {editCat && (
-        <Modal title="Modifier la categorie">
+        <Modal title="Modifier la catégorie">
           <div style={{ marginBottom: 12 }}>
             <label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Nom</label>
             <input autoFocus style={inp} value={editCatFrm.label} onChange={e => setEditCatFrm(f => ({ ...f, label: e.target.value }))} />
           </div>
           <div style={{ marginBottom: 16 }}>
-            <label style={{ fontSize: 12, color: TX2, marginBottom: 6, display: "block" }}>Icone</label>
+            <label style={{ fontSize: 12, color: TX2, marginBottom: 6, display: "block" }}>Icône</label>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 10 }}>
               {ICONS_CAT.map(ic => (
                 <button key={ic} type="button" onClick={() => { setEditCatFrm(f => ({ ...f, icon: ic })); setEditCatCustomIco(""); }} style={{ fontSize: 18, padding: "5px 7px", background: editCatFrm.icon === ic && !editCatCustomIco ? BT : SF, border: "1px solid " + (editCatFrm.icon === ic && !editCatCustomIco ? BTB : BR), borderRadius: 7, cursor: "pointer" }}>{ic}</button>
@@ -293,8 +293,8 @@ const handleSignOut = async () => {
       )}
 
       {delCat && (
-        <Modal title="Supprimer la categorie">
-          <p style={{ fontSize: 13, color: TX2, margin: "0 0 16px" }}>Supprimer <strong>{delCat.icon} {delCat.label}</strong> ? Les transactions et charges liees a cette categorie ne seront pas supprimees.</p>
+        <Modal title="Supprimer la catégorie">
+          <p style={{ fontSize: 13, color: TX2, margin: "0 0 16px" }}>Supprimer <strong>{delCat.icon} {delCat.label}</strong> ? Les transactions et charges liées à cette catégorie ne seront pas supprimées.</p>
           <div style={{ display: "flex", gap: 8 }}>
             <button style={{ flex: 1, padding: "11px", background: RD, border: "1px solid " + RD, borderRadius: 10, color: "#fff", fontSize: 13, fontWeight: 500, cursor: "pointer" }} onClick={() => { updCats(p => p.filter(c => c.id !== delCat.id)); setDelCat(null); }}>Supprimer</button>
             <button style={{ padding: "11px 14px", background: SF2, border: "1px solid " + BR, borderRadius: 10, color: TX2, fontSize: 13, cursor: "pointer" }} onClick={() => setDelCat(null)}>Annuler</button>
@@ -303,13 +303,13 @@ const handleSignOut = async () => {
       )}
 
       {showAddCat && (
-        <Modal title="Nouvelle categorie">
+        <Modal title="Nouvelle catégorie">
           <div style={{ marginBottom: 12 }}>
             <label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Nom</label>
             <input autoFocus style={inp} value={newCatLbl} onChange={e => setNewCatLbl(e.target.value)} onKeyDown={e => e.key === "Enter" && addCat()} />
           </div>
           <div style={{ marginBottom: 16 }}>
-            <label style={{ fontSize: 12, color: TX2, marginBottom: 6, display: "block" }}>Icone</label>
+            <label style={{ fontSize: 12, color: TX2, marginBottom: 6, display: "block" }}>Icône</label>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 10 }}>
               {ICONS_CAT.map(ic => (
                 <button key={ic} type="button" onClick={() => { setNewCatIco(ic); setNewCatCustomIco(""); }} style={{ fontSize: 18, padding: "5px 7px", background: newCatIco === ic && !newCatCustomIco ? BT : SF, border: "1px solid " + (newCatIco === ic && !newCatCustomIco ? BTB : BR), borderRadius: 7, cursor: "pointer" }}>{ic}</button>
@@ -321,7 +321,7 @@ const handleSignOut = async () => {
             </div>
           </div>
           <div style={{ display: "flex", gap: 8 }}>
-            <button style={{ flex: 1, padding: "11px", background: BT, border: "1px solid " + BTB, borderRadius: 10, color: BTT, fontSize: 13, fontWeight: 500, cursor: "pointer" }} onClick={addCat}>Creer</button>
+            <button style={{ flex: 1, padding: "11px", background: BT, border: "1px solid " + BTB, borderRadius: 10, color: BTT, fontSize: 13, fontWeight: 500, cursor: "pointer" }} onClick={addCat}>Créer</button>
             <button style={{ padding: "11px 14px", background: SF2, border: "1px solid " + BR, borderRadius: 10, color: TX2, fontSize: 13, cursor: "pointer" }} onClick={() => setShowAddCat(false)}>Annuler</button>
           </div>
         </Modal>
@@ -343,10 +343,10 @@ const handleSignOut = async () => {
       )}
 
       {showClear && (
-        <Modal title={clearStep === 1 ? "Effacer toutes les donnees ?" : "Derniere confirmation"}>
+        <Modal title={clearStep === 1 ? "Effacer toutes les données ?" : "Dernière confirmation"}>
           {clearStep === 1 && (
             <div>
-              <p style={{ fontSize: 13, color: TX2, margin: "0 0 16px" }}>Cette action va effacer toutes les donnees : transactions, dettes, projets, depenses recurrentes et categories personnalisees. Elle est irreversible.</p>
+              <p style={{ fontSize: 13, color: TX2, margin: "0 0 16px" }}>Cette action va effacer toutes les données : transactions, dettes, projets, dépenses récurrentes et catégories personnalisées. Elle est irréversible.</p>
               <div style={{ display: "flex", gap: 8 }}>
                 <button style={{ flex: 1, padding: "12px", background: "#f5d5d0", border: "1px solid #d4877a", borderRadius: 12, color: "#7a2a1a", fontSize: 14, fontWeight: 500, cursor: "pointer" }} onClick={() => setClearStep(2)}>Continuer</button>
                 <button style={{ width: 90, padding: "12px", background: SF2, border: "1px solid " + BTB, borderRadius: 12, color: TX2, fontSize: 14, cursor: "pointer" }} onClick={() => setShowClear(false)}>Annuler</button>
@@ -355,7 +355,7 @@ const handleSignOut = async () => {
           )}
           {clearStep === 2 && (
             <div>
-              <p style={{ fontSize: 13, color: RD, margin: "0 0 16px", fontWeight: 500 }}>Es-tu vraiment certain ? Toutes tes donnees seront supprimees definitivement.</p>
+              <p style={{ fontSize: 13, color: RD, margin: "0 0 16px", fontWeight: 500 }}>Es-tu vraiment certain ? Toutes tes données seront supprimées définitivement.</p>
               <div style={{ display: "flex", gap: 8 }}>
                 <button style={{ flex: 1, padding: "12px", background: RD, border: "1px solid " + RD, borderRadius: 12, color: "#fff", fontSize: 14, fontWeight: 500, cursor: "pointer" }} onClick={() => { updTxs(() => []); updRecs(() => []); updRrecs(() => []); updDettes(() => []); updProjets(() => []); updCats(() => DEFAULT_CATS); updPaieM(() => ({})); setDetSel(null); setPrjSel(null); setShowClear(false); setClearStep(1); }}>Oui, tout effacer</button>
                 <button style={{ width: 90, padding: "12px", background: SF2, border: "1px solid " + BTB, borderRadius: 12, color: TX2, fontSize: 14, cursor: "pointer" }} onClick={() => setShowClear(false)}>Annuler</button>

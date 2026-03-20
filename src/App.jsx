@@ -74,6 +74,17 @@ export default function App() {
   const [verFrm, setVerFrm] = useState({ montant: "", date: today(), jour: "1" });
   const [editVer, setEditVer] = useState(null);
   const [editVerFrm, setEditVerFrm] = useState({ montant: "", date: "", jour: "" });
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [darkMode, setDarkMode] = useState(() => {
+    const saved = localStorage.getItem("budgeti-theme");
+    if (saved !== null) return saved === "dark";
+    return window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false;
+  });
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", darkMode);
+    localStorage.setItem("budgeti-theme", darkMode ? "dark" : "light");
+  }, [darkMode]);
 
   // ── Load from localStorage on mount ───────────────────────────────────────
   useEffect(() => {
@@ -188,18 +199,18 @@ export default function App() {
   const delVer = (pid, vid) => updProjets(p => p.map(x => x.id === pid ? { ...x, versements: x.versements.filter(v => v.id !== vid) } : x));
   const delVerFixe = (pid, vid) => updProjets(p => p.map(x => x.id === pid ? { ...x, paiementsAuto: (x.paiementsAuto || []).filter(v => v.id !== vid) } : x));
   const saveEditVer = () => { if (!editVerFrm.montant || isNaN(+editVerFrm.montant)) return; if (editVer.type === "fixe") { updProjets(p => p.map(x => x.id === prjSel ? { ...x, paiementsAuto: (x.paiementsAuto || []).map(v => v.id === editVer.id ? { ...v, montant: +editVerFrm.montant, jour: editVerFrm.jour } : v) } : x)); } else { updProjets(p => p.map(x => x.id === prjSel ? { ...x, versements: x.versements.map(v => v.id === editVer.id ? { ...v, montant: +editVerFrm.montant, date: editVerFrm.date } : v) } : x)); } setEditVer(null); };
-  const navigate = id => { setView(id); setEPrjMod(false); setEPrjId(null); setEDetMod(false); setEDetId(null); setETxId(null); setETxFrm(null); setERecMod(false); setERrMod(false); setEditPai(null); setEditVer(null); setShowAddPai(false); setShowAddVer(false); setPaiType(null); setVerType(null); };
+  const navigate = id => { setView(id); setDrawerOpen(false); setEPrjMod(false); setEPrjId(null); setEDetMod(false); setEDetId(null); setETxId(null); setETxFrm(null); setERecMod(false); setERrMod(false); setEditPai(null); setEditVer(null); setShowAddPai(false); setShowAddVer(false); setPaiType(null); setVerType(null); };
 
   // ── Styles ────────────────────────────────────────────────────────────────
   const inp = { width: "100%", background: SF, border: "0.5px solid " + BR2, borderRadius: 10, padding: "10px 12px", color: TX, fontSize: 16, boxSizing: "border-box" };
   const inpSm = { ...inp, padding: "8px 10px" };
-  const card = { background: SF, border: "1px solid " + BR, borderRadius: 14, padding: "14px 16px", marginBottom: 12 };
+  const card = { background: SF, border: "1px solid " + BR, borderRadius: 14, padding: "14px 16px", marginBottom: 12, boxShadow: "0 2px 8px rgba(0,0,0,0.06)" };
   const trow = { display: "flex", alignItems: "center", gap: 8, padding: "9px 0", borderBottom: "0.5px solid " + BR };
   const ico = { width: 32, height: 32, borderRadius: 9, background: BT, border: "1px solid " + BTB, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, flexShrink: 0 };
   const fbtn = a => ({ flex: 1, padding: "8px 4px", background: a ? BT : SF, border: "1px solid " + (a ? BTB : BR), borderRadius: 9, color: a ? BTT : TX2, fontSize: 11, cursor: "pointer", textAlign: "center", fontWeight: a ? 500 : 400 });
   const chip = a => ({ padding: "5px 11px", background: a ? BT : SF, border: "1px solid " + (a ? BTB : BR), borderRadius: 20, color: a ? BTT : TX2, fontSize: 12, cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 });
-  const navBtn = a => ({ flex: 1, padding: "10px 2px 8px", background: a ? BT : "none", border: "none", cursor: "pointer", color: a ? BTT : TX3, fontSize: 9, display: "flex", flexDirection: "column", alignItems: "center", gap: 3, borderTop: a ? "2px solid " + BTB : "2px solid transparent" });
-  const tbtn = (a, tp) => { const r = tp === "depense"; return { flex: 1, padding: "8px", background: a ? (r ? "#f5d5d0" : BT) : SF, border: "1px solid " + (a ? (r ? "#d4877a" : BTB) : BR), borderRadius: 9, color: a ? (r ? "#7a2a1a" : BTT) : TX2, fontSize: 13, cursor: "pointer", fontWeight: a ? 500 : 400 }; };
+  const navBtn = a => ({ flex: 1, padding: "8px 2px 6px", background: a ? "#EEF2FF" : "none", border: "none", cursor: "pointer", color: a ? BT : TX3, fontSize: 10, display: "flex", flexDirection: "column", alignItems: "center", gap: 3, borderTop: a ? "2px solid " + BT : "2px solid transparent" });
+  const tbtn = (a, tp) => { const r = tp === "depense"; return { flex: 1, padding: "8px", background: a ? (r ? "var(--c-dep)" : BT) : SF, border: "1px solid " + (a ? (r ? "var(--c-dep-b)" : BTB) : BR), borderRadius: 9, color: a ? "#FFFFFF" : TX2, fontSize: 13, cursor: "pointer", fontWeight: a ? 500 : 400 }; };
   const bigBtn = () => ({ width: "100%", padding: "12px", background: BT, border: "1px solid " + BTB, borderRadius: 12, color: BTT, fontSize: 14, fontWeight: 500, cursor: "pointer", marginTop: 6 });
   const CatSel = ({ value, onChange }) => <CatSelect cats={cats} value={value} onChange={onChange} inp={inp} setCatCb={setCatCb} setShowCat={setShowCat} />;
 
@@ -245,28 +256,47 @@ export default function App() {
   const styles = { inp, inpSm, card, trow, ico, fbtn, chip, navBtn, tbtn, bigBtn };
 
   return (
-    <div style={{ fontFamily: "system-ui,sans-serif", background: BG, minHeight: "100vh", color: TX, paddingBottom: "calc(80px + env(safe-area-inset-bottom))" }}>
-      <style>{NS}</style>
+    <div style={{ fontFamily: "system-ui,sans-serif", background: BG, minHeight: "100vh", color: TX, paddingBottom: 24 }}>
+      <style>{NS + `
+        :root {
+          --c-bg:#FFFFFF; --c-sf:#F1F5F9; --c-sf2:#E2E8F0; --c-br:#E2E8F0; --c-br2:#CBD5E1;
+          --c-tx:#1E293B; --c-tx2:#64748B; --c-tx3:#94A3B8;
+          --c-bt:#6366F1; --c-btb:#4F46E5; --c-btt:#FFFFFF;
+          --c-ac:#8B5CF6; --c-rd:#F43F5E; --c-gn:#10B981;
+          --c-dep:#F43F5E; --c-dep-b:#E11D48;
+          --c-rd-light:#FFE4E6; --c-rd-light-b:#FB7185;
+          --c-bt-light:#EEF2FF;
+        }
+        :root.dark {
+          --c-bg:#0F172A; --c-sf:#1E293B; --c-sf2:#334155; --c-br:#334155; --c-br2:#475569;
+          --c-tx:#F1F5F9; --c-tx2:#94A3B8; --c-tx3:#64748B;
+          --c-bt:#6366F1; --c-btb:#4F46E5; --c-btt:#FFFFFF;
+          --c-ac:#A78BFA; --c-rd:#F87171; --c-gn:#34D399;
+          --c-dep:#F87171; --c-dep-b:#EF4444;
+          --c-rd-light:#3D1520; --c-rd-light-b:#F87171;
+          --c-bt-light:#1E1B4B;
+        }
+      `}</style>
 
       {/* Global modals */}
       {showTx && (
-        <Modal title={txForm.type === "depense" ? "Nouvelle depense" : "Nouveau revenu"}>
+        <Modal title={txForm.type === "depense" ? "Nouvelle dépense" : "Nouveau revenu"}>
           <div style={{ marginBottom: 10 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Description</label><input autoFocus style={inp} placeholder="..." value={txForm.desc} onChange={e => setTxForm(f => ({ ...f, desc: e.target.value }))} /></div>
           <div style={{ marginBottom: 10 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Montant (CAD)</label><input style={inp} type="number" placeholder="0.00" value={txForm.amount} onChange={e => setTxForm(f => ({ ...f, amount: e.target.value }))} /></div>
-          {txForm.type === "depense" && <div style={{ marginBottom: 10 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Categorie</label><CatSel value={txForm.cat} onChange={v => setTxForm(f => ({ ...f, cat: v }))} /></div>}
+          {txForm.type === "depense" && <div style={{ marginBottom: 10 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Catégorie</label><CatSel value={txForm.cat} onChange={v => setTxForm(f => ({ ...f, cat: v }))} /></div>}
           <div style={{ marginBottom: 14 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Date</label><input style={inp} type="date" value={txForm.date} onChange={e => setTxForm(f => ({ ...f, date: e.target.value }))} /></div>
           <div style={{ display: "flex", gap: 8 }}>
-            <button style={{ flex: 1, padding: "12px", background: txForm.type === "depense" ? "#f5d5d0" : BT, border: "1px solid " + (txForm.type === "depense" ? "#d4877a" : BTB), borderRadius: 12, color: txForm.type === "depense" ? "#7a2a1a" : BTT, fontSize: 14, fontWeight: 500, cursor: "pointer" }} onClick={() => { addTx(); setShowTx(false); }}>Ajouter</button>
+            <button style={{ flex: 1, padding: "12px", background: txForm.type === "depense" ? "var(--c-dep)" : BT, border: "1px solid " + (txForm.type === "depense" ? "var(--c-dep-b)" : BTB), borderRadius: 12, color: "#FFFFFF", fontSize: 14, fontWeight: 500, cursor: "pointer" }} onClick={() => { addTx(); setShowTx(false); }}>Ajouter</button>
             <button style={{ width: 90, padding: "12px", background: SF2, border: "1px solid " + BTB, borderRadius: 12, color: TX2, fontSize: 14, cursor: "pointer" }} onClick={() => setShowTx(false)}>Annuler</button>
           </div>
         </Modal>
       )}
 
       {showCat && (
-        <Modal title="Nouvelle categorie" zIndex={200}>
+        <Modal title="Nouvelle catégorie" zIndex={200}>
           <div style={{ marginBottom: 12 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Nom</label><input autoFocus style={inp} value={newCatLbl} onChange={e => setNewCatLbl(e.target.value)} onKeyDown={e => e.key === "Enter" && addCat()} /></div>
           <div style={{ marginBottom: 14 }}>
-            <label style={{ fontSize: 12, color: TX2, marginBottom: 6, display: "block" }}>Icone</label>
+            <label style={{ fontSize: 12, color: TX2, marginBottom: 6, display: "block" }}>Icône</label>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 10 }}>{ICONS_CAT.map(ic => <button key={ic} type="button" onClick={() => { setNewCatIco(ic); setNewCatCustomIco(""); }} style={{ fontSize: 18, padding: "5px 7px", background: newCatIco === ic && !newCatCustomIco ? BT : SF, border: "1px solid " + (newCatIco === ic && !newCatCustomIco ? BTB : BR), borderRadius: 7, cursor: "pointer" }}>{ic}</button>)}</div>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <span style={{ fontSize: 12, color: TX3, whiteSpace: "nowrap" }}>Ou coller un emoji :</span>
@@ -274,7 +304,7 @@ export default function App() {
             </div>
           </div>
           <div style={{ display: "flex", gap: 8 }}>
-            <button style={{ flex: 1, padding: "12px", background: BT, border: "1px solid " + BTB, borderRadius: 12, color: BTT, fontSize: 14, fontWeight: 500, cursor: "pointer" }} onClick={addCat}>Creer</button>
+            <button style={{ flex: 1, padding: "12px", background: BT, border: "1px solid " + BTB, borderRadius: 12, color: BTT, fontSize: 14, fontWeight: 500, cursor: "pointer" }} onClick={addCat}>Créer</button>
             <button style={{ width: 90, padding: "12px", background: SF2, border: "1px solid " + BTB, borderRadius: 12, color: TX2, fontSize: 14, cursor: "pointer" }} onClick={() => { setShowCat(false); setNewCatLbl(""); setNewCatIco("📦"); setNewCatCustomIco(""); setCatCb(null); }}>Annuler</button>
           </div>
         </Modal>
@@ -282,20 +312,58 @@ export default function App() {
 
       {eTxId && eTxFrm && (
         <Modal title="Modifier la transaction">
-          <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>{["depense", "revenu"].map(tp => <button key={tp} style={tbtn(eTxFrm.type === tp, tp)} onClick={() => setETxFrm(f => ({ ...f, type: tp }))}>{tp === "depense" ? "Depense" : "Revenu"}</button>)}</div>
+          <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>{["depense", "revenu"].map(tp => <button key={tp} style={tbtn(eTxFrm.type === tp, tp)} onClick={() => setETxFrm(f => ({ ...f, type: tp }))}>{tp === "depense" ? "Dépense" : "Revenu"}</button>)}</div>
           <div style={{ marginBottom: 10 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Description</label><input style={inp} value={eTxFrm.desc} onChange={e => setETxFrm(f => ({ ...f, desc: e.target.value }))} /></div>
           <div style={{ marginBottom: 10 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Montant</label><input style={inp} type="number" value={eTxFrm.amount} onChange={e => setETxFrm(f => ({ ...f, amount: e.target.value }))} /></div>
-          {eTxFrm.type === "depense" && <div style={{ marginBottom: 10 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Categorie</label><CatSel value={eTxFrm.cat} onChange={v => setETxFrm(f => ({ ...f, cat: v }))} /></div>}
+          {eTxFrm.type === "depense" && <div style={{ marginBottom: 10 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Catégorie</label><CatSel value={eTxFrm.cat} onChange={v => setETxFrm(f => ({ ...f, cat: v }))} /></div>}
           <div style={{ marginBottom: 14 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Date</label><input style={inp} type="date" value={eTxFrm.date} onChange={e => setETxFrm(f => ({ ...f, date: e.target.value }))} /></div>
           <SaveCancel onS={saveETx} onC={() => { setETxId(null); setETxFrm(null); }} />
           <DelBtn onClick={() => { delTx(eTxId); setETxId(null); setETxFrm(null); }} />
         </Modal>
       )}
 
+      {/* Drawer overlay */}
+      {drawerOpen && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: 199 }} onClick={() => setDrawerOpen(false)} />
+      )}
+
+      {/* Drawer */}
+      <div style={{ position: "fixed", top: 0, left: 0, height: "100vh", width: "75%", maxWidth: 280, background: "var(--c-bg)", zIndex: 200, transform: drawerOpen ? "translateX(0)" : "translateX(-100%)", transition: "transform 0.25s ease", display: "flex", flexDirection: "column", boxShadow: "4px 0 20px rgba(0,0,0,0.15)" }}>
+        <div style={{ padding: "20px 20px 16px", borderBottom: "1px solid " + BR, display: "flex", alignItems: "center", gap: 10 }}>
+          <img src="/logotransparant.png" alt="Budgeti" style={{ width: 40, height: 40, borderRadius: 8, flexShrink: 0 }} />
+          <p style={{ fontSize: 22, fontWeight: 800, margin: 0, color: TX, fontFamily: "'Montserrat', sans-serif" }}>Budgeti</p>
+        </div>
+        <div style={{ flex: 1, overflowY: "auto", padding: "8px 0" }}>
+          {[
+            { id: "dashboard",  icon: "🏠", label: "Tableau" },
+            { id: "dettes",     icon: "📊", label: "Dettes" },
+            { id: "projets",    icon: "🎯", label: "Projets" },
+            { id: "recurrents", icon: "🔄", label: "Recurrents" },
+            { id: "analyse",    icon: "📈", label: "Analyse" },
+            { id: "parametres", icon: "⚙",  label: "Parametres" },
+          ].map(n => (
+            <button key={n.id} onClick={() => navigate(n.id)} style={{ width: "100%", display: "flex", alignItems: "center", gap: 14, padding: "14px 20px", background: view === n.id ? "var(--c-bt-light)" : "none", border: "none", borderLeft: "3px solid " + (view === n.id ? BT : "transparent"), cursor: "pointer", color: view === n.id ? BT : TX2, fontSize: 15, fontWeight: view === n.id ? 600 : 400, textAlign: "left" }}>
+              <span style={{ fontSize: 20 }}>{n.icon}</span>
+              {n.label}
+            </button>
+          ))}
+        </div>
+        <div style={{ padding: "12px 20px", borderTop: "1px solid " + BR, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <span style={{ fontSize: 13, color: TX2 }}>{darkMode ? "🌙 Sombre" : "☀️ Clair"}</span>
+          <button onClick={() => setDarkMode(d => !d)} style={{ width: 48, height: 26, borderRadius: 13, background: darkMode ? BT : BR2, border: "none", cursor: "pointer", position: "relative", transition: "background 0.2s", flexShrink: 0 }}>
+            <span style={{ position: "absolute", top: 3, left: darkMode ? 25 : 3, width: 20, height: 20, borderRadius: "50%", background: "#FFFFFF", transition: "left 0.2s", display: "block" }} />
+          </button>
+        </div>
+      </div>
+
       {/* Header */}
-      <div style={{ background: SF2, borderBottom: "1px solid " + BR, padding: "4px 20px", display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
-        <img src="/logotransparant.png" alt="Budgeti" style={{ width: 90, height: 90, borderRadius: 10, flexShrink: 0 }} />
-        <p style={{ fontSize: 32, fontWeight: 800, margin: 0, color: TX, fontFamily: "'Montserrat', sans-serif", letterSpacing: "-0.01em" }}>Budgeti</p>
+      <div style={{ background: "var(--c-bg)", borderBottom: "1px solid " + BR, padding: "10px 16px", display: "flex", alignItems: "center", gap: 12, position: "sticky", top: 0, zIndex: 100, boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}>
+        <button onClick={() => setDrawerOpen(true)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 22, padding: "4px 6px", color: TX, lineHeight: 1, flexShrink: 0 }}>☰</button>
+        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+          <img src="/logotransparant.png" alt="Budgeti" style={{ width: 36, height: 36, borderRadius: 8, flexShrink: 0 }} />
+          <p style={{ fontSize: 22, fontWeight: 800, margin: 0, color: TX, fontFamily: "'Montserrat', sans-serif", letterSpacing: "-0.01em" }}>Budgeti</p>
+        </div>
+        <div style={{ width: 38 }} />
       </div>
 
       {/* Page content */}
@@ -369,30 +437,12 @@ export default function App() {
             updTxs={updTxs} updRecs={updRecs} updRrecs={updRrecs}
             updDettes={updDettes} updProjets={updProjets} updCats={updCats} updPaieM={updPaieM}
             setDetSel={setDetSel} setPrjSel={setPrjSel}
+            darkMode={darkMode} setDarkMode={setDarkMode}
             {...styles}
           />
         )}
       </div>
 
-      {/* Nav */}
-      <nav style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: SF2, borderTop: "1px solid " + BR, display: "flex", zIndex: 10, paddingBottom: "env(safe-area-inset-bottom)" }}>
-        {[
-          { id: "dashboard",   icon: "◈",  label: "Tableau"    },
-          { id: "dettes",      icon: "📊", label: "Dettes"     },
-          { id: "projets",     icon: "🎯", label: "Projets"    },
-          { id: "recurrents",  icon: "🔄", label: "Recurrent"  },
-          { id: "analyse",     icon: "📈", label: "Analyse" },
-          { id: "parametres",  icon: "⚙",  label: "Params",    dot: !!user },
-        ].map(n => (
-          <button key={n.id} style={navBtn(view === n.id)} onClick={() => navigate(n.id)}>
-            <span style={{ fontSize: 15, position: "relative" }}>
-              {n.icon}
-              {n.dot && <span style={{ position: "absolute", top: -2, right: -4, width: 6, height: 6, background: "#5a9a4a", borderRadius: "50%", border: "1px solid " + SF2 }} />}
-            </span>
-            {n.label}
-          </button>
-        ))}
-      </nav>
     </div>
   );
 }

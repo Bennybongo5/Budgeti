@@ -33,7 +33,7 @@ function SemaineRef({ t, paie, updPaie, fbtn }) {
           </button>
         ))}
       </div>
-      <label style={{ fontSize: 12, color: TX2, marginBottom: 6, display: "block" }}>Semaine de reference</label>
+      <label style={{ fontSize: 12, color: TX2, marginBottom: 6, display: "block" }}>Semaine de référence</label>
       <div style={{ display: "flex", gap: 8 }}>
         {opts.map((k, i) => {
           const p2 = k.split("-").map(Number);

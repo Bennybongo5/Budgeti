@@ -28,7 +28,7 @@ export default function Projets({
         <Modal title="Modifier le projet">
           <div style={{ marginBottom: 10 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Nom</label><input style={inp} value={prjFrm.nom} onChange={e => setPrjFrm(f => ({ ...f, nom: e.target.value }))} /></div>
           <div style={{ marginBottom: 10 }}>
-            <label style={{ fontSize: 12, color: TX2, marginBottom: 6, display: "block" }}>Icone</label>
+            <label style={{ fontSize: 12, color: TX2, marginBottom: 6, display: "block" }}>Icône</label>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>{ICONS_PRJ.map(ic => <button key={ic} type="button" onClick={() => setPrjFrm(f => ({ ...f, icon: ic }))} style={{ fontSize: 18, padding: "5px 7px", background: prjFrm.icon === ic ? BT : SF, border: "1px solid " + (prjFrm.icon === ic ? BTB : BR), borderRadius: 7, cursor: "pointer" }}>{ic}</button>)}</div>
           </div>
           <div style={{ marginBottom: 14 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Objectif (CAD)</label><input style={inp} type="number" value={prjFrm.objectif} onChange={e => setPrjFrm(f => ({ ...f, objectif: e.target.value }))} /></div>
@@ -53,7 +53,7 @@ export default function Projets({
       )}
 
       {showJourPicker && (
-        <Modal title="Choix de la journee">
+        <Modal title="Choix de la journée">
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 14 }}>
             {Array.from({ length: 31 }, (_, i) => i + 1).map(j => (
               <button key={j} type="button" onClick={() => { setEditVerFrm(f => ({ ...f, jour: j })); setShowJourPicker(false); }} style={{ width: 46, height: 46, background: +editVerFrm.jour === j ? BT : SF, border: "1px solid " + (+editVerFrm.jour === j ? BTB : BR), borderRadius: 10, color: +editVerFrm.jour === j ? BTT : TX, fontSize: 14, fontWeight: 500, cursor: "pointer" }}>{j}</button>
@@ -64,7 +64,7 @@ export default function Projets({
         </Modal>
       )}
 
-      <p style={{ fontSize: 15, fontWeight: 500, marginBottom: 12, color: TX }}>Projets d epargne</p>
+      <p style={{ fontSize: 15, fontWeight: 500, marginBottom: 12, color: TX }}>Projets d'épargne</p>
 
       <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 8, marginBottom: 12 }}>
         {projets.map(p => {
@@ -90,12 +90,12 @@ export default function Projets({
           <p style={{ fontSize: 13, fontWeight: 500, color: TX2, marginBottom: 10, marginTop: 0 }}>Nouveau projet</p>
           <div style={{ marginBottom: 10 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Nom</label><input style={inp} placeholder="Ex: Vacances..." value={prjFrm.nom} onChange={e => setPrjFrm(f => ({ ...f, nom: e.target.value }))} /></div>
           <div style={{ marginBottom: 10 }}>
-            <label style={{ fontSize: 12, color: TX2, marginBottom: 6, display: "block" }}>Icone</label>
+            <label style={{ fontSize: 12, color: TX2, marginBottom: 6, display: "block" }}>Icône</label>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>{ICONS_PRJ.map(ic => <button key={ic} type="button" onClick={() => setPrjFrm(f => ({ ...f, icon: ic }))} style={{ fontSize: 18, padding: "5px 7px", background: prjFrm.icon === ic ? BT : SF, border: "1px solid " + (prjFrm.icon === ic ? BTB : BR), borderRadius: 7, cursor: "pointer" }}>{ic}</button>)}</div>
           </div>
           <div style={{ marginBottom: 14 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Objectif (CAD)</label><input style={inp} type="number" placeholder="0.00" value={prjFrm.objectif} onChange={e => setPrjFrm(f => ({ ...f, objectif: e.target.value }))} /></div>
           <div style={{ display: "flex", gap: 8 }}>
-            <button style={{ flex: 1, padding: "12px", background: BT, border: "1px solid " + BTB, borderRadius: 12, color: BTT, fontSize: 14, fontWeight: 500, cursor: "pointer" }} onClick={addProjet}>Creer</button>
+            <button style={{ flex: 1, padding: "12px", background: BT, border: "1px solid " + BTB, borderRadius: 12, color: BTT, fontSize: 14, fontWeight: 500, cursor: "pointer" }} onClick={addProjet}>Créer</button>
             <button style={{ width: 90, padding: "12px", background: SF2, border: "1px solid " + BTB, borderRadius: 12, color: TX2, fontSize: 14, cursor: "pointer" }} onClick={() => { setShowAddPrj(false); setPrjFrm(emptyP); }}>Annuler</button>
           </div>
         </div>
@@ -113,8 +113,8 @@ export default function Projets({
 
       {projets.length === 0 && !showAddPrj && (
         <div style={{ textAlign: "center", color: TX3, padding: "40px 20px", fontSize: 13 }}>
-          <p style={{ margin: "0 0 12px" }}>Aucun projet cree.</p>
-          <button style={bigBtn()} onClick={() => setShowAddPrj(true)}>Creer un projet</button>
+          <p style={{ margin: "0 0 12px" }}>Aucun projet créé.</p>
+          <button style={bigBtn()} onClick={() => setShowAddPrj(true)}>Créer un projet</button>
         </div>
       )}
     </div>

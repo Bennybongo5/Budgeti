@@ -9,7 +9,7 @@ function TxRow({ x, cats, trow, ico, startETx }) {
     : cat.icon;
   const srcLabel = x.source === "dette" ? "Dette"
     : x.source === "projet" ? "Projet"
-    : (x.source === "rec" || x.source === "rr") ? "Recurrent"
+    : (x.source === "rec" || x.source === "rr") ? "Récurrent"
     : null;
   const subLabel = srcLabel || (x.type === "depense" ? cat.label : null);
   return (

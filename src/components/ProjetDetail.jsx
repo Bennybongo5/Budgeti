@@ -46,7 +46,7 @@ function ProjetDetail({
         </div>
         <div style={{ marginBottom: 8 }}>
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-            <span style={{ fontSize: 12, color: TX2 }}>Epargne accumulee</span>
+            <span style={{ fontSize: 12, color: TX2 }}>Épargne accumulée</span>
             <span style={{ fontSize: 12, fontWeight: 500, color: AC }}>{pp}%</span>
           </div>
           <div style={{ height: 12, background: BR, borderRadius: 6, overflow: "hidden" }}>
@@ -55,7 +55,7 @@ function ProjetDetail({
         </div>
         <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
           <div style={{ flex: 1, background: SF2, borderRadius: 10, padding: "8px 10px" }}>
-            <p style={{ fontSize: 11, color: TX3, margin: 0 }}>Accumule</p>
+            <p style={{ fontSize: 11, color: TX3, margin: 0 }}>Accumulé</p>
             <p style={{ fontSize: 15, fontWeight: 500, color: GN, margin: "2px 0 0" }}>{fmt(sp)}</p>
           </div>
           {pp < 100 && (
@@ -76,7 +76,7 @@ function ProjetDetail({
         )}
         {de && pp < 100 && (
           <div style={{ background: SF2, border: "1px solid " + BR, borderRadius: 10, padding: "8px 12px", marginTop: 8 }}>
-            <p style={{ fontSize: 11, color: TX3, margin: "0 0 2px" }}>Date estimee de completion</p>
+            <p style={{ fontSize: 11, color: TX3, margin: "0 0 2px" }}>Date estimée de complétion</p>
             <p style={{ fontSize: 13, fontWeight: 500, color: TX, margin: 0 }}>{de}</p>
           </div>
         )}
@@ -109,7 +109,7 @@ function ProjetDetail({
       )}
 
       {showJourPicker && (
-        <Modal title="Choix de la journee">
+        <Modal title="Choix de la journée">
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 14 }}>
             {Array.from({ length: 31 }, (_, i) => i + 1).map(j => (
               <button key={j} type="button" onClick={() => { setVerFrm(f => ({ ...f, jour: j })); setShowJourPicker(false); }} style={{ width: 46, height: 46, background: +verFrm.jour === j ? BT : SF, border: "1px solid " + (+verFrm.jour === j ? BTB : BR), borderRadius: 10, color: +verFrm.jour === j ? BTT : TX, fontSize: 14, fontWeight: 500, cursor: "pointer" }}>{j}</button>
