@@ -206,7 +206,7 @@ export default function App() {
   const inpSm = { ...inp, padding: "8px 10px" };
   const card = { background: SF, border: "1px solid " + BR, borderRadius: 14, padding: "14px 16px", marginBottom: 12, boxShadow: "0 2px 8px rgba(0,0,0,0.06)" };
   const trow = { display: "flex", alignItems: "center", gap: 8, padding: "9px 0", borderBottom: "0.5px solid " + BR };
-  const ico = { width: 32, height: 32, borderRadius: 9, background: BT, border: "1px solid " + BTB, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, flexShrink: 0 };
+  const ico = { width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 };
   const fbtn = a => ({ flex: 1, padding: "8px 4px", background: a ? BT : SF, border: "1px solid " + (a ? BTB : BR), borderRadius: 9, color: a ? BTT : TX2, fontSize: 11, cursor: "pointer", textAlign: "center", fontWeight: a ? 500 : 400 });
   const chip = a => ({ padding: "5px 11px", background: a ? BT : SF, border: "1px solid " + (a ? BTB : BR), borderRadius: 20, color: a ? BTT : TX2, fontSize: 12, cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 });
   const navBtn = a => ({ flex: 1, padding: "8px 2px 6px", background: a ? "#F0FDF4" : "none", border: "none", cursor: "pointer", color: a ? BT : TX3, fontSize: 10, display: "flex", flexDirection: "column", alignItems: "center", gap: 3, borderTop: a ? "2px solid " + BT : "2px solid transparent" });
@@ -329,9 +329,12 @@ export default function App() {
           <p style={{ fontSize: 22, fontWeight: 800, margin: 0, color: TX, fontFamily: "'Montserrat', sans-serif", letterSpacing: "-0.01em" }}>Budgeti</p>
         </div>
         {/* Dark mode toggle in header */}
-        <button onClick={() => setDarkMode(d => !d)} style={{ width: 48, height: 26, borderRadius: 13, background: darkMode ? BT : BR2, border: "none", cursor: "pointer", position: "relative", transition: "background 0.2s", flexShrink: 0 }}>
-          <span style={{ position: "absolute", top: 3, left: darkMode ? 25 : 3, width: 20, height: 20, borderRadius: "50%", background: "#FFFFFF", transition: "left 0.2s", display: "block" }} />
-        </button>
+        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <span style={{ fontSize: 16 }}>{darkMode ? "🌙" : "☀️"}</span>
+          <button onClick={() => setDarkMode(d => !d)} style={{ width: 48, height: 26, borderRadius: 13, background: darkMode ? BT : BR2, border: "none", cursor: "pointer", position: "relative", transition: "background 0.2s", flexShrink: 0 }}>
+            <span style={{ position: "absolute", top: 3, left: darkMode ? 25 : 3, width: 20, height: 20, borderRadius: "50%", background: "#FFFFFF", transition: "left 0.2s", display: "block" }} />
+          </button>
+        </div>
       </div>
 
       {/* Bottom navigation bar */}
