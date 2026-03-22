@@ -10,6 +10,34 @@ export function calcManuelsInPeriod(items,deb,fin,key){return items.reduce((tota
 
 function daysBetween(d1,d2){return Math.round((new Date(d2)-new Date(d1))/86400000);}
 
+// Day-of-week map (JS convention: 0=Sun, 1=Mon, ..., 6=Sat)
+const DOW_MAP={Lundi:1,Mardi:2,Mercredi:3,Jeudi:4,Vendredi:5,Samedi:6,Dimanche:0};
+
+// Returns all dates (YYYY-MM-DD) when a weekly/biweekly rec occurs in a given month
+export function getRecOccurrencesInMonth(r,y,m){
+  const iv=r.frequence==="semaine"?7:14;
+  const lastD=ld(y,m);
+  const moStart=ymd(y,m,1);
+  const moEnd=ymd(y,m,lastD);
+  const targetDow=DOW_MAP[r.jourSemaine]??1;
+  const results=[];
+  let cur;
+  if(r.frequence==="2semaines"&&r.dateRef){
+    // Walk from dateRef anchor to first occurrence in or after moStart
+    cur=r.dateRef;
+    while(cur>moEnd)cur=addD(cur,-iv);
+    while(cur<moStart)cur=addD(cur,iv);
+  }else{
+    // Find first occurrence of target day on or after moStart
+    const[sy,sm,sd]=moStart.split("-").map(Number);
+    const startDow=new Date(sy,sm-1,sd).getDay();
+    const diff=(targetDow-startDow+7)%7;
+    cur=addD(moStart,diff);
+  }
+  while(cur<=moEnd){results.push(cur);cur=addD(cur,iv);}
+  return results;
+}
+
 export function getPaieBreakdownForMonth(paie,moStart,moEnd,paieM){
   if(!paie||!paie.frequence)return[];
   const[my,mm]=moStart.split("-").map(Number);
@@ -56,9 +84,12 @@ export function calcProportionalMonth(paie,moStart,moEnd,paieM,recs,rrecs,dettes
   found.sort((a,b)=>a.deb.localeCompare(b.deb));
   const lastDay=ld(my,mm);
   // "per paie" items: proportional per period | "per day" items: once if day falls in month
-  const recPaieSum=recs.filter(r=>r.jour==="paie").reduce((s,r)=>s+r.amount,0);
-  const recDaySum=recs.filter(r=>r.jour!=="paie").reduce((s,r)=>{const j=r.jour==="fin"?lastDay:Math.min(+r.jour||1,lastDay);return ymd(my,mm,j)>=moStart&&ymd(my,mm,j)<=moEnd?s+r.amount:s;},0);
-  const rrDaySum=rrecs.reduce((s,r)=>{const j=Math.min(+r.jour||1,lastDay);return ymd(my,mm,j)>=moStart&&ymd(my,mm,j)<=moEnd?s+r.amount:s;},0);
+  // Monthly recs split by "paie" (proportional) vs fixed day; weekly/biweekly counted by occurrences
+  const recPaieSum=recs.filter(r=>(!r.frequence||r.frequence==="mois")&&r.jour==="paie").reduce((s,r)=>s+r.amount,0);
+  let recDaySum=recs.filter(r=>(!r.frequence||r.frequence==="mois")&&r.jour!=="paie").reduce((s,r)=>{const j=r.jour==="fin"?lastDay:Math.min(+r.jour||1,lastDay);return ymd(my,mm,j)>=moStart&&ymd(my,mm,j)<=moEnd?s+r.amount:s;},0);
+  recs.filter(r=>r.frequence==="semaine"||r.frequence==="2semaines").forEach(r=>{recDaySum+=r.amount*getRecOccurrencesInMonth(r,my,mm).length;});
+  let rrDaySum=rrecs.filter(r=>!r.frequence||r.frequence==="mois").reduce((s,r)=>{const j=Math.min(+r.jour||1,lastDay);return ymd(my,mm,j)>=moStart&&ymd(my,mm,j)<=moEnd?s+r.amount:s;},0);
+  rrecs.filter(r=>r.frequence==="semaine"||r.frequence==="2semaines").forEach(r=>{rrDaySum+=r.amount*getRecOccurrencesInMonth(r,my,mm).length;});
   let totPaie=0,totRecPaie=0,totDettePaie=0,totProjetPaie=0;
   found.forEach(({deb,fin})=>{
     const totalD=daysBetween(deb,fin);

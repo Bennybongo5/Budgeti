@@ -1,12 +1,98 @@
 import { useMemo, useState } from "react";
 import { SF, SF2, BR, BR2, TX, TX2, TX3, GN, RD, BT, BTB, BTT } from "../constants.js";
 import { fmt } from "../constants.js";
-import { ymd, ld } from "../utils/dates.js";
+import { ymd, ld, addD, today } from "../utils/dates.js";
 import { calcProportionalMonth } from "../utils/calculs.js";
 import TxRow from "../components/TxRow.jsx";
 import Modal from "../components/Modal.jsx";
 import SaveCancel from "../components/SaveCancel.jsx";
 import DelBtn from "../components/DelBtn.jsx";
+
+const ALL_JOURS = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
+const DOW = { Lundi: 1, Mardi: 2, Mercredi: 3, Jeudi: 4, Vendredi: 5, Samedi: 6, Dimanche: 0 };
+function computeDateRef(jourSemaine) {
+  const t = today();
+  const [ty, tm, td] = t.split("-").map(Number);
+  const curDow = new Date(ty, tm - 1, td).getDay();
+  const diff = (DOW[jourSemaine] - curDow + 7) % 7;
+  return addD(t, diff);
+}
+const FREQ_OPTIONS = [
+  { id: "mois", label: "Mensuel" },
+  { id: "semaine", label: "Hebdo" },
+  { id: "2semaines", label: "Aux 2 sem." },
+];
+
+// Inline frequency picker for edit modals
+function FreqPicker({ frm, setFrm, showPaie }) {
+  const isWeekly = frm.frequence === "semaine" || frm.frequence === "2semaines";
+  return (
+    <>
+      <div style={{ marginBottom: 10 }}>
+        <label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Fréquence</label>
+        <div style={{ display: "flex", gap: 6 }}>
+          {FREQ_OPTIONS.map(f => (
+            <button key={f.id} type="button"
+              style={{ flex: 1, padding: "7px 4px", background: frm.frequence === f.id ? BT : SF, border: "1px solid " + (frm.frequence === f.id ? BTB : BR), borderRadius: 8, color: frm.frequence === f.id ? BTT : TX2, fontSize: 11, cursor: "pointer" }}
+              onClick={() => setFrm(prev => ({
+                ...prev, frequence: f.id,
+                ...(f.id === "2semaines" ? { dateRef: computeDateRef(prev.jourSemaine || "Lundi") } : {}),
+              }))}
+            >{f.label}</button>
+          ))}
+        </div>
+      </div>
+      {frm.frequence === "mois" && showPaie && (
+        <div style={{ marginBottom: 10 }}>
+          <label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Quand</label>
+          <div style={{ display: "flex", gap: 6 }}>
+            <button type="button"
+              style={{ flex: 1, padding: "7px 4px", background: frm.jour !== "paie" ? BT : SF, border: "1px solid " + (frm.jour !== "paie" ? BTB : BR), borderRadius: 8, color: frm.jour !== "paie" ? BTT : TX2, fontSize: 11, cursor: "pointer" }}
+              onClick={() => setFrm(f => ({ ...f, jour: typeof f.jour === "number" || f.jour === "fin" ? f.jour : 1 }))}
+            >{frm.jour !== "paie" ? (frm.jour === "fin" ? "Fin du mois" : "Le " + frm.jour) : "Jour du mois"}</button>
+            <button type="button"
+              style={{ flex: 1, padding: "7px 4px", background: frm.jour === "paie" ? BT : SF, border: "1px solid " + (frm.jour === "paie" ? BTB : BR), borderRadius: 8, color: frm.jour === "paie" ? BTT : TX2, fontSize: 11, cursor: "pointer" }}
+              onClick={() => setFrm(f => ({ ...f, jour: "paie" }))}
+            >Paie</button>
+          </div>
+        </div>
+      )}
+      {frm.frequence === "mois" && !showPaie && (
+        <div style={{ marginBottom: 10 }}>
+          <label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Jour du mois</label>
+          <input style={{ width: "100%", padding: "9px 10px", background: SF, border: "1px solid " + BR, borderRadius: 8, color: TX, fontSize: 13, boxSizing: "border-box" }}
+            type="number" min="1" max="31" value={frm.jour}
+            onChange={e => setFrm(f => ({ ...f, jour: +e.target.value }))}
+          />
+        </div>
+      )}
+      {frm.frequence === "mois" && showPaie && frm.jour !== "paie" && (
+        <div style={{ marginBottom: 10 }}>
+          <input style={{ width: "100%", padding: "9px 10px", background: SF, border: "1px solid " + BR, borderRadius: 8, color: TX, fontSize: 13, boxSizing: "border-box" }}
+            type="number" min="1" max="31" value={frm.jour === "fin" ? 31 : frm.jour}
+            onChange={e => setFrm(f => ({ ...f, jour: +e.target.value }))}
+          />
+        </div>
+      )}
+      {isWeekly && (
+        <div style={{ marginBottom: 10 }}>
+          <label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Jour de la semaine</label>
+          <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
+            {ALL_JOURS.map(j => (
+              <button key={j} type="button"
+                style={{ padding: "6px 8px", background: frm.jourSemaine === j ? BT : SF, border: "1px solid " + (frm.jourSemaine === j ? BTB : BR), borderRadius: 8, color: frm.jourSemaine === j ? BTT : TX2, fontSize: 11, cursor: "pointer" }}
+                onClick={() => setFrm(f => ({
+                  ...f, jourSemaine: j,
+                  ...(f.frequence === "2semaines" ? { dateRef: computeDateRef(j) } : {}),
+                }))}
+              >{j.slice(0, 3)}</button>
+            ))}
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
 
 const shortFmt = v => {
   if (v >= 1000) return (v / 1000).toFixed(1).replace(/\.0$/, "") + "k";
@@ -157,16 +243,16 @@ export default function Analyse({
   // Local state for editing a rec directly from Analyse
   const [editRec, setEditRec] = useState(null);
   const [editRr, setEditRr] = useState(null);
-  const [editRecForm, setEditRecForm] = useState({ desc: "", amount: "", jour: 1, cat: "" });
-  const [editRrForm, setEditRrForm] = useState({ desc: "", amount: "", jour: 1 });
+  const [editRecForm, setEditRecForm] = useState({ desc: "", amount: "", jour: 1, cat: "", frequence: "mois", jourSemaine: "Lundi", dateRef: null });
+  const [editRrForm, setEditRrForm] = useState({ desc: "", amount: "", jour: 1, frequence: "mois", jourSemaine: "Lundi", dateRef: null });
 
   const openEditRec = r => {
     setEditRec(r);
-    setEditRecForm({ desc: r.desc, amount: r.amount, jour: r.jour, cat: r.cat });
+    setEditRecForm({ desc: r.desc, amount: r.amount, jour: r.jour, cat: r.cat, frequence: r.frequence || "mois", jourSemaine: r.jourSemaine || "Lundi", dateRef: r.dateRef || null });
   };
   const openEditRr = r => {
     setEditRr(r);
-    setEditRrForm({ desc: r.desc, amount: r.amount, jour: r.jour });
+    setEditRrForm({ desc: r.desc, amount: r.amount, jour: r.jour, frequence: r.frequence || "mois", jourSemaine: r.jourSemaine || "Lundi", dateRef: r.dateRef || null });
   };
   const saveRec = () => {
     updRecs(prev => prev.map(r => r.id === editRec.id ? { ...r, ...editRecForm, amount: +editRecForm.amount } : r));
@@ -192,6 +278,7 @@ export default function Analyse({
               {cats.map(c => <option key={c.id} value={c.id}>{c.icon} {c.label}</option>)}
             </select>
           </div>
+          <FreqPicker frm={editRecForm} setFrm={setEditRecForm} showPaie={true} />
           <SaveCancel onS={saveRec} onC={() => setEditRec(null)} />
           <DelBtn onClick={() => { delRec(editRec.id); setEditRec(null); }} />
         </Modal>
@@ -201,10 +288,8 @@ export default function Analyse({
       {editRr && (
         <Modal title="Modifier l'autre revenu">
           <div style={{ marginBottom: 10 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Description</label><input autoFocus style={inp} value={editRrForm.desc} onChange={e => setEditRrForm(f => ({ ...f, desc: e.target.value }))} /></div>
-          <div style={{ display: "flex", gap: 10, marginBottom: 14 }}>
-            <div style={{ flex: 1 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Montant</label><input style={inp} type="number" value={editRrForm.amount} onChange={e => setEditRrForm(f => ({ ...f, amount: e.target.value }))} /></div>
-            <div style={{ flex: 1 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Jour du mois</label><input style={inp} type="number" min="1" max="31" value={editRrForm.jour} onChange={e => setEditRrForm(f => ({ ...f, jour: +e.target.value }))} /></div>
-          </div>
+          <div style={{ marginBottom: 10 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Montant</label><input style={inp} type="number" value={editRrForm.amount} onChange={e => setEditRrForm(f => ({ ...f, amount: e.target.value }))} /></div>
+          <FreqPicker frm={editRrForm} setFrm={setEditRrForm} showPaie={false} />
           <SaveCancel onS={saveRr} onC={() => setEditRr(null)} />
           <DelBtn onClick={() => { delRr(editRr.id); setEditRr(null); }} />
         </Modal>
