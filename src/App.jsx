@@ -84,6 +84,8 @@ export default function App() {
   useEffect(() => {
     document.documentElement.classList.toggle("dark", darkMode);
     localStorage.setItem("budgeti-theme", darkMode ? "dark" : "light");
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute("content", darkMode ? "#0F172A" : "#FFFFFF");
   }, [darkMode]);
 
   // ── Load from localStorage on mount ───────────────────────────────────────
