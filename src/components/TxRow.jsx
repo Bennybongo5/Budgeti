@@ -25,7 +25,7 @@ function TxRow({ x, cats, trow, ico, startETx, onEdit }) {
       </span>
       {!x.source
         ? <button style={{ background: "none", border: "none", cursor: "pointer", color: AC, fontSize: 14, padding: "2px 4px" }} onClick={() => startETx(x)}>✎</button>
-        : (x.source === "rec" || x.source === "rr") && onEdit
+        : onEdit
         ? <button style={{ background: "none", border: "none", cursor: "pointer", color: AC, fontSize: 14, padding: "2px 4px" }} onClick={onEdit}>✎</button>
         : <div style={{ width: 28 }} />}
     </div>

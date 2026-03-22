@@ -136,7 +136,7 @@ function ProjetDetail({
         )}
         {(projet.paiementsAuto || []).filter((x) => +x.montant > 0).map((x, i) => (
           <div key={"auto" + i} style={trow}>
-            <div style={{ ...ico, background: BT }}>🔁</div>
+            <div style={ico}>🔁</div>
             <div style={{ flex: 1 }}>
               <p style={{ fontSize: 13, color: TX, margin: 0, fontWeight: 500 }}>{fmt(+x.montant)}</p>
               <p style={{ fontSize: 11, color: TX3, margin: 0 }}>{x.jour === "paie" ? "Paie" : x.jour === "fin" ? "Fin du mois" : "Le " + x.jour}</p>
@@ -150,7 +150,7 @@ function ProjetDetail({
         )}
         {[...projet.versements].sort((a, b) => b.date.localeCompare(a.date)).map((v) => (
           <div key={v.id} style={trow}>
-            <div style={{ ...ico, background: BT }}>💵</div>
+            <div style={ico}>💵</div>
             <div style={{ flex: 1 }}>
               <p style={{ fontSize: 13, color: TX, margin: 0, fontWeight: 500 }}>{fmt(v.montant)}</p>
               <p style={{ fontSize: 11, color: TX3, margin: 0 }}>{v.date}</p>

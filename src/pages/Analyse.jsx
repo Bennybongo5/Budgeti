@@ -249,6 +249,7 @@ export default function Analyse({
   setFilCat, setSelMo, startETx,
   txs, paie, paieM, recs, rrecs, dettes, projets,
   updRecs, updRrecs, delRec, delRr,
+  updDettes, updProjets,
   trow, ico, chip, card, inp,
 }) {
   const [chartMo, setChartMo] = useState(null);
@@ -257,6 +258,9 @@ export default function Analyse({
   const [editRr, setEditRr] = useState(null);
   const [editRecForm, setEditRecForm] = useState({ desc: "", amount: "", jour: 1, cat: "", frequence: "mois", jourSemaine: "Lundi", dateRef: null });
   const [editRrForm, setEditRrForm] = useState({ desc: "", amount: "", jour: 1, frequence: "mois", jourSemaine: "Lundi", dateRef: null });
+  // Local state for editing dette/projet payments
+  const [editPay, setEditPay] = useState(null); // { source, detteId?, projetId?, paiId?, versId?, payType, nom }
+  const [editPayFrm, setEditPayFrm] = useState({ montant: "", jour: "1", date: "" });
 
   const openEditRec = r => {
     setEditRec(r);
@@ -273,6 +277,35 @@ export default function Analyse({
   const saveRr = () => {
     updRrecs(prev => prev.map(r => r.id === editRr.id ? { ...r, ...editRrForm, amount: +editRrForm.amount } : r));
     setEditRr(null);
+  };
+  const openEditPay = x => {
+    setEditPay(x);
+    setEditPayFrm({ montant: x.amount, jour: x.payType === "auto" ? (x.jour || "1") : "1", date: x.payType === "manuel" ? x.date : "" });
+  };
+  const saveEditPay = () => {
+    if (!editPay) return;
+    if (editPay.source === "dette") {
+      if (editPay.payType === "auto") {
+        updDettes(prev => prev.map(d => d.id === editPay.detteId
+          ? { ...d, paiementsAuto: (d.paiementsAuto || []).map(pa => pa.id === editPay.paiId ? { ...pa, montant: +editPayFrm.montant } : pa) }
+          : d));
+      } else {
+        updDettes(prev => prev.map(d => d.id === editPay.detteId
+          ? { ...d, paiements: d.paiements.map(p => p.id === editPay.paiId ? { ...p, montant: +editPayFrm.montant, date: editPayFrm.date } : p) }
+          : d));
+      }
+    } else {
+      if (editPay.payType === "auto") {
+        updProjets(prev => prev.map(p => p.id === editPay.projetId
+          ? { ...p, paiementsAuto: (p.paiementsAuto || []).map(pa => pa.id === editPay.paiId ? { ...pa, montant: +editPayFrm.montant } : pa) }
+          : p));
+      } else {
+        updProjets(prev => prev.map(p => p.id === editPay.projetId
+          ? { ...p, versements: p.versements.map(v => v.id === editPay.versId ? { ...v, montant: +editPayFrm.montant, date: editPayFrm.date } : v) }
+          : p));
+      }
+    }
+    setEditPay(null);
   };
 
   return (
@@ -293,6 +326,18 @@ export default function Analyse({
           <FreqPicker frm={editRecForm} setFrm={setEditRecForm} />
           <SaveCancel onS={saveRec} onC={() => setEditRec(null)} />
           <DelBtn onClick={() => { delRec(editRec.id); setEditRec(null); }} />
+        </Modal>
+      )}
+
+      {/* Edit modal for a dette/projet payment */}
+      {editPay && (
+        <Modal title={editPay.source === "dette" ? "Modifier le paiement" : "Modifier le versement"} onClose={() => setEditPay(null)}>
+          <p style={{ fontSize: 12, color: TX3, margin: "0 0 10px" }}>{editPay.nom} · {editPay.payType === "auto" ? "Mensuel" : "Unique"}</p>
+          <div style={{ marginBottom: 10 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Montant (CAD)</label><input autoFocus style={inp} type="number" value={editPayFrm.montant} onChange={e => setEditPayFrm(f => ({ ...f, montant: e.target.value }))} /></div>
+          {editPay.payType === "manuel" && (
+            <div style={{ marginBottom: 10 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Date</label><input style={inp} type="date" value={editPayFrm.date} onChange={e => setEditPayFrm(f => ({ ...f, date: e.target.value }))} /></div>
+          )}
+          <SaveCancel onS={saveEditPay} onC={() => setEditPay(null)} />
         </Modal>
       )}
 
@@ -375,6 +420,8 @@ export default function Analyse({
           if (original) {
             onEdit = () => x.source === "rec" ? openEditRec(original) : openEditRr(original);
           }
+        } else if (x.source === "dette" || x.source === "projet") {
+          onEdit = () => openEditPay({ ...x, nom: x.desc });
         }
         return <TxRow key={x.id} x={x} cats={cats} trow={trow} ico={ico} startETx={startETx} onEdit={onEdit} />;
       })}

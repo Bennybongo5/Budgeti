@@ -138,7 +138,7 @@ export default function Dettes({
             {(dette.paiementsAuto || []).filter(x => +x.montant > 0).length > 0 && <p style={{ fontSize: 11, color: TX3, margin: "4px 0 2px", fontWeight: 500 }}>Mensuels</p>}
             {(dette.paiementsAuto || []).filter(x => +x.montant > 0).map((x, i) => (
               <div key={"auto" + i} style={trow}>
-                <div style={{ ...ico, background: BT }}>🔁</div>
+                <div style={ico}>🔁</div>
                 <div style={{ flex: 1 }}><p style={{ fontSize: 13, color: TX, margin: 0, fontWeight: 500 }}>{fmt(+x.montant)}</p><p style={{ fontSize: 11, color: TX3, margin: 0 }}>{x.jour === "paie" ? "Paie" : x.jour === "fin" ? "Fin du mois" : "Le " + x.jour}</p></div>
                 <button style={{ background: "none", border: "none", cursor: "pointer", color: AC, fontSize: 14, padding: "2px 4px" }} onClick={() => { setEditPai({ id: x.id, type: "fixe" }); setEditPaiFrm({ montant: x.montant, jour: x.jour, date: today() }); }}>✎</button>
               </div>
@@ -146,7 +146,7 @@ export default function Dettes({
             {dette.paiements.length > 0 && <p style={{ fontSize: 11, color: TX3, margin: "4px 0 2px", fontWeight: 500 }}>Paiements uniques</p>}
             {[...dette.paiements].sort((a, b) => b.date.localeCompare(a.date)).map(p => (
               <div key={p.id} style={trow}>
-                <div style={{ ...ico, background: "#d4edda" }}>💸</div>
+                <div style={ico}>💸</div>
                 <div style={{ flex: 1 }}><p style={{ fontSize: 13, color: TX, margin: 0, fontWeight: 500 }}>{fmt(p.montant)}</p><p style={{ fontSize: 11, color: TX3, margin: 0 }}>{p.date}</p></div>
                 <button style={{ background: "none", border: "none", cursor: "pointer", color: AC, fontSize: 14, padding: "2px 4px" }} onClick={() => { setEditPai({ id: p.id, type: "manuel" }); setEditPaiFrm({ montant: p.montant, date: p.date, jour: "1" }); }}>✎</button>
               </div>
