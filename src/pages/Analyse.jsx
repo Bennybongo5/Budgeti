@@ -340,7 +340,11 @@ export default function Analyse({
               <p style={{ fontSize: 13, fontWeight: 600, color: solde >= 0 ? GN : RD, margin: 0 }}>{solde >= 0 ? "+" : ""}{fmt(solde)}</p>
             </div>
             <p style={{ fontSize: 12, fontWeight: 500, color: TX2, margin: "0 0 8px" }}>Dépenses par catégorie</p>
-            <PieChart histItems={txs} mo={chartMo} cats={cats} />
+            <PieChart
+              histItems={histItems.map(x => x.cat ? x : { ...x, cat: x.source === "dette" ? "__dette__" : x.source === "projet" ? "__projet__" : "__other__" })}
+              mo={chartMo}
+              cats={[...cats, { id: "__dette__", label: "Dettes", icon: "📊" }, { id: "__projet__", label: "Projets", icon: "🎯" }]}
+            />
             <button style={{ width: "100%", marginTop: 16, padding: "11px", background: BT, border: "1px solid " + BTB, borderRadius: 10, color: BTT, fontSize: 13, fontWeight: 500, cursor: "pointer" }} onClick={() => setChartMo(null)}>Fermer</button>
           </Modal>
         );
