@@ -36,7 +36,7 @@ function FreqPicker({ frm, setFrm }) {
   const isWeekly = frm.frequence === "semaine" || frm.frequence === "2semaines";
   const twoRefs = frm.frequence === "2semaines" ? (() => {
     const d1 = computeDateRef(frm.jourSemaine || "Lundi");
-    return [d1, addD(d1, 14)];
+    return [d1, addD(d1, 7)];
   })() : [];
   return (
     <>
