@@ -39,12 +39,15 @@ export default function Dettes({
 
       {editPai && (
         <Modal title="Modifier le paiement">
-          <div style={{ display: "flex", gap: 10, marginBottom: 14 }}>
+          <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
             <div style={{ flex: 1 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Montant (CAD)</label><input style={inp} type="number" value={editPaiFrm.montant} onChange={e => setEditPaiFrm(f => ({ ...f, montant: e.target.value }))} /></div>
             {editPai.type === "fixe"
               ? <div style={{ flex: 1 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Quand</label><div style={{ display: "flex", gap: 6 }}><button type="button" style={{ flex: 1, padding: "7px 4px", background: editPaiFrm.jour !== "paie" ? BT : SF, border: "1px solid " + (editPaiFrm.jour !== "paie" ? BTB : BR), borderRadius: 8, color: editPaiFrm.jour !== "paie" ? BTT : TX2, fontSize: 11, cursor: "pointer" }} onClick={() => { setEditPaiFrm(f => ({ ...f, jour: f.jour === "paie" ? 1 : f.jour })); setJourPickerTarget("edit"); setShowJourPicker(true); }}>{editPaiFrm.jour !== "paie" ? jourLabel(editPaiFrm.jour) : "Jour du mois"}</button><button type="button" style={{ flex: 1, padding: "7px 4px", background: editPaiFrm.jour === "paie" ? BT : SF, border: "1px solid " + (editPaiFrm.jour === "paie" ? BTB : BR), borderRadius: 8, color: editPaiFrm.jour === "paie" ? BTT : TX2, fontSize: 11, cursor: "pointer" }} onClick={() => setEditPaiFrm(f => ({ ...f, jour: "paie" }))}>Paie</button></div></div>
               : <div style={{ flex: 1 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Date</label><input style={inp} type="date" value={editPaiFrm.date} onChange={e => setEditPaiFrm(f => ({ ...f, date: e.target.value }))} /></div>}
           </div>
+          {editPai.type === "fixe" && (
+            <div style={{ marginBottom: 14 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Date de début <span style={{ color: TX3, fontWeight: 400 }}>(optionnel)</span></label><input style={inp} type="month" value={editPaiFrm.dateDebut || ""} onChange={e => setEditPaiFrm(f => ({ ...f, dateDebut: e.target.value }))} /></div>
+          )}
           <SaveCancel onS={saveEditPai} onC={() => setEditPai(null)} />
           {editPai.type === "fixe"
             ? <DelBtn onClick={() => { delPaiFixe(detSel, editPai.id); setEditPai(null); }} />
@@ -118,13 +121,16 @@ export default function Dettes({
 
           {paiType && (
             <Modal title={paiType === "fixe" ? "Paiement mensuel" : "Paiement unique"}>
-              <div style={{ display: "flex", gap: 10, marginBottom: 14 }}>
+              <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
                 <div style={{ flex: 1 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Montant (CAD)</label><input autoFocus style={inp} type="number" placeholder="0.00" value={paiFrm.montant} onChange={e => setPaiFrm(f => ({ ...f, montant: e.target.value }))} /></div>
                 {paiType === "fixe"
                   ? <div style={{ flex: 1 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Quand</label><div style={{ display: "flex", gap: 6 }}><button type="button" style={{ flex: 1, padding: "7px 4px", background: paiFrm.jour !== "paie" ? BT : SF, border: "1px solid " + (paiFrm.jour !== "paie" ? BTB : BR), borderRadius: 8, color: paiFrm.jour !== "paie" ? BTT : TX2, fontSize: 11, cursor: "pointer" }} onClick={() => { setPaiFrm(f => ({ ...f, jour: f.jour === "paie" ? 1 : f.jour })); setJourPickerTarget("add"); setShowJourPicker(true); }}>{paiFrm.jour !== "paie" ? jourLabel(paiFrm.jour) : "Jour du mois"}</button><button type="button" style={{ flex: 1, padding: "7px 4px", background: paiFrm.jour === "paie" ? BT : SF, border: "1px solid " + (paiFrm.jour === "paie" ? BTB : BR), borderRadius: 8, color: paiFrm.jour === "paie" ? BTT : TX2, fontSize: 11, cursor: "pointer" }} onClick={() => setPaiFrm(f => ({ ...f, jour: "paie" }))}>Paie</button></div></div>
                   : <div style={{ flex: 1 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Date</label><input style={inp} type="date" value={paiFrm.date} onChange={e => setPaiFrm(f => ({ ...f, date: e.target.value }))} /></div>}
               </div>
-              <SaveCancel onS={addPai} onC={() => { setPaiType(null); setPaiFrm({ montant: "", date: today(), jour: "1" }); }} />
+              {paiType === "fixe" && (
+                <div style={{ marginBottom: 14 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Date de début <span style={{ color: TX3, fontWeight: 400 }}>(optionnel)</span></label><input style={inp} type="month" value={paiFrm.dateDebut || ""} onChange={e => setPaiFrm(f => ({ ...f, dateDebut: e.target.value }))} /></div>
+              )}
+              <SaveCancel onS={addPai} onC={() => { setPaiType(null); setPaiFrm({ montant: "", date: today(), jour: "1", dateDebut: "" }); }} />
             </Modal>
           )}
 
@@ -140,7 +146,7 @@ export default function Dettes({
               <div key={"auto" + i} style={trow}>
                 <div style={ico}>🔁</div>
                 <div style={{ flex: 1 }}><p style={{ fontSize: 13, color: TX, margin: 0, fontWeight: 500 }}>{fmt(+x.montant)}</p><p style={{ fontSize: 11, color: TX3, margin: 0 }}>{x.jour === "paie" ? "Paie" : x.jour === "fin" ? "Fin du mois" : "Le " + x.jour}</p></div>
-                <button style={{ background: "none", border: "none", cursor: "pointer", color: AC, fontSize: 14, padding: "2px 4px" }} onClick={() => { setEditPai({ id: x.id, type: "fixe" }); setEditPaiFrm({ montant: x.montant, jour: x.jour, date: today() }); }}>✎</button>
+                <button style={{ background: "none", border: "none", cursor: "pointer", color: AC, fontSize: 14, padding: "2px 4px" }} onClick={() => { setEditPai({ id: x.id, type: "fixe" }); setEditPaiFrm({ montant: x.montant, jour: x.jour, date: today(), dateDebut: x.dateDebut || "" }); }}>✎</button>
               </div>
             ))}
             {dette.paiements.length > 0 && <p style={{ fontSize: 11, color: TX3, margin: "4px 0 2px", fontWeight: 500 }}>Paiements uniques</p>}

@@ -84,7 +84,7 @@ function ProjetDetail({
 
       {verType && (
         <Modal title={verType === "fixe" ? "Versement mensuel" : "Versement unique"}>
-          <div style={{ display: "flex", gap: 10, marginBottom: 14 }}>
+          <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
             <div style={{ flex: 1 }}>
               <label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Montant (CAD)</label>
               <input autoFocus style={inp} type="number" placeholder="0.00" value={verFrm.montant} onChange={(e) => setVerFrm((f) => ({ ...f, montant: e.target.value }))} />
@@ -104,7 +104,10 @@ function ProjetDetail({
               </div>
             )}
           </div>
-          <SaveCancel onS={addVer} onC={() => { setVerType(null); setVerFrm({ montant: "", date: today(), jour: "1" }); }} />
+          {verType === "fixe" && (
+            <div style={{ marginBottom: 14 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Date de début <span style={{ color: TX3, fontWeight: 400 }}>(optionnel)</span></label><input style={inp} type="month" value={verFrm.dateDebut || ""} onChange={e => setVerFrm(f => ({ ...f, dateDebut: e.target.value }))} /></div>
+          )}
+          <SaveCancel onS={addVer} onC={() => { setVerType(null); setVerFrm({ montant: "", date: today(), jour: "1", dateDebut: "" }); }} />
         </Modal>
       )}
 
@@ -141,7 +144,7 @@ function ProjetDetail({
               <p style={{ fontSize: 13, color: TX, margin: 0, fontWeight: 500 }}>{fmt(+x.montant)}</p>
               <p style={{ fontSize: 11, color: TX3, margin: 0 }}>{x.jour === "paie" ? "Paie" : x.jour === "fin" ? "Fin du mois" : "Le " + x.jour}</p>
             </div>
-            <button style={{ background: "none", border: "none", cursor: "pointer", color: AC, fontSize: 14, padding: "2px 4px" }} onClick={() => { setEditVer({ id: x.id, type: "fixe" }); setEditVerFrm({ montant: x.montant, jour: x.jour, date: "" }); }}>✎</button>
+            <button style={{ background: "none", border: "none", cursor: "pointer", color: AC, fontSize: 14, padding: "2px 4px" }} onClick={() => { setEditVer({ id: x.id, type: "fixe" }); setEditVerFrm({ montant: x.montant, jour: x.jour, date: "", dateDebut: x.dateDebut || "" }); }}>✎</button>
           </div>
         ))}
 

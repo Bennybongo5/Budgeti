@@ -39,12 +39,15 @@ export default function Projets({
 
       {editVer && (
         <Modal title="Modifier le versement">
-          <div style={{ display: "flex", gap: 10, marginBottom: 14 }}>
+          <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
             <div style={{ flex: 1 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Montant (CAD)</label><input style={inp} type="number" value={editVerFrm.montant} onChange={e => setEditVerFrm(f => ({ ...f, montant: e.target.value }))} /></div>
             {editVer.type === "fixe"
               ? <div style={{ flex: 1 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Quand</label><div style={{ display: "flex", gap: 6 }}><button type="button" style={{ flex: 1, padding: "7px 4px", background: editVerFrm.jour !== "paie" ? BT : SF, border: "1px solid " + (editVerFrm.jour !== "paie" ? BTB : BR), borderRadius: 8, color: editVerFrm.jour !== "paie" ? BTT : TX2, fontSize: 11, cursor: "pointer" }} onClick={() => { setEditVerFrm(f => ({ ...f, jour: f.jour === "paie" ? 1 : f.jour })); setShowJourPicker(true); }}>{editVerFrm.jour !== "paie" ? jourLabel(editVerFrm.jour) : "Jour du mois"}</button><button type="button" style={{ flex: 1, padding: "7px 4px", background: editVerFrm.jour === "paie" ? BT : SF, border: "1px solid " + (editVerFrm.jour === "paie" ? BTB : BR), borderRadius: 8, color: editVerFrm.jour === "paie" ? BTT : TX2, fontSize: 11, cursor: "pointer" }} onClick={() => setEditVerFrm(f => ({ ...f, jour: "paie" }))}>Paie</button></div></div>
               : <div style={{ flex: 1 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Date</label><input style={inp} type="date" value={editVerFrm.date} onChange={e => setEditVerFrm(f => ({ ...f, date: e.target.value }))} /></div>}
           </div>
+          {editVer.type === "fixe" && (
+            <div style={{ marginBottom: 14 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Date de début <span style={{ color: TX3, fontWeight: 400 }}>(optionnel)</span></label><input style={inp} type="month" value={editVerFrm.dateDebut || ""} onChange={e => setEditVerFrm(f => ({ ...f, dateDebut: e.target.value }))} /></div>
+          )}
           <SaveCancel onS={saveEditVer} onC={() => setEditVer(null)} />
           {editVer.type === "fixe"
             ? <DelBtn onClick={() => { delVerFixe(prjSel, editVer.id); setEditVer(null); }} />
