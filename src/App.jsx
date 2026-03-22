@@ -323,12 +323,12 @@ export default function App() {
       )}
 
       {/* Header — simplified, no hamburger */}
-      <div style={{ background: "var(--c-bg)", borderBottom: "1px solid " + BR, padding: "10px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 100, boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}>
-        <div style={{ display: "flex", alignItems: "center" }}>
-          <img src="/budgeti-logo.png" alt="Budgeti" style={{ height: 54, width: "auto" }} />
+      <div style={{ background: "var(--c-bg)", borderBottom: "1px solid " + BR, padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 100, boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}>
+        <div style={{ flex: 1, display: "flex", justifyContent: "center" }}>
+          <img src="/budgeti-logo.png" alt="Budgeti" style={{ height: 80, width: "auto" }} />
         </div>
-        {/* Dark mode toggle in header */}
-        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+        {/* Dark mode toggle in header — positioned absolute so logo stays centered */}
+        <div style={{ position: "absolute", right: 16, display: "flex", alignItems: "center", gap: 6 }}>
           <span style={{ fontSize: 16 }}>{darkMode ? "🌙" : "☀️"}</span>
           <button onClick={() => setDarkMode(d => !d)} style={{ width: 48, height: 26, borderRadius: 13, background: darkMode ? BT : BR2, border: "none", cursor: "pointer", position: "relative", transition: "background 0.2s", flexShrink: 0 }}>
             <span style={{ position: "absolute", top: 3, left: darkMode ? 25 : 3, width: 20, height: 20, borderRadius: "50%", background: "#FFFFFF", transition: "left 0.2s", display: "block" }} />
