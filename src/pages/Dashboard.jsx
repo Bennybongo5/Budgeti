@@ -264,7 +264,19 @@ export default function Dashboard({
               <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("dettes")}><StatBox label="Paiements dettes" value={"-" + fmt(curPeriode.detP)} color={RD} /></div>
             </div>
             <div style={{ display: "flex", gap: 10, marginBottom: 12 }}>
-              <StatBox label="Solde" value={fmt(curPeriode.reste)} color={curPeriode.reste >= 0 ? GN : RD} />
+              <div style={{ flex: 1, background: SF, border: "1px solid " + BR, borderRadius: 12, padding: "10px 12px", display: "flex", gap: 10, alignItems: "stretch" }}>
+                <div style={{ flex: 1 }}>
+                  <p style={{ fontSize: 11, color: TX3, margin: 0 }}>Solde</p>
+                  <p style={{ fontSize: 17, fontWeight: 500, color: curPeriode.reste >= 0 ? GN : RD, margin: "3px 0 0" }}>{fmt(curPeriode.reste)}</p>
+                </div>
+                <div style={{ width: "0.5px", background: BR, alignSelf: "stretch" }} />
+                <div style={{ flex: 1 }}>
+                  <p style={{ fontSize: 10, color: TX3, margin: 0 }}>Revenus</p>
+                  <p style={{ fontSize: 12, fontWeight: 500, color: GN, margin: "1px 0 5px" }}>+{fmt(curPeriode.tot)}</p>
+                  <p style={{ fontSize: 10, color: TX3, margin: 0 }}>Dépenses</p>
+                  <p style={{ fontSize: 12, fontWeight: 500, color: RD, margin: "1px 0 0" }}>-{fmt(curPeriode.tot - curPeriode.reste)}</p>
+                </div>
+              </div>
               <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("projets")}><StatBox label="Vers. projets" value={"-" + fmt(curPeriode.prjP)} color={RD} /></div>
             </div>
           </div>
@@ -289,7 +301,19 @@ export default function Dashboard({
             <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("dettes")}><StatBox label="Paiements dettes" value={"-" + fmt(totDettesMois)} color={RD} /></div>
           </div>
           <div style={{ display: "flex", gap: 10, marginBottom: 12 }}>
-            <StatBox label="Solde" value={fmt(solde)} color={solde >= 0 ? GN : RD} />
+            <div style={{ flex: 1, background: SF, border: "1px solid " + BR, borderRadius: 12, padding: "10px 12px", display: "flex", gap: 10, alignItems: "stretch" }}>
+              <div style={{ flex: 1 }}>
+                <p style={{ fontSize: 11, color: TX3, margin: 0 }}>Solde</p>
+                <p style={{ fontSize: 17, fontWeight: 500, color: solde >= 0 ? GN : RD, margin: "3px 0 0" }}>{fmt(solde)}</p>
+              </div>
+              <div style={{ width: "0.5px", background: BR, alignSelf: "stretch" }} />
+              <div style={{ flex: 1 }}>
+                <p style={{ fontSize: 10, color: TX3, margin: 0 }}>Revenus</p>
+                <p style={{ fontSize: 12, fontWeight: 500, color: GN, margin: "1px 0 5px" }}>+{fmt(totPaieMois + totArgentRecu + totRR)}</p>
+                <p style={{ fontSize: 10, color: TX3, margin: 0 }}>Dépenses</p>
+                <p style={{ fontSize: 12, fontWeight: 500, color: RD, margin: "1px 0 0" }}>-{fmt(totDep + totRec + totDettesMois + totProjetsMois)}</p>
+              </div>
+            </div>
             <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("projets")}><StatBox label="Versements projets" value={"-" + fmt(totProjetsMois)} color={RD} /></div>
           </div>
         </div>
