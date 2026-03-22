@@ -182,23 +182,20 @@ export default function Dashboard({
         )}
       </div>
 
-      {/* View mode toggle — same style as the dark/light mode toggle in the header */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", margin: "4px 0 10px" }}>
-        <p style={{ fontSize: 13, fontWeight: 500, color: TX2, margin: 0 }}>
-          {viewMode === "paie" ? "Paie actuelle" : "Vue mensuelle"}
-        </p>
-        <div style={{ display: "flex", background: SF, border: "1px solid " + BR, borderRadius: 20, padding: 3 }}>
+      {/* View mode toggle — left-aligned, no title */}
+      <div style={{ margin: "4px 0 10px" }}>
+        <div style={{ display: "inline-flex", background: SF, border: "1px solid " + BR, borderRadius: 22, padding: 4 }}>
           <button
             onClick={() => setViewMode("paie")}
-            style={{ padding: "4px 12px", borderRadius: 16, background: viewMode === "paie" ? BT : "transparent", border: "none", color: viewMode === "paie" ? BTT : TX2, fontSize: 12, fontWeight: 500, cursor: "pointer", transition: "all 0.2s" }}
+            style={{ padding: "6px 18px", borderRadius: 18, background: viewMode === "paie" ? BT : "transparent", border: "none", color: viewMode === "paie" ? BTT : TX2, fontSize: 13, fontWeight: 500, cursor: "pointer", transition: "all 0.2s" }}
           >
-            Paie
+            Paie actuelle
           </button>
           <button
             onClick={() => setViewMode("mois")}
-            style={{ padding: "4px 12px", borderRadius: 16, background: viewMode === "mois" ? BT : "transparent", border: "none", color: viewMode === "mois" ? BTT : TX2, fontSize: 12, fontWeight: 500, cursor: "pointer", transition: "all 0.2s" }}
+            style={{ padding: "6px 18px", borderRadius: 18, background: viewMode === "mois" ? BT : "transparent", border: "none", color: viewMode === "mois" ? BTT : TX2, fontSize: 13, fontWeight: 500, cursor: "pointer", transition: "all 0.2s" }}
           >
-            Mois
+            Vue mensuelle
           </button>
         </div>
       </div>
@@ -207,8 +204,8 @@ export default function Dashboard({
       {viewMode === "paie" && (
         curPeriode ? (
           <div>
-            {/* Pay period date range badge */}
-            <div style={{ background: SF2, border: "1px solid " + BR2, borderRadius: 10, padding: "8px 12px", marginBottom: 10, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            {/* Pay period date range badge — left-aligned with "En cours" right next to the dates */}
+            <div style={{ background: SF2, border: "1px solid " + BR2, borderRadius: 10, padding: "8px 12px", marginBottom: 10, display: "inline-flex", alignItems: "center", gap: 8 }}>
               <span style={{ fontSize: 12, color: TX2 }}>{fd(curPeriode.deb)} → {curPeriode.fin ? fd(curPeriode.fin) : "?"}</span>
               <span style={{ fontSize: 11, background: BT, border: "1px solid " + BTB, borderRadius: 20, padding: "2px 8px", color: BTT, fontWeight: 500 }}>En cours</span>
             </div>
@@ -252,9 +249,11 @@ export default function Dashboard({
             <StatBox label="Solde" value={fmt(solde)} color={solde >= 0 ? GN : RD} />
             <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("projets")}><StatBox label="Versements projets" value={"-" + fmt(totProjetsMois)} color={RD} /></div>
           </div>
-          {periodes.length > 0 && <div style={{ background: SF2, border: "1px solid " + BR2, borderRadius: 12, padding: "12px 14px", marginBottom: 12 }}><p style={{ fontSize: 13, fontWeight: 500, color: TX2, margin: "0 0 10px" }}>Par paie</p><div style={{ overflowX: "auto" }}>{buildPaieGrid()}</div></div>}
         </div>
       )}
+
+      {/* Pay periods grid — always visible regardless of view mode */}
+      {periodes.length > 0 && <div style={{ background: SF2, border: "1px solid " + BR2, borderRadius: 12, padding: "12px 14px", marginBottom: 12 }}><p style={{ fontSize: 13, fontWeight: 500, color: TX2, margin: "0 0 10px" }}>Par paie</p><div style={{ overflowX: "auto" }}>{buildPaieGrid()}</div></div>}
 
       {/* Category expense bar chart — adapts to active view mode */}
       <p style={{ fontSize: 13, fontWeight: 500, color: TX2, margin: "4px 0 8px" }}>Dépenses par catégorie</p>
