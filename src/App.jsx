@@ -325,7 +325,7 @@ export default function App() {
       )}
 
       {/* Header — simplified, no hamburger */}
-      <div style={{ background: "var(--c-bg)", borderBottom: "1px solid " + BR, padding: "0 16px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 100, boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}>
+      <div style={{ background: "var(--c-bg)", padding: "0 16px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 100, boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}>
         <div style={{ flex: 1, display: "flex", justifyContent: "center" }}>
           <img src="/budgeti-logo.png" alt="Budgeti" style={{ height: 50, width: "auto" }} />
         </div>
