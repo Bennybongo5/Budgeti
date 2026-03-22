@@ -1,4 +1,5 @@
 import { useState } from "react";
+import MonthPicker from "../components/MonthPicker.jsx";
 import { ICONS_PRJ, SF, SF2, BR, BR2, TX, TX2, TX3, BT, BTB, BTT, AC } from "../constants.js";
 import Modal from "../components/Modal.jsx";
 import DelBtn from "../components/DelBtn.jsx";
@@ -46,7 +47,7 @@ export default function Projets({
               : <div style={{ flex: 1 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Date</label><input style={inp} type="date" value={editVerFrm.date} onChange={e => setEditVerFrm(f => ({ ...f, date: e.target.value }))} /></div>}
           </div>
           {editVer.type === "fixe" && (
-            <div style={{ marginBottom: 14 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Date de début</label><input style={{ ...inp, width: "auto" }} type="month" value={editVerFrm.dateDebut || ""} onChange={e => setEditVerFrm(f => ({ ...f, dateDebut: e.target.value }))} /></div>
+            <div style={{ marginBottom: 14 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Date de début</label><MonthPicker value={editVerFrm.dateDebut || ""} onChange={v => setEditVerFrm(f => ({ ...f, dateDebut: v }))} /></div>
           )}
           <SaveCancel onS={saveEditVer} onC={() => setEditVer(null)} />
           {editVer.type === "fixe"

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { SF, SF2, BR, BR2, TX, TX2, TX3, BT, BTB, BTT, AC, RD, GN } from "../constants.js";
 import { today, fmt } from "../utils/dates.js";
+import MonthPicker from "../components/MonthPicker.jsx";
 import Modal from "../components/Modal.jsx";
 import DelBtn from "../components/DelBtn.jsx";
 import SaveCancel from "../components/SaveCancel.jsx";
@@ -46,7 +47,7 @@ export default function Dettes({
               : <div style={{ flex: 1 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Date</label><input style={inp} type="date" value={editPaiFrm.date} onChange={e => setEditPaiFrm(f => ({ ...f, date: e.target.value }))} /></div>}
           </div>
           {editPai.type === "fixe" && (
-            <div style={{ marginBottom: 14 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Date de début</label><input style={{ ...inp, width: "auto" }} type="month" value={editPaiFrm.dateDebut || ""} onChange={e => setEditPaiFrm(f => ({ ...f, dateDebut: e.target.value }))} /></div>
+            <div style={{ marginBottom: 14 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Date de début</label><MonthPicker value={editPaiFrm.dateDebut || ""} onChange={v => setEditPaiFrm(f => ({ ...f, dateDebut: v }))} /></div>
           )}
           <SaveCancel onS={saveEditPai} onC={() => setEditPai(null)} />
           {editPai.type === "fixe"
@@ -128,7 +129,7 @@ export default function Dettes({
                   : <div style={{ flex: 1 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Date</label><input style={inp} type="date" value={paiFrm.date} onChange={e => setPaiFrm(f => ({ ...f, date: e.target.value }))} /></div>}
               </div>
               {paiType === "fixe" && (
-                <div style={{ marginBottom: 14 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Date de début</label><input style={{ ...inp, width: "auto" }} type="month" value={paiFrm.dateDebut || ""} onChange={e => setPaiFrm(f => ({ ...f, dateDebut: e.target.value }))} /></div>
+                <div style={{ marginBottom: 14 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Date de début</label><MonthPicker value={paiFrm.dateDebut || ""} onChange={v => setPaiFrm(f => ({ ...f, dateDebut: v }))} /></div>
               )}
               <SaveCancel onS={addPai} onC={() => { setPaiType(null); setPaiFrm({ montant: "", date: today(), jour: "1", dateDebut: "" }); }} />
             </Modal>

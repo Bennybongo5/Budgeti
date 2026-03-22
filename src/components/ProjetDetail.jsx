@@ -1,4 +1,5 @@
 import { useState } from "react";
+import MonthPicker from "./MonthPicker.jsx";
 import { fmt, today, TX, TX2, TX3, AC, GN, RD, BT, BTB, BTT, SF, SF2, BR } from "../constants.js";
 import Modal from "./Modal.jsx";
 import SaveCancel from "./SaveCancel.jsx";
@@ -105,7 +106,7 @@ function ProjetDetail({
             )}
           </div>
           {verType === "fixe" && (
-            <div style={{ marginBottom: 14 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Date de début</label><input style={{ ...inp, width: "auto" }} type="month" value={verFrm.dateDebut || ""} onChange={e => setVerFrm(f => ({ ...f, dateDebut: e.target.value }))} /></div>
+            <div style={{ marginBottom: 14 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Date de début</label><MonthPicker value={verFrm.dateDebut || ""} onChange={v => setVerFrm(f => ({ ...f, dateDebut: v }))} /></div>
           )}
           <SaveCancel onS={addVer} onC={() => { setVerType(null); setVerFrm({ montant: "", date: today(), jour: "1", dateDebut: today().slice(0,7) }); }} />
         </Modal>
