@@ -46,7 +46,7 @@ export default function Projets({
               : <div style={{ flex: 1 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Date</label><input style={inp} type="date" value={editVerFrm.date} onChange={e => setEditVerFrm(f => ({ ...f, date: e.target.value }))} /></div>}
           </div>
           {editVer.type === "fixe" && (
-            <div style={{ marginBottom: 14 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Date de début <span style={{ color: TX3, fontWeight: 400 }}>(optionnel)</span></label><input style={inp} type="month" value={editVerFrm.dateDebut || ""} onChange={e => setEditVerFrm(f => ({ ...f, dateDebut: e.target.value }))} /></div>
+            <div style={{ marginBottom: 14 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Date de début</label><input style={{ ...inp, width: "auto" }} type="month" value={editVerFrm.dateDebut || ""} onChange={e => setEditVerFrm(f => ({ ...f, dateDebut: e.target.value }))} /></div>
           )}
           <SaveCancel onS={saveEditVer} onC={() => setEditVer(null)} />
           {editVer.type === "fixe"

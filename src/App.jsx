@@ -47,10 +47,10 @@ export default function App() {
   const [txForm, setTxForm] = useState({ type: "depense", desc: "", amount: "", cat: DEFAULT_CATS[0].id, date: today() });
   const [showTx, setShowTx] = useState(false);
   const [addType, setAddType] = useState("depense");
-  const [recFrm, setRecFrm] = useState({ desc: "", amount: "", cat: DEFAULT_CATS[0].id, jour: 1, frequence: "mois", jourSemaine: "Lundi", dateRef: null, dateDebut: "" });
-  const [rrFrm, setRrFrm] = useState({ desc: "", amount: "", jour: 1, frequence: "mois", jourSemaine: "Lundi", dateRef: null, dateDebut: "" });
+  const [recFrm, setRecFrm] = useState({ desc: "", amount: "", cat: DEFAULT_CATS[0].id, jour: 1, frequence: "mois", jourSemaine: "Lundi", dateRef: null, dateDebut: today().slice(0,7) });
+  const [rrFrm, setRrFrm] = useState({ desc: "", amount: "", jour: 1, frequence: "mois", jourSemaine: "Lundi", dateRef: null, dateDebut: today().slice(0,7) });
   const [eTxId, setETxId] = useState(null); const [eTxFrm, setETxFrm] = useState(null);
-  const [eRecId, setERecId] = useState(null); const [eRecMod, setERecMod] = useState(false); const [eRecFrm, setERecFrm] = useState({ desc: "", amount: "", cat: DEFAULT_CATS[0].id, jour: 1, frequence: "mois", jourSemaine: "Lundi", dateRef: null, dateDebut: "" });
+  const [eRecId, setERecId] = useState(null); const [eRecMod, setERecMod] = useState(false); const [eRecFrm, setERecFrm] = useState({ desc: "", amount: "", cat: DEFAULT_CATS[0].id, jour: 1, frequence: "mois", jourSemaine: "Lundi", dateRef: null, dateDebut: today().slice(0,7) });
   const [eRrId, setERrId] = useState(null); const [eRrMod, setERrMod] = useState(false);
   const [filCat, setFilCat] = useState("tout");
   const [selMo, setSelMo] = useState("tout");
@@ -61,9 +61,9 @@ export default function App() {
   const [eDetMod, setEDetMod] = useState(false); const [eDetId, setEDetId] = useState(null);
   const [, setShowAddPai] = useState(false);
   const [paiType, setPaiType] = useState(null);
-  const [paiFrm, setPaiFrm] = useState({ montant: "", date: today(), jour: "1", dateDebut: "" });
+  const [paiFrm, setPaiFrm] = useState({ montant: "", date: today(), jour: "1", dateDebut: today().slice(0,7) });
   const [editPai, setEditPai] = useState(null);
-  const [editPaiFrm, setEditPaiFrm] = useState({ montant: "", date: "", jour: "", dateDebut: "" });
+  const [editPaiFrm, setEditPaiFrm] = useState({ montant: "", date: "", jour: "", dateDebut: today().slice(0,7) });
   const [projets, setProjets] = useState([]);
   const [prjSel, setPrjSel] = useState(null);
   const [showAddPrj, setShowAddPrj] = useState(false);
@@ -71,9 +71,9 @@ export default function App() {
   const [ePrjMod, setEPrjMod] = useState(false); const [ePrjId, setEPrjId] = useState(null);
   const [, setShowAddVer] = useState(false);
   const [verType, setVerType] = useState(null);
-  const [verFrm, setVerFrm] = useState({ montant: "", date: today(), jour: "1", dateDebut: "" });
+  const [verFrm, setVerFrm] = useState({ montant: "", date: today(), jour: "1", dateDebut: today().slice(0,7) });
   const [editVer, setEditVer] = useState(null);
-  const [editVerFrm, setEditVerFrm] = useState({ montant: "", date: "", jour: "", dateDebut: "" });
+  const [editVerFrm, setEditVerFrm] = useState({ montant: "", date: "", jour: "", dateDebut: today().slice(0,7) });
   // Bottom nav replaces drawer — no drawerOpen state needed
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem("budgeti-theme");
@@ -182,22 +182,22 @@ export default function App() {
     }
     setETxId(null); setETxFrm(null);
   };
-  const addRec = () => { if (eRecId !== null) { if (!eRecFrm.desc || !eRecFrm.amount || isNaN(+eRecFrm.amount)) return; updRecs(p => p.map(r => r.id === eRecId ? { ...r, ...eRecFrm, amount: +eRecFrm.amount } : r)); setERecId(null); } else { if (!recFrm.desc || !recFrm.amount || isNaN(+recFrm.amount)) return; updRecs(p => [...p, { id: Date.now(), ...recFrm, amount: +recFrm.amount }]); setRecFrm({ desc: "", amount: "", cat: cats[0]?.id || "", jour: 1, frequence: "mois", jourSemaine: "Lundi", dateRef: null, dateDebut: "" }); } };
+  const addRec = () => { if (eRecId !== null) { if (!eRecFrm.desc || !eRecFrm.amount || isNaN(+eRecFrm.amount)) return; updRecs(p => p.map(r => r.id === eRecId ? { ...r, ...eRecFrm, amount: +eRecFrm.amount } : r)); setERecId(null); } else { if (!recFrm.desc || !recFrm.amount || isNaN(+recFrm.amount)) return; updRecs(p => [...p, { id: Date.now(), ...recFrm, amount: +recFrm.amount }]); setRecFrm({ desc: "", amount: "", cat: cats[0]?.id || "", jour: 1, frequence: "mois", jourSemaine: "Lundi", dateRef: null, dateDebut: today().slice(0,7) }); } };
   const delRec = id => { updRecs(p => p.filter(r => r.id !== id)); setERecId(null); setERecMod(false); };
-  const openERec = r => { setERecId(r.id); setERecFrm({ desc: r.desc, amount: r.amount, cat: r.cat, jour: r.jour, frequence: r.frequence || "mois", jourSemaine: r.jourSemaine || "Lundi", dateRef: r.dateRef || null, dateDebut: r.dateDebut || "" }); setERecMod(true); };
-  const addRr = () => { if (!rrFrm.desc || !rrFrm.amount || isNaN(+rrFrm.amount)) return; if (eRrId !== null) { updRrecs(p => p.map(r => r.id === eRrId ? { ...r, ...rrFrm, amount: +rrFrm.amount } : r)); setERrId(null); } else updRrecs(p => [...p, { id: Date.now(), ...rrFrm, amount: +rrFrm.amount }]); setRrFrm({ desc: "", amount: "", jour: 1, frequence: "mois", jourSemaine: "Lundi", dateRef: null, dateDebut: "" }); };
+  const openERec = r => { setERecId(r.id); setERecFrm({ desc: r.desc, amount: r.amount, cat: r.cat, jour: r.jour, frequence: r.frequence || "mois", jourSemaine: r.jourSemaine || "Lundi", dateRef: r.dateRef || null, dateDebut: r.dateDebut || today().slice(0,7) }); setERecMod(true); };
+  const addRr = () => { if (!rrFrm.desc || !rrFrm.amount || isNaN(+rrFrm.amount)) return; if (eRrId !== null) { updRrecs(p => p.map(r => r.id === eRrId ? { ...r, ...rrFrm, amount: +rrFrm.amount } : r)); setERrId(null); } else updRrecs(p => [...p, { id: Date.now(), ...rrFrm, amount: +rrFrm.amount }]); setRrFrm({ desc: "", amount: "", jour: 1, frequence: "mois", jourSemaine: "Lundi", dateRef: null, dateDebut: today().slice(0,7) }); };
   const delRr = id => { updRrecs(p => p.filter(r => r.id !== id)); setERrId(null); setERrMod(false); };
-  const openERr = r => { setERrId(r.id); setRrFrm({ desc: r.desc, amount: r.amount, jour: r.jour, frequence: r.frequence || "mois", jourSemaine: r.jourSemaine || "Lundi", dateRef: r.dateRef || null, dateDebut: r.dateDebut || "" }); setERrMod(true); };
+  const openERr = r => { setERrId(r.id); setRrFrm({ desc: r.desc, amount: r.amount, jour: r.jour, frequence: r.frequence || "mois", jourSemaine: r.jourSemaine || "Lundi", dateRef: r.dateRef || null, dateDebut: r.dateDebut || today().slice(0,7) }); setERrMod(true); };
   const addCat = () => { if (!newCatLbl.trim()) return; const id = "cat-" + Date.now(); updCats(p => [...p, { id, label: newCatLbl.trim(), icon: newCatIco || "📦" }]); if (catCb) catCb(id); setNewCatLbl(""); setNewCatIco("📦"); setShowCat(false); setCatCb(null); };
   const addDette = () => { if (!detFrm.nom || !detFrm.montantInitial || isNaN(+detFrm.montantInitial)) return; const id = "d-" + Date.now(); updDettes(p => [...p, { id, nom: detFrm.nom.trim(), montantInitial: +detFrm.montantInitial, tauxInteret: +detFrm.tauxInteret || 0, paiements: [], dateCreation: today(), paiementsAuto: [] }]); setDetSel(id); setDetFrm(emptyD); setShowAddDet(false); };
   const delDette = id => { updDettes(p => p.filter(d => d.id !== id)); if (detSel === id) setDetSel(null); setEDetMod(false); };
-  const addPai = () => { if (!paiFrm.montant || isNaN(+paiFrm.montant)) return; if (paiType === "fixe") { updDettes(p => p.map(d => d.id === detSel ? { ...d, paiementsAuto: [...(d.paiementsAuto || []), { id: "pf-" + Date.now(), montant: +paiFrm.montant, jour: paiFrm.jour || "1", dateDebut: paiFrm.dateDebut || "" }] } : d)); } else { updDettes(p => p.map(d => d.id === detSel ? { ...d, paiements: [...d.paiements, { id: "p-" + Date.now(), montant: +paiFrm.montant, date: paiFrm.date }] } : d)); } setPaiFrm({ montant: "", date: today(), jour: "1", dateDebut: "" }); setPaiType(null); setShowAddPai(false); };
+  const addPai = () => { if (!paiFrm.montant || isNaN(+paiFrm.montant)) return; if (paiType === "fixe") { updDettes(p => p.map(d => d.id === detSel ? { ...d, paiementsAuto: [...(d.paiementsAuto || []), { id: "pf-" + Date.now(), montant: +paiFrm.montant, jour: paiFrm.jour || "1", dateDebut: paiFrm.dateDebut || "" }] } : d)); } else { updDettes(p => p.map(d => d.id === detSel ? { ...d, paiements: [...d.paiements, { id: "p-" + Date.now(), montant: +paiFrm.montant, date: paiFrm.date }] } : d)); } setPaiFrm({ montant: "", date: today(), jour: "1", dateDebut: today().slice(0,7) }); setPaiType(null); setShowAddPai(false); };
   const delPai = (did, pid) => updDettes(p => p.map(d => d.id === did ? { ...d, paiements: d.paiements.filter(x => x.id !== pid) } : d));
   const delPaiFixe = (did, pid) => updDettes(p => p.map(d => d.id === did ? { ...d, paiementsAuto: (d.paiementsAuto || []).filter(x => x.id !== pid) } : d));
   const saveEditPai = () => { if (!editPaiFrm.montant || isNaN(+editPaiFrm.montant)) return; if (editPai.type === "fixe") { updDettes(p => p.map(d => d.id === detSel ? { ...d, paiementsAuto: (d.paiementsAuto || []).map(x => x.id === editPai.id ? { ...x, montant: +editPaiFrm.montant, jour: editPaiFrm.jour, dateDebut: editPaiFrm.dateDebut || "" } : x) } : d)); } else { updDettes(p => p.map(d => d.id === detSel ? { ...d, paiements: d.paiements.map(x => x.id === editPai.id ? { ...x, montant: +editPaiFrm.montant, date: editPaiFrm.date } : x) } : d)); } setEditPai(null); };
   const addProjet = () => { if (!prjFrm.nom || !prjFrm.objectif || isNaN(+prjFrm.objectif)) return; const id = "pr-" + Date.now(); updProjets(p => [...p, { id, nom: prjFrm.nom.trim(), objectif: +prjFrm.objectif, icon: prjFrm.icon, versements: [], dateCreation: today(), paiementsAuto: [] }]); setPrjSel(id); setPrjFrm(emptyP); setShowAddPrj(false); };
   const delProjet = id => { updProjets(p => p.filter(x => x.id !== id)); if (prjSel === id) setPrjSel(null); setEPrjMod(false); setEPrjId(null); };
-  const addVer = () => { if (!verFrm.montant || isNaN(+verFrm.montant)) return; if (verType === "fixe") { updProjets(p => p.map(x => x.id === prjSel ? { ...x, paiementsAuto: [...(x.paiementsAuto || []), { id: "pf-" + Date.now(), montant: +verFrm.montant, jour: verFrm.jour || "1", dateDebut: verFrm.dateDebut || "" }] } : x)); } else { updProjets(p => p.map(x => x.id === prjSel ? { ...x, versements: [...x.versements, { id: "v-" + Date.now(), montant: +verFrm.montant, date: verFrm.date }] } : x)); } setVerFrm({ montant: "", date: today(), jour: "1", dateDebut: "" }); setVerType(null); setShowAddVer(false); };
+  const addVer = () => { if (!verFrm.montant || isNaN(+verFrm.montant)) return; if (verType === "fixe") { updProjets(p => p.map(x => x.id === prjSel ? { ...x, paiementsAuto: [...(x.paiementsAuto || []), { id: "pf-" + Date.now(), montant: +verFrm.montant, jour: verFrm.jour || "1", dateDebut: verFrm.dateDebut || "" }] } : x)); } else { updProjets(p => p.map(x => x.id === prjSel ? { ...x, versements: [...x.versements, { id: "v-" + Date.now(), montant: +verFrm.montant, date: verFrm.date }] } : x)); } setVerFrm({ montant: "", date: today(), jour: "1", dateDebut: today().slice(0,7) }); setVerType(null); setShowAddVer(false); };
   const delVer = (pid, vid) => updProjets(p => p.map(x => x.id === pid ? { ...x, versements: x.versements.filter(v => v.id !== vid) } : x));
   const delVerFixe = (pid, vid) => updProjets(p => p.map(x => x.id === pid ? { ...x, paiementsAuto: (x.paiementsAuto || []).filter(v => v.id !== vid) } : x));
   const saveEditVer = () => { if (!editVerFrm.montant || isNaN(+editVerFrm.montant)) return; if (editVer.type === "fixe") { updProjets(p => p.map(x => x.id === prjSel ? { ...x, paiementsAuto: (x.paiementsAuto || []).map(v => v.id === editVer.id ? { ...v, montant: +editVerFrm.montant, jour: editVerFrm.jour, dateDebut: editVerFrm.dateDebut || "" } : v) } : x)); } else { updProjets(p => p.map(x => x.id === prjSel ? { ...x, versements: x.versements.map(v => v.id === editVer.id ? { ...v, montant: +editVerFrm.montant, date: editVerFrm.date } : v) } : x)); } setEditVer(null); };

@@ -46,7 +46,7 @@ export default function Dettes({
               : <div style={{ flex: 1 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Date</label><input style={inp} type="date" value={editPaiFrm.date} onChange={e => setEditPaiFrm(f => ({ ...f, date: e.target.value }))} /></div>}
           </div>
           {editPai.type === "fixe" && (
-            <div style={{ marginBottom: 14 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Date de début <span style={{ color: TX3, fontWeight: 400 }}>(optionnel)</span></label><input style={inp} type="month" value={editPaiFrm.dateDebut || ""} onChange={e => setEditPaiFrm(f => ({ ...f, dateDebut: e.target.value }))} /></div>
+            <div style={{ marginBottom: 14 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Date de début</label><input style={{ ...inp, width: "auto" }} type="month" value={editPaiFrm.dateDebut || ""} onChange={e => setEditPaiFrm(f => ({ ...f, dateDebut: e.target.value }))} /></div>
           )}
           <SaveCancel onS={saveEditPai} onC={() => setEditPai(null)} />
           {editPai.type === "fixe"
@@ -128,7 +128,7 @@ export default function Dettes({
                   : <div style={{ flex: 1 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Date</label><input style={inp} type="date" value={paiFrm.date} onChange={e => setPaiFrm(f => ({ ...f, date: e.target.value }))} /></div>}
               </div>
               {paiType === "fixe" && (
-                <div style={{ marginBottom: 14 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Date de début <span style={{ color: TX3, fontWeight: 400 }}>(optionnel)</span></label><input style={inp} type="month" value={paiFrm.dateDebut || ""} onChange={e => setPaiFrm(f => ({ ...f, dateDebut: e.target.value }))} /></div>
+                <div style={{ marginBottom: 14 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Date de début</label><input style={{ ...inp, width: "auto" }} type="month" value={paiFrm.dateDebut || ""} onChange={e => setPaiFrm(f => ({ ...f, dateDebut: e.target.value }))} /></div>
               )}
               <SaveCancel onS={addPai} onC={() => { setPaiType(null); setPaiFrm({ montant: "", date: today(), jour: "1", dateDebut: "" }); }} />
             </Modal>
@@ -146,7 +146,7 @@ export default function Dettes({
               <div key={"auto" + i} style={trow}>
                 <div style={ico}>🔁</div>
                 <div style={{ flex: 1 }}><p style={{ fontSize: 13, color: TX, margin: 0, fontWeight: 500 }}>{fmt(+x.montant)}</p><p style={{ fontSize: 11, color: TX3, margin: 0 }}>{x.jour === "paie" ? "Paie" : x.jour === "fin" ? "Fin du mois" : "Le " + x.jour}</p></div>
-                <button style={{ background: "none", border: "none", cursor: "pointer", color: AC, fontSize: 14, padding: "2px 4px" }} onClick={() => { setEditPai({ id: x.id, type: "fixe" }); setEditPaiFrm({ montant: x.montant, jour: x.jour, date: today(), dateDebut: x.dateDebut || "" }); }}>✎</button>
+                <button style={{ background: "none", border: "none", cursor: "pointer", color: AC, fontSize: 14, padding: "2px 4px" }} onClick={() => { setEditPai({ id: x.id, type: "fixe" }); setEditPaiFrm({ montant: x.montant, jour: x.jour, date: today(), dateDebut: x.dateDebut || today().slice(0,7) }); }}>✎</button>
               </div>
             ))}
             {dette.paiements.length > 0 && <p style={{ fontSize: 11, color: TX3, margin: "4px 0 2px", fontWeight: 500 }}>Paiements uniques</p>}

@@ -105,9 +105,9 @@ function ProjetDetail({
             )}
           </div>
           {verType === "fixe" && (
-            <div style={{ marginBottom: 14 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Date de début <span style={{ color: TX3, fontWeight: 400 }}>(optionnel)</span></label><input style={inp} type="month" value={verFrm.dateDebut || ""} onChange={e => setVerFrm(f => ({ ...f, dateDebut: e.target.value }))} /></div>
+            <div style={{ marginBottom: 14 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Date de début</label><input style={{ ...inp, width: "auto" }} type="month" value={verFrm.dateDebut || ""} onChange={e => setVerFrm(f => ({ ...f, dateDebut: e.target.value }))} /></div>
           )}
-          <SaveCancel onS={addVer} onC={() => { setVerType(null); setVerFrm({ montant: "", date: today(), jour: "1", dateDebut: "" }); }} />
+          <SaveCancel onS={addVer} onC={() => { setVerType(null); setVerFrm({ montant: "", date: today(), jour: "1", dateDebut: today().slice(0,7) }); }} />
         </Modal>
       )}
 
@@ -144,7 +144,7 @@ function ProjetDetail({
               <p style={{ fontSize: 13, color: TX, margin: 0, fontWeight: 500 }}>{fmt(+x.montant)}</p>
               <p style={{ fontSize: 11, color: TX3, margin: 0 }}>{x.jour === "paie" ? "Paie" : x.jour === "fin" ? "Fin du mois" : "Le " + x.jour}</p>
             </div>
-            <button style={{ background: "none", border: "none", cursor: "pointer", color: AC, fontSize: 14, padding: "2px 4px" }} onClick={() => { setEditVer({ id: x.id, type: "fixe" }); setEditVerFrm({ montant: x.montant, jour: x.jour, date: "", dateDebut: x.dateDebut || "" }); }}>✎</button>
+            <button style={{ background: "none", border: "none", cursor: "pointer", color: AC, fontSize: 14, padding: "2px 4px" }} onClick={() => { setEditVer({ id: x.id, type: "fixe" }); setEditVerFrm({ montant: x.montant, jour: x.jour, date: "", dateDebut: x.dateDebut || today().slice(0,7) }); }}>✎</button>
           </div>
         ))}
 

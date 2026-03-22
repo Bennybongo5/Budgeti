@@ -148,7 +148,7 @@ export default function Recurrents({
           <div style={{ marginBottom: 10 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Montant</label><input style={inp} type="number" value={eRecFrm.amount} onChange={e => setERecFrm(f => ({ ...f, amount: e.target.value }))} /></div>
           <FreqPicker frm={eRecFrm} setFrm={setERecFrm} />
           <div style={{ marginBottom: 10 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Catégorie</label><CatSel value={eRecFrm.cat} onChange={v => setERecFrm(f => ({ ...f, cat: v }))} /></div>
-          <div style={{ marginBottom: 14 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Date de début <span style={{ color: TX3, fontWeight: 400 }}>(optionnel)</span></label><input style={inp} type="month" value={eRecFrm.dateDebut || ""} onChange={e => setERecFrm(f => ({ ...f, dateDebut: e.target.value }))} /></div>
+          <div style={{ marginBottom: 14 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Date de début</label><input style={{ ...inp, width: "auto" }} type="month" value={eRecFrm.dateDebut || ""} onChange={e => setERecFrm(f => ({ ...f, dateDebut: e.target.value }))} /></div>
           <SaveCancel onS={() => { addRec(); setERecMod(false); }} onC={() => { setERecId(null); setERecMod(false); }} />
           <DelBtn onClick={() => delRec(eRecId)} />
         </Modal>
@@ -160,7 +160,7 @@ export default function Recurrents({
           <div style={{ marginBottom: 10 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Description</label><input style={inp} value={rrFrm.desc} onChange={e => setRrFrm(f => ({ ...f, desc: e.target.value }))} /></div>
           <div style={{ marginBottom: 10 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Montant</label><input style={inp} type="number" value={rrFrm.amount} onChange={e => setRrFrm(f => ({ ...f, amount: e.target.value }))} /></div>
           <FreqPicker frm={rrFrm} setFrm={setRrFrm} />
-          <div style={{ marginBottom: 14 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Date de début <span style={{ color: TX3, fontWeight: 400 }}>(optionnel)</span></label><input style={inp} type="month" value={rrFrm.dateDebut || ""} onChange={e => setRrFrm(f => ({ ...f, dateDebut: e.target.value }))} /></div>
+          <div style={{ marginBottom: 14 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Date de début</label><input style={{ ...inp, width: "auto" }} type="month" value={rrFrm.dateDebut || ""} onChange={e => setRrFrm(f => ({ ...f, dateDebut: e.target.value }))} /></div>
           <SaveCancel onS={() => { addRr(); setERrMod(false); }} onC={() => { setERrId(null); setERrMod(false); }} />
           <DelBtn onClick={() => delRr(eRrId)} />
         </Modal>
@@ -214,8 +214,8 @@ export default function Recurrents({
 
           {/* Date de début */}
           <div style={{ marginBottom: 14 }}>
-            <label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Date de début <span style={{ color: TX3, fontWeight: 400 }}>(optionnel)</span></label>
-            <input style={inp} type="month" value={curFrm.dateDebut || ""} onChange={e => setCurFrm(f => ({ ...f, dateDebut: e.target.value }))} />
+            <label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Date de début</label>
+            <input style={{ background: SF, border: "0.5px solid " + BR2, borderRadius: 10, padding: "8px 10px", color: TX, fontSize: 14, width: "auto" }} type="month" value={curFrm.dateDebut || ""} onChange={e => setCurFrm(f => ({ ...f, dateDebut: e.target.value }))} />
           </div>
 
           <div style={{ display: "flex", gap: 8 }}>
