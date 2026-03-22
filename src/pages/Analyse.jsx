@@ -282,7 +282,7 @@ export default function Analyse({
 
       {/* Edit modal for a recurring expense */}
       {editRec && (
-        <Modal title="Modifier la charge">
+        <Modal title="Modifier la charge" onClose={() => setEditRec(null)}>
           <div style={{ marginBottom: 10 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Description</label><input autoFocus style={inp} value={editRecForm.desc} onChange={e => setEditRecForm(f => ({ ...f, desc: e.target.value }))} /></div>
           <div style={{ marginBottom: 10 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Montant (CAD)</label><input style={inp} type="number" value={editRecForm.amount} onChange={e => setEditRecForm(f => ({ ...f, amount: e.target.value }))} /></div>
           <div style={{ marginBottom: 10 }}>
@@ -299,7 +299,7 @@ export default function Analyse({
 
       {/* Edit modal for a recurring income */}
       {editRr && (
-        <Modal title="Modifier l'autre revenu">
+        <Modal title="Modifier l'autre revenu" onClose={() => setEditRr(null)}>
           <div style={{ marginBottom: 10 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Description</label><input autoFocus style={inp} value={editRrForm.desc} onChange={e => setEditRrForm(f => ({ ...f, desc: e.target.value }))} /></div>
           <div style={{ marginBottom: 10 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Montant</label><input style={inp} type="number" value={editRrForm.amount} onChange={e => setEditRrForm(f => ({ ...f, amount: e.target.value }))} /></div>
           <FreqPicker frm={editRrForm} setFrm={setEditRrForm} />
@@ -324,7 +324,7 @@ export default function Analyse({
         const revTotal = totPaie + prop.totRR + totArgentRecu;
         const depTotal = txs.filter(x => x.type === "depense" && x.date.startsWith(chartMo)).reduce((s, x) => s + x.amount, 0) + prop.totRec + prop.totDette + prop.totProjet;
         return (
-          <Modal title={"Dépenses — " + moLabel(chartMo)}>
+          <Modal title={"Dépenses — " + moLabel(chartMo)} onClose={() => setChartMo(null)}>
             <div style={{ display: "flex", gap: 6, marginBottom: 6 }}>
               <div style={{ flex: 1, padding: "6px 10px", background: "rgba(90,160,60,0.08)", border: "1px solid rgba(90,160,60,0.2)", borderRadius: 8 }}>
                 <p style={{ fontSize: 10, color: TX3, margin: "0 0 2px" }}>Revenus</p>

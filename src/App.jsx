@@ -286,7 +286,7 @@ export default function App() {
 
       {/* Global modals */}
       {showTx && (
-        <Modal title={txForm.type === "depense" ? "Nouvelle dépense" : "Nouveau revenu"}>
+        <Modal title={txForm.type === "depense" ? "Nouvelle dépense" : "Nouveau revenu"} onClose={() => setShowTx(false)}>
           <div style={{ marginBottom: 10 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Description</label><input autoFocus style={inp} placeholder="..." value={txForm.desc} onChange={e => setTxForm(f => ({ ...f, desc: e.target.value }))} /></div>
           <div style={{ marginBottom: 10 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Montant (CAD)</label><input style={inp} type="number" placeholder="0.00" value={txForm.amount} onChange={e => setTxForm(f => ({ ...f, amount: e.target.value }))} /></div>
           {txForm.type === "depense" && <div style={{ marginBottom: 10 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Catégorie</label><CatSel value={txForm.cat} onChange={v => setTxForm(f => ({ ...f, cat: v }))} /></div>}
@@ -299,7 +299,7 @@ export default function App() {
       )}
 
       {showCat && (
-        <Modal title="Nouvelle catégorie" zIndex={200}>
+        <Modal title="Nouvelle catégorie" zIndex={200} onClose={() => { setShowCat(false); setNewCatLbl(""); setNewCatIco("📦"); setNewCatCustomIco(""); setCatCb(null); }}>
           <div style={{ marginBottom: 12 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Nom</label><input autoFocus style={inp} value={newCatLbl} onChange={e => setNewCatLbl(e.target.value)} onKeyDown={e => e.key === "Enter" && addCat()} /></div>
           <div style={{ marginBottom: 14 }}>
             <label style={{ fontSize: 12, color: TX2, marginBottom: 6, display: "block" }}>Icône</label>
@@ -317,7 +317,7 @@ export default function App() {
       )}
 
       {eTxId && eTxFrm && (
-        <Modal title="Modifier la transaction">
+        <Modal title="Modifier la transaction" onClose={() => startETx(null)}>
           <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>{["depense", "revenu"].map(tp => <button key={tp} style={tbtn(eTxFrm.type === tp, tp)} onClick={() => setETxFrm(f => ({ ...f, type: tp }))}>{tp === "depense" ? "Dépense" : "Revenu"}</button>)}</div>
           <div style={{ marginBottom: 10 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Description</label><input style={inp} value={eTxFrm.desc} onChange={e => setETxFrm(f => ({ ...f, desc: e.target.value }))} /></div>
           <div style={{ marginBottom: 10 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Montant</label><input style={inp} type="number" value={eTxFrm.amount} onChange={e => setETxFrm(f => ({ ...f, amount: e.target.value }))} /></div>

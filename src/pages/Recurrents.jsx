@@ -143,7 +143,7 @@ export default function Recurrents({
     <div>
       {/* Edit modal — recurring expense */}
       {eRecMod && eRecId && (
-        <Modal title="Modifier la charge">
+        <Modal title="Modifier la charge" onClose={() => { setERecId(null); setERecMod(false); }}>
           <div style={{ marginBottom: 10 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Description</label><input style={inp} value={eRecFrm.desc} onChange={e => setERecFrm(f => ({ ...f, desc: e.target.value }))} /></div>
           <div style={{ marginBottom: 10 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Montant</label><input style={inp} type="number" value={eRecFrm.amount} onChange={e => setERecFrm(f => ({ ...f, amount: e.target.value }))} /></div>
           <FreqPicker frm={eRecFrm} setFrm={setERecFrm} />
@@ -155,7 +155,7 @@ export default function Recurrents({
 
       {/* Edit modal — other income */}
       {eRrMod && eRrId && (
-        <Modal title="Modifier l'autre revenu">
+        <Modal title="Modifier l'autre revenu" onClose={() => { setERrId(null); setERrMod(false); }}>
           <div style={{ marginBottom: 10 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Description</label><input style={inp} value={rrFrm.desc} onChange={e => setRrFrm(f => ({ ...f, desc: e.target.value }))} /></div>
           <div style={{ marginBottom: 10 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Montant</label><input style={inp} type="number" value={rrFrm.amount} onChange={e => setRrFrm(f => ({ ...f, amount: e.target.value }))} /></div>
           <FreqPicker frm={rrFrm} setFrm={setRrFrm} />

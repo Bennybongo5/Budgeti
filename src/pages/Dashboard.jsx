@@ -17,7 +17,7 @@ function StatModal({ title, items, emptyMsg, onClose, trow, cats }) {
   const pfx = items[0]?.pfx || "";
   const chipSt = active => ({ padding: "4px 10px", background: active ? BT : SF, border: "1px solid " + (active ? BTB : BR), borderRadius: 20, color: active ? BTT : TX2, fontSize: 11, cursor: "pointer", whiteSpace: "nowrap" });
   return (
-    <Modal title={title}>
+    <Modal title={title} onClose={onClose}>
       {visibleCats.length > 1 && (
         <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 12 }}>
           <button style={chipSt(filCat === "tout")} onClick={() => setFilCat("tout")}>Tout</button>
@@ -169,7 +169,7 @@ export default function Dashboard({
           <button onClick={() => setPaieOpen(true)} style={{ marginLeft: "auto", background: "none", border: "1px solid " + BR, borderRadius: 8, padding: "4px 10px", cursor: "pointer", fontSize: 12, color: TX2 }}>Modifier</button>
         </div>
         {paieOpen && (
-          <Modal title="Fréquence de paie">
+          <Modal title="Fréquence de paie" onClose={() => setPaieOpen(false)}>
             <div style={{ marginBottom: 14 }}>
               <label style={{ fontSize: 12, color: TX2, marginBottom: 6, display: "block" }}>Fréquence</label>
               <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>{FREQS.map(f => <button key={f.id} style={fbtn(paie.frequence === f.id)} onClick={() => updPaie(p => ({ ...p, frequence: f.id }))}>{f.label}</button>)}</div>
@@ -185,7 +185,7 @@ export default function Dashboard({
           <div>
             <p style={{ fontSize: 12, color: TX2, margin: "12px 0 7px" }}>Paies</p>
             {paieIdx !== null && (
-              <Modal title={"Paie du " + fd(paies[paieIdx])}>
+              <Modal title={"Paie du " + fd(paies[paieIdx])} onClose={() => { setPaieIdx(null); setPaieInput(""); }}>
                 <div style={{ marginBottom: 14 }}>
                   <label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Montant (CAD)</label>
                   <input autoFocus style={inp} type="number" placeholder="0.00" value={paieInput} onChange={e => setPaieInput(e.target.value)} />
@@ -311,7 +311,7 @@ export default function Dashboard({
         const total = txsCat.reduce((s, x) => s + x.amount, 0);
         const periodLabel = viewMode === "paie" ? "cette période" : "ce mois";
         return (
-          <Modal title={catModal.icon + " " + catModal.label}>
+          <Modal title={catModal.icon + " " + catModal.label} onClose={() => setCatModal(null)}>
             <p style={{ fontSize: 12, color: TX3, margin: "0 0 12px" }}>{txsCat.length} transaction{txsCat.length !== 1 ? "s" : ""} {periodLabel}</p>
             {txsCat.length === 0 && <p style={{ fontSize: 13, color: TX3, textAlign: "center", padding: "10px 0" }}>Aucune dépense {periodLabel}.</p>}
             {txsCat.map(x => (
