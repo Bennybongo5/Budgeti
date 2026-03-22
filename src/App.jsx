@@ -270,7 +270,7 @@ export default function App() {
           --c-bt-light:#F0FDF4;
         }
         :root.dark {
-          --c-bg:#0A0A0A; --c-sf:#1E293B; --c-sf2:#334155; --c-br:#3D3010; --c-br2:#6B5020;
+          --c-bg:#0A0A0A; --c-sf:#1A1A1A; --c-sf2:#252525; --c-br:#3D3010; --c-br2:#6B5020;
           --c-tx:#F1F5F9; --c-tx2:#94A3B8; --c-tx3:#64748B;
           --c-bt:#15803D; --c-btb:#166534; --c-btt:#FFFFFF;
           --c-ac:#15803D; --c-rd:#F87171; --c-gn:#34D399;
