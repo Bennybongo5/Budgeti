@@ -338,6 +338,22 @@ export default function Analyse({
             <div style={{ marginBottom: 10 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Date</label><input style={inp} type="date" value={editPayFrm.date} onChange={e => setEditPayFrm(f => ({ ...f, date: e.target.value }))} /></div>
           )}
           <SaveCancel onS={saveEditPay} onC={() => setEditPay(null)} />
+          <DelBtn onClick={() => {
+            if (editPay.source === "dette") {
+              if (editPay.payType === "auto") {
+                updDettes(prev => prev.map(d => d.id === editPay.detteId ? { ...d, paiementsAuto: (d.paiementsAuto || []).filter(pa => pa.id !== editPay.paiId) } : d));
+              } else {
+                updDettes(prev => prev.map(d => d.id === editPay.detteId ? { ...d, paiements: d.paiements.filter(p => p.id !== editPay.paiId) } : d));
+              }
+            } else {
+              if (editPay.payType === "auto") {
+                updProjets(prev => prev.map(p => p.id === editPay.projetId ? { ...p, paiementsAuto: (p.paiementsAuto || []).filter(pa => pa.id !== editPay.paiId) } : p));
+              } else {
+                updProjets(prev => prev.map(p => p.id === editPay.projetId ? { ...p, versements: p.versements.filter(v => v.id !== editPay.versId) } : p));
+              }
+            }
+            setEditPay(null);
+          }} />
         </Modal>
       )}
 
