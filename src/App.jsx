@@ -325,7 +325,7 @@ export default function App() {
       {/* Header — simplified, no hamburger */}
       <div style={{ background: "var(--c-bg)", borderBottom: "1px solid " + BR, padding: "10px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 100, boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}>
         <div style={{ display: "flex", alignItems: "center" }}>
-          <img src="/budgeti-logo.png" alt="Budgeti" style={{ height: 54, width: "auto", borderRadius: 10, background: "#fff", padding: "3px 10px" }} />
+          <img src="/budgeti-logo.png" alt="Budgeti" style={{ height: 54, width: "auto" }} />
         </div>
         {/* Dark mode toggle in header */}
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
