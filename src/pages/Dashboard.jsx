@@ -75,7 +75,7 @@ export default function Dashboard({
     if (!curPeriode) return false;
     const { deb, fin } = curPeriode;
     const debMo = deb.slice(0, 7);
-    if (r.dateFin && debMo > r.dateFin) return false;
+    if (r.dateFin && debMo >= r.dateFin) return false;
     if ((r.exclusions || []).includes(debMo)) return false;
     if (r.frequence === "paie" || r.jour === "paie") return true;
     if (r.frequence === "semaine" || r.frequence === "2semaines") return true; // weekly always present
@@ -96,7 +96,7 @@ export default function Dashboard({
     if (!curPeriode) return false;
     const { deb, fin } = curPeriode;
     const debMo = deb.slice(0, 7);
-    if (pa.dateFin && debMo > pa.dateFin) return false;
+    if (pa.dateFin && debMo >= pa.dateFin) return false;
     if ((pa.exclusions || []).includes(debMo)) return false;
     if (pa.jour === "paie") return true;
     const checkM = (y, m) => {
@@ -411,13 +411,13 @@ export default function Dashboard({
 
       {statModal === "rrecs" && <StatModal
         title={viewMode === "paie" ? "Autres revenus cette période" : "Autres revenus"}
-        items={(viewMode === "paie" && curPeriode ? rrecs.filter(recInPeriod) : rrecs.filter(r => !r.dateFin && !(r.exclusions||[]).includes(curMo)))
+        items={(viewMode === "paie" && curPeriode ? rrecs.filter(recInPeriod) : rrecs.filter(r => (!r.dateFin || curMo < r.dateFin) && !(r.exclusions||[]).includes(curMo)))
           .map(r => ({ key: r.id, label: r.desc, sub: recFreqLabel(r), montant: r.amount, clr: GN, pfx: "+" }))}
         emptyMsg="Aucun autre revenu cette période." onClose={() => setStatModal(null)} trow={trow}
       />}
       {statModal === "recs" && <StatModal
         title={viewMode === "paie" ? "Paiements fixes cette période" : "Paiements fixes"}
-        items={(viewMode === "paie" && curPeriode ? recs.filter(recInPeriod) : recs.filter(r => !r.dateFin && !(r.exclusions||[]).includes(curMo)))
+        items={(viewMode === "paie" && curPeriode ? recs.filter(recInPeriod) : recs.filter(r => (!r.dateFin || curMo < r.dateFin) && !(r.exclusions||[]).includes(curMo)))
           .map(r => ({ key: r.id, label: r.desc, sub: recFreqLabel(r), montant: r.amount, clr: RD, pfx: "-", catId: r.cat }))}
         emptyMsg="Aucun paiement fixe cette période." onClose={() => setStatModal(null)} trow={trow} cats={cats}
       />}
@@ -426,7 +426,7 @@ export default function Dashboard({
         title={viewMode === "paie" ? "Paiements dettes cette période" : "Paiements dettes ce mois"}
         items={dettes.flatMap(d => [
           ...(d.paiementsAuto || [])
-            .filter(p => (!p.dateFin || curMo <= p.dateFin) && !(p.exclusions||[]).includes(curMo) && (viewMode === "mois" || !curPeriode || autoPayInPeriod(p)))
+            .filter(p => (!p.dateFin || curMo < p.dateFin) && !(p.exclusions||[]).includes(curMo) && (viewMode === "mois" || !curPeriode || autoPayInPeriod(p)))
             .map(p => ({ key: p.id, label: d.nom, sub: "Le " + p.jour + " (fixe)", montant: p.montant, clr: RD, pfx: "-" })),
           ...(d.paiements || [])
             .filter(p => viewMode === "paie" && curPeriode ? inPeriod(p) : p.date.startsWith(curMo))

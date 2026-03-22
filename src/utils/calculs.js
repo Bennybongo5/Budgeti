@@ -4,7 +4,7 @@ export function getPaies(p){const t=today();const[ty,tm,td]=t.split("-").map(Num
 
 export function getFinD(p,last){if(!last)return null;const[y,m]=last.split("-").map(Number);if(p.frequence==="semaine")return addD(last,7);if(p.frequence==="2semaines")return addD(last,14);if(p.frequence==="mois"){const j=p.jour1==="fin"?ld(y,m+1):Math.min(p.jour1,ld(y,m+1));return ymd(y,m+1,j);}if(p.frequence==="2mois"){const gj=(j,yr,mo)=>j==="fin"?ld(yr,mo):Math.min(j,ld(yr,mo));const all=[];for(let i=0;i<=2;i++){let mo=m-1+i,yr=y+Math.floor(mo/12);mo=((mo%12)+12)%12;all.push(ymd(yr,mo+1,gj(p.jour1,yr,mo+1)));all.push(ymd(yr,mo+1,gj(p.jour2,yr,mo+1)));}all.sort();const idx=all.findIndex(d=>d>last);return idx!==-1?all[idx]:null;}return null;}
 
-export function calcAutoInPeriod(items,deb,fin){const[dy,dm]=deb.split("-").map(Number);const debMo=deb.slice(0,7);return items.reduce((total,item)=>total+(item.paiementsAuto||[]).reduce((s,pa)=>{if(!pa.montant||isNaN(+pa.montant))return s;if(pa.dateDebut&&debMo<pa.dateDebut)return s;if(pa.dateFin&&debMo>pa.dateFin)return s;if(pa.jour==="paie"){if((pa.exclusions||[]).includes(debMo))return s;return s+(+pa.montant);}for(let mo=0;mo<=1;mo++){let mc=dm-1+mo,yc=dy+Math.floor(mc/12);mc=((mc%12)+12)%12;const j=Math.min(+pa.jour||1,ld(yc,mc+1));const ds=ymd(yc,mc+1,j);if(ds>=deb&&(fin?ds<fin:true)){if((pa.exclusions||[]).includes(ds.slice(0,7)))return s;return s+(+pa.montant);}}return s;},0),0);}
+export function calcAutoInPeriod(items,deb,fin){const[dy,dm]=deb.split("-").map(Number);const debMo=deb.slice(0,7);return items.reduce((total,item)=>total+(item.paiementsAuto||[]).reduce((s,pa)=>{if(!pa.montant||isNaN(+pa.montant))return s;if(pa.dateDebut&&debMo<pa.dateDebut)return s;if(pa.dateFin&&debMo>=pa.dateFin)return s;if(pa.jour==="paie"){if((pa.exclusions||[]).includes(debMo))return s;return s+(+pa.montant);}for(let mo=0;mo<=1;mo++){let mc=dm-1+mo,yc=dy+Math.floor(mc/12);mc=((mc%12)+12)%12;const j=Math.min(+pa.jour||1,ld(yc,mc+1));const ds=ymd(yc,mc+1,j);if(ds>=deb&&(fin?ds<fin:true)){if((pa.exclusions||[]).includes(ds.slice(0,7)))return s;return s+(+pa.montant);}}return s;},0),0);}
 
 export function calcManuelsInPeriod(items,deb,fin,key){return items.reduce((total,item)=>total+(item[key]||[]).reduce((s,e)=>(e.date>=deb&&(fin?e.date<fin:true)?s+(+e.montant||0):s),0),0);}
 
@@ -86,8 +86,8 @@ export function calcProportionalMonth(paie,moStart,moEnd,paieM,recs,rrecs,dettes
   // "per paie" items: proportional per period | "per day" items: once if day falls in month
   // Monthly recs split by "paie" (proportional) vs fixed day; weekly/biweekly counted by occurrences
   const moStr=moStart.slice(0,7);
-  const activeRec=r=>(!r.dateDebut||moStr>=r.dateDebut)&&(!r.dateFin||moStr<=r.dateFin)&&!((r.exclusions||[]).includes(moStr));
-  const activeRr=r=>(!r.dateDebut||moStr>=r.dateDebut)&&(!r.dateFin||moStr<=r.dateFin)&&!((r.exclusions||[]).includes(moStr));
+  const activeRec=r=>(!r.dateDebut||moStr>=r.dateDebut)&&(!r.dateFin||moStr<r.dateFin)&&!((r.exclusions||[]).includes(moStr));
+  const activeRr=r=>(!r.dateDebut||moStr>=r.dateDebut)&&(!r.dateFin||moStr<r.dateFin)&&!((r.exclusions||[]).includes(moStr));
   const activePa=pa=>(!pa.dateDebut||moStr>=pa.dateDebut)&&(!pa.dateFin||moStr<=pa.dateFin)&&!((pa.exclusions||[]).includes(moStr));
   const recPaieSum=recs.filter(r=>activeRec(r)&&(r.frequence==="paie"||((!r.frequence||r.frequence==="mois")&&r.jour==="paie"))).reduce((s,r)=>s+r.amount,0);
   let recDaySum=recs.filter(r=>activeRec(r)&&(!r.frequence||r.frequence==="mois")&&r.jour!=="paie").reduce((s,r)=>{const j=r.jour==="fin"?lastDay:Math.min(+r.jour||1,lastDay);return ymd(my,mm,j)>=moStart&&ymd(my,mm,j)<=moEnd?s+r.amount:s;},0);
