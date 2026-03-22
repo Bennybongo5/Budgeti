@@ -59,8 +59,31 @@ export default function Dashboard({
   const [curY, curM] = t.split("-").map(Number);
   const curMo = curY + "-" + String(curM).padStart(2, "0");
   const [paieInput, setPaieInput] = useState("");
-  const [catModal, setCatModal] = useState(null); // { id, label, icon }
+  const [catModal, setCatModal] = useState(null);
   const [statModal, setStatModal] = useState(null);
+  // Toggle between current pay period view and monthly view (default: pay period)
+  const [viewMode, setViewMode] = useState("paie");
+
+  // Current pay period (the one marked isCur in periodes)
+  const curPeriode = periodes.find(p => p.isCur) || null;
+
+  // Helper: check if a transaction/payment falls within the current pay period
+  const inPeriod = x => curPeriode && x.date >= curPeriode.deb && (curPeriode.fin ? x.date < curPeriode.fin : true);
+
+  // Category expense totals for the current pay period
+  const dbcPaie = (() => {
+    if (!curPeriode) return {};
+    const m = {};
+    txs
+      .filter(x => x.type === "depense" && inPeriod(x))
+      .forEach(x => { m[x.cat] = (m[x.cat] || 0) + x.amount; });
+    return m;
+  })();
+  const maxDPaie = Math.max(...Object.values(dbcPaie), 1);
+
+  // Active category data adapts to the current view mode
+  const activeDb = viewMode === "paie" ? dbcPaie : dbc;
+  const activeMaxD = viewMode === "paie" ? maxDPaie : maxD;
 
   const buildPaieGrid = () => {
     const cols = "100px " + periodes.map(() => "minmax(80px, 1fr)").join(" ");
@@ -159,35 +182,97 @@ export default function Dashboard({
         )}
       </div>
 
-      <p style={{ fontSize: 13, fontWeight: 500, color: TX2, margin: "0 0 8px" }}>Vue mensuelle</p>
-      <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
-        <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("paie")}><StatBox label="Paies" value={"+" + fmt(totPaieMois)} color={GN} /></div>
-        <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("depenses")}><StatBox label="Dépenses" value={"-" + fmt(totDep)} color={RD} /></div>
+      {/* View mode toggle — same style as the dark/light mode toggle in the header */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", margin: "4px 0 10px" }}>
+        <p style={{ fontSize: 13, fontWeight: 500, color: TX2, margin: 0 }}>
+          {viewMode === "paie" ? "Paie actuelle" : "Vue mensuelle"}
+        </p>
+        <div style={{ display: "flex", background: SF, border: "1px solid " + BR, borderRadius: 20, padding: 3 }}>
+          <button
+            onClick={() => setViewMode("paie")}
+            style={{ padding: "4px 12px", borderRadius: 16, background: viewMode === "paie" ? BT : "transparent", border: "none", color: viewMode === "paie" ? BTT : TX2, fontSize: 12, fontWeight: 500, cursor: "pointer", transition: "all 0.2s" }}
+          >
+            Paie
+          </button>
+          <button
+            onClick={() => setViewMode("mois")}
+            style={{ padding: "4px 12px", borderRadius: 16, background: viewMode === "mois" ? BT : "transparent", border: "none", color: viewMode === "mois" ? BTT : TX2, fontSize: 12, fontWeight: 500, cursor: "pointer", transition: "all 0.2s" }}
+          >
+            Mois
+          </button>
+        </div>
       </div>
-      <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
-        <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("rrecs")}><StatBox label="Autres revenus" value={"+" + fmt(totRR)} color={GN} /></div>
-        <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("recs")}><StatBox label="Paiements fixes" value={"-" + fmt(totRec)} color={RD} /></div>
-      </div>
-      <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
-        <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("argentRecu")}><StatBox label="Argent reçu" value={"+" + fmt(totArgentRecu)} color={GN} /></div>
-        <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("dettes")}><StatBox label="Paiements dettes" value={"-" + fmt(totDettesMois)} color={RD} /></div>
-      </div>
-      <div style={{ display: "flex", gap: 10, marginBottom: 12 }}>
-        <StatBox label="Solde" value={fmt(solde)} color={solde >= 0 ? GN : RD} />
-        <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("projets")}><StatBox label="Versements projets" value={"-" + fmt(totProjetsMois)} color={RD} /></div>
-      </div>
-      {periodes.length > 0 && <div style={{ background: SF2, border: "1px solid " + BR2, borderRadius: 12, padding: "12px 14px", marginBottom: 12 }}><p style={{ fontSize: 13, fontWeight: 500, color: TX2, margin: "0 0 10px" }}>Par paie</p><div style={{ overflowX: "auto" }}>{buildPaieGrid()}</div></div>}
 
+      {/* Current pay period stats */}
+      {viewMode === "paie" && (
+        curPeriode ? (
+          <div>
+            {/* Pay period date range badge */}
+            <div style={{ background: SF2, border: "1px solid " + BR2, borderRadius: 10, padding: "8px 12px", marginBottom: 10, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span style={{ fontSize: 12, color: TX2 }}>{fd(curPeriode.deb)} → {curPeriode.fin ? fd(curPeriode.fin) : "?"}</span>
+              <span style={{ fontSize: 11, background: BT, border: "1px solid " + BTB, borderRadius: 20, padding: "2px 8px", color: BTT, fontWeight: 500 }}>En cours</span>
+            </div>
+            <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
+              <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("paie")}><StatBox label="Paie" value={"+" + fmt(curPeriode.mp)} color={GN} /></div>
+              <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("depenses")}><StatBox label="Dépenses" value={"-" + fmt(curPeriode.deps)} color={RD} /></div>
+            </div>
+            <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
+              <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("argentRecu")}><StatBox label="Argent reçu" value={"+" + fmt(curPeriode.aRev)} color={GN} /></div>
+              <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("recs")}><StatBox label="Paiements fixes" value={"-" + fmt(curPeriode.ch)} color={RD} /></div>
+            </div>
+            <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
+              <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("dettes")}><StatBox label="Paiements dettes" value={"-" + fmt(curPeriode.detP)} color={RD} /></div>
+              <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("projets")}><StatBox label="Vers. projets" value={"-" + fmt(curPeriode.prjP)} color={RD} /></div>
+            </div>
+            <div style={{ display: "flex", gap: 10, marginBottom: 12 }}>
+              <StatBox label="Reste libre" value={fmt(curPeriode.reste)} color={curPeriode.reste >= 0 ? GN : RD} />
+            </div>
+          </div>
+        ) : (
+          <p style={{ fontSize: 13, color: TX3, textAlign: "center", padding: "16px 0" }}>Aucune période de paie en cours.</p>
+        )
+      )}
+
+      {/* Monthly stats */}
+      {viewMode === "mois" && (
+        <div>
+          <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
+            <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("paie")}><StatBox label="Paies" value={"+" + fmt(totPaieMois)} color={GN} /></div>
+            <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("depenses")}><StatBox label="Dépenses" value={"-" + fmt(totDep)} color={RD} /></div>
+          </div>
+          <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
+            <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("rrecs")}><StatBox label="Autres revenus" value={"+" + fmt(totRR)} color={GN} /></div>
+            <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("recs")}><StatBox label="Paiements fixes" value={"-" + fmt(totRec)} color={RD} /></div>
+          </div>
+          <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
+            <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("argentRecu")}><StatBox label="Argent reçu" value={"+" + fmt(totArgentRecu)} color={GN} /></div>
+            <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("dettes")}><StatBox label="Paiements dettes" value={"-" + fmt(totDettesMois)} color={RD} /></div>
+          </div>
+          <div style={{ display: "flex", gap: 10, marginBottom: 12 }}>
+            <StatBox label="Solde" value={fmt(solde)} color={solde >= 0 ? GN : RD} />
+            <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("projets")}><StatBox label="Versements projets" value={"-" + fmt(totProjetsMois)} color={RD} /></div>
+          </div>
+          {periodes.length > 0 && <div style={{ background: SF2, border: "1px solid " + BR2, borderRadius: 12, padding: "12px 14px", marginBottom: 12 }}><p style={{ fontSize: 13, fontWeight: 500, color: TX2, margin: "0 0 10px" }}>Par paie</p><div style={{ overflowX: "auto" }}>{buildPaieGrid()}</div></div>}
+        </div>
+      )}
+
+      {/* Category expense bar chart — adapts to active view mode */}
       <p style={{ fontSize: 13, fontWeight: 500, color: TX2, margin: "4px 0 8px" }}>Dépenses par catégorie</p>
-      {[...cats].sort((a, b) => (dbc[b.id] || 0) - (dbc[a.id] || 0)).map(c => { const a = dbc[c.id] || 0; if (!a) return null; return <div key={c.id} onClick={() => setCatModal(c)} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 7, cursor: "pointer", borderRadius: 8, padding: "3px 4px", margin: "0 -4px 7px" }}><span style={{ fontSize: 15, width: 22, textAlign: "center" }}>{c.icon}</span><span style={{ fontSize: 12, color: TX2, width: 88, flexShrink: 0 }}>{c.label}</span><div style={{ flex: 1, height: 6, background: BR, borderRadius: 3, overflow: "hidden" }}><div style={{ height: "100%", width: (a / maxD * 100) + "%", background: AC, borderRadius: 3 }} /></div><span style={{ fontSize: 12, color: TX, width: 68, textAlign: "right", flexShrink: 0 }}>{fmt(a)}</span></div>; })}
+      {[...cats].sort((a, b) => (activeDb[b.id] || 0) - (activeDb[a.id] || 0)).map(c => { const a = activeDb[c.id] || 0; if (!a) return null; return <div key={c.id} onClick={() => setCatModal(c)} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 7, cursor: "pointer", borderRadius: 8, padding: "3px 4px", margin: "0 -4px 7px" }}><span style={{ fontSize: 15, width: 22, textAlign: "center" }}>{c.icon}</span><span style={{ fontSize: 12, color: TX2, width: 88, flexShrink: 0 }}>{c.label}</span><div style={{ flex: 1, height: 6, background: BR, borderRadius: 3, overflow: "hidden" }}><div style={{ height: "100%", width: (a / activeMaxD * 100) + "%", background: AC, borderRadius: 3 }} /></div><span style={{ fontSize: 12, color: TX, width: 68, textAlign: "right", flexShrink: 0 }}>{fmt(a)}</span></div>; })}
 
       {catModal && (() => {
-        const txsCat = [...txs].filter(x => x.type === "depense" && x.cat === catModal.id && x.date.startsWith(curMo)).sort((a, b) => b.date.localeCompare(a.date));
+        // Filter transactions by pay period or by month depending on view mode
+        const txsCat = [...txs].filter(x =>
+          x.type === "depense" &&
+          x.cat === catModal.id &&
+          (viewMode === "paie" && curPeriode ? inPeriod(x) : x.date.startsWith(curMo))
+        ).sort((a, b) => b.date.localeCompare(a.date));
         const total = txsCat.reduce((s, x) => s + x.amount, 0);
+        const periodLabel = viewMode === "paie" ? "cette période" : "ce mois";
         return (
           <Modal title={catModal.icon + " " + catModal.label}>
-            <p style={{ fontSize: 12, color: TX3, margin: "0 0 12px" }}>{txsCat.length} transaction{txsCat.length !== 1 ? "s" : ""} ce mois</p>
-            {txsCat.length === 0 && <p style={{ fontSize: 13, color: TX3, textAlign: "center", padding: "10px 0" }}>Aucune dépense ce mois.</p>}
+            <p style={{ fontSize: 12, color: TX3, margin: "0 0 12px" }}>{txsCat.length} transaction{txsCat.length !== 1 ? "s" : ""} {periodLabel}</p>
+            {txsCat.length === 0 && <p style={{ fontSize: 13, color: TX3, textAlign: "center", padding: "10px 0" }}>Aucune dépense {periodLabel}.</p>}
             {txsCat.map(x => (
               <div key={x.id} style={trow}>
                 <div style={{ flex: 1 }}>
@@ -208,26 +293,82 @@ export default function Dashboard({
         );
       })()}
 
-      {statModal === "paie" && (() => {
-        const mStart = ymd(curY, curM, 1);
-        const mEnd = ymd(curY, curM, ld(curY, curM));
-        const breakdown = getPaieBreakdownForMonth(paie, mStart, mEnd, paieM);
-        const items = breakdown.map(b => ({
-          key: b.deb,
-          label: b.ratio < 0.999 ? `Paie du ${fd(b.deb)} (${Math.round(b.ratio * 100)}%)` : `Paie du ${fd(b.deb)}`,
-          sub: b.ratio < 0.999 ? `${fd(b.deb)} – ${fd(b.fin)} · Montant complet : ${fmt(b.fullAmount)}` : `${fd(b.deb)} – ${fd(b.fin)}`,
-          montant: b.proportionalAmount,
-          clr: GN,
-          pfx: "+",
-        }));
-        return <StatModal title="Paies ce mois" items={items} emptyMsg="Aucune paie ce mois." onClose={() => setStatModal(null)} trow={trow} />;
-      })()}
-      {statModal === "argentRecu" && <StatModal title="Argent reçu ce mois" items={txs.filter(x => x.type === "revenu" && x.desc !== "Paie" && x.date.startsWith(curMo)).sort((a, b) => b.date.localeCompare(a.date)).map(x => ({ key: x.id, label: x.desc, sub: fd(x.date), montant: x.amount, clr: GN, pfx: "+" }))} emptyMsg="Aucun argent reçu ce mois." onClose={() => setStatModal(null)} trow={trow} />}
-      {statModal === "depenses" && <StatModal title="Dépenses ce mois" items={txs.filter(x => x.type === "depense" && x.date.startsWith(curMo)).sort((a, b) => b.date.localeCompare(a.date)).map(x => ({ key: x.id, label: x.desc, sub: fd(x.date), montant: x.amount, clr: RD, pfx: "-", catId: x.cat }))} emptyMsg="Aucune dépense ce mois." onClose={() => setStatModal(null)} trow={trow} cats={cats} />}
+      {/* Stat modals — content filters adapt to view mode */}
+      {statModal === "paie" && (
+        viewMode === "paie" ? (() => {
+          // Show current pay amount as a single item
+          const items = curPeriode && curPeriode.mp > 0 ? [{
+            key: curPeriode.deb,
+            label: `Paie du ${fd(curPeriode.deb)}`,
+            sub: `${fd(curPeriode.deb)} – ${curPeriode.fin ? fd(curPeriode.fin) : "?"}`,
+            montant: curPeriode.mp,
+            clr: GN,
+            pfx: "+",
+          }] : [];
+          return <StatModal title="Paie actuelle" items={items} emptyMsg="Aucune paie saisie pour cette période." onClose={() => setStatModal(null)} trow={trow} />;
+        })() : (() => {
+          // Show proportional breakdown for the whole month
+          const mStart = ymd(curY, curM, 1);
+          const mEnd = ymd(curY, curM, ld(curY, curM));
+          const breakdown = getPaieBreakdownForMonth(paie, mStart, mEnd, paieM);
+          const items = breakdown.map(b => ({
+            key: b.deb,
+            label: b.ratio < 0.999 ? `Paie du ${fd(b.deb)} (${Math.round(b.ratio * 100)}%)` : `Paie du ${fd(b.deb)}`,
+            sub: b.ratio < 0.999 ? `${fd(b.deb)} – ${fd(b.fin)} · Montant complet : ${fmt(b.fullAmount)}` : `${fd(b.deb)} – ${fd(b.fin)}`,
+            montant: b.proportionalAmount,
+            clr: GN,
+            pfx: "+",
+          }));
+          return <StatModal title="Paies ce mois" items={items} emptyMsg="Aucune paie ce mois." onClose={() => setStatModal(null)} trow={trow} />;
+        })()
+      )}
+
+      {statModal === "argentRecu" && <StatModal
+        title={viewMode === "paie" ? "Argent reçu cette période" : "Argent reçu ce mois"}
+        items={txs
+          .filter(x => x.type === "revenu" && x.desc !== "Paie" && (viewMode === "paie" && curPeriode ? inPeriod(x) : x.date.startsWith(curMo)))
+          .sort((a, b) => b.date.localeCompare(a.date))
+          .map(x => ({ key: x.id, label: x.desc, sub: fd(x.date), montant: x.amount, clr: GN, pfx: "+" }))}
+        emptyMsg={viewMode === "paie" ? "Aucun argent reçu cette période." : "Aucun argent reçu ce mois."}
+        onClose={() => setStatModal(null)} trow={trow}
+      />}
+
+      {statModal === "depenses" && <StatModal
+        title={viewMode === "paie" ? "Dépenses cette période" : "Dépenses ce mois"}
+        items={txs
+          .filter(x => x.type === "depense" && (viewMode === "paie" && curPeriode ? inPeriod(x) : x.date.startsWith(curMo)))
+          .sort((a, b) => b.date.localeCompare(a.date))
+          .map(x => ({ key: x.id, label: x.desc, sub: fd(x.date), montant: x.amount, clr: RD, pfx: "-", catId: x.cat }))}
+        emptyMsg={viewMode === "paie" ? "Aucune dépense cette période." : "Aucune dépense ce mois."}
+        onClose={() => setStatModal(null)} trow={trow} cats={cats}
+      />}
+
       {statModal === "rrecs" && <StatModal title="Autres revenus" items={rrecs.map(r => ({ key: r.id, label: r.desc, sub: "Le " + r.jour + " de chaque mois", montant: r.amount, clr: GN, pfx: "+" }))} emptyMsg="Aucun autre revenu." onClose={() => setStatModal(null)} trow={trow} />}
       {statModal === "recs" && <StatModal title="Paiements fixes" items={recs.map(r => ({ key: r.id, label: r.desc, sub: "Le " + r.jour + " de chaque mois", montant: r.amount, clr: RD, pfx: "-", catId: r.cat }))} emptyMsg="Aucun paiement fixe." onClose={() => setStatModal(null)} trow={trow} cats={cats} />}
-      {statModal === "dettes" && <StatModal title="Paiements dettes ce mois" items={dettes.flatMap(d => [...(d.paiementsAuto || []).map(p => ({ key: p.id, label: d.nom, sub: "Le " + p.jour + " (fixe)", montant: p.montant, clr: RD, pfx: "-" })), ...(d.paiements || []).filter(p => p.date.startsWith(curMo)).map(p => ({ key: p.id, label: d.nom, sub: fd(p.date), montant: p.montant, clr: RD, pfx: "-" }))])} emptyMsg="Aucun paiement ce mois." onClose={() => setStatModal(null)} trow={trow} />}
-      {statModal === "projets" && <StatModal title="Versements projets ce mois" items={projets.flatMap(p => [...(p.paiementsAuto || []).map(v => ({ key: v.id, label: p.nom, sub: "Le " + v.jour + " (fixe)", montant: v.montant, clr: RD, pfx: "-" })), ...(p.versements || []).filter(v => v.date.startsWith(curMo)).map(v => ({ key: v.id, label: p.nom, sub: fd(v.date), montant: v.montant, clr: RD, pfx: "-" }))])} emptyMsg="Aucun versement ce mois." onClose={() => setStatModal(null)} trow={trow} />}
+
+      {statModal === "dettes" && <StatModal
+        title={viewMode === "paie" ? "Paiements dettes cette période" : "Paiements dettes ce mois"}
+        items={dettes.flatMap(d => [
+          ...(d.paiementsAuto || []).map(p => ({ key: p.id, label: d.nom, sub: "Le " + p.jour + " (fixe)", montant: p.montant, clr: RD, pfx: "-" })),
+          ...(d.paiements || [])
+            .filter(p => viewMode === "paie" && curPeriode ? inPeriod(p) : p.date.startsWith(curMo))
+            .map(p => ({ key: p.id, label: d.nom, sub: fd(p.date), montant: p.montant, clr: RD, pfx: "-" })),
+        ])}
+        emptyMsg="Aucun paiement cette période."
+        onClose={() => setStatModal(null)} trow={trow}
+      />}
+
+      {statModal === "projets" && <StatModal
+        title={viewMode === "paie" ? "Versements projets cette période" : "Versements projets ce mois"}
+        items={projets.flatMap(p => [
+          ...(p.paiementsAuto || []).map(v => ({ key: v.id, label: p.nom, sub: "Le " + v.jour + " (fixe)", montant: v.montant, clr: RD, pfx: "-" })),
+          ...(p.versements || [])
+            .filter(v => viewMode === "paie" && curPeriode ? inPeriod(v) : v.date.startsWith(curMo))
+            .map(v => ({ key: v.id, label: p.nom, sub: fd(v.date), montant: v.montant, clr: RD, pfx: "-" })),
+        ])}
+        emptyMsg="Aucun versement cette période."
+        onClose={() => setStatModal(null)} trow={trow}
+      />}
 
       <p style={{ fontSize: 13, fontWeight: 500, color: TX2, margin: "12px 0 8px" }}>Dernieres transactions</p>
       <div style={{ marginBottom: 8 }}>
