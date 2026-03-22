@@ -70,6 +70,48 @@ export default function Dashboard({
   // Helper: check if a transaction/payment falls within the current pay period
   const inPeriod = x => curPeriode && x.date >= curPeriode.deb && (curPeriode.fin ? x.date < curPeriode.fin : true);
 
+  // Helper: check if a recurring item (rec/rrec) has an occurrence in the current pay period
+  const recInPeriod = r => {
+    if (!curPeriode) return false;
+    const { deb, fin } = curPeriode;
+    if (r.frequence === "paie" || r.jour === "paie") return true;
+    if (r.frequence === "semaine" || r.frequence === "2semaines") return true; // weekly always present
+    // Monthly: check if the payment day falls between deb and fin
+    const checkM = (y, m) => {
+      const lastD = ld(y, m);
+      const j = r.jour === "fin" ? lastD : Math.min(+r.jour || 1, lastD);
+      const d = ymd(y, m, j);
+      return d >= deb && (!fin || d < fin);
+    };
+    const [dy, dm] = deb.split("-").map(Number);
+    const [fy, fm] = (fin || deb).split("-").map(Number);
+    return checkM(dy, dm) || ((fy !== dy || fm !== dm) && checkM(fy, fm));
+  };
+
+  // Helper: check if an auto-payment (dette/projet) falls in the current pay period
+  const autoPayInPeriod = pa => {
+    if (!curPeriode) return false;
+    const { deb, fin } = curPeriode;
+    if (pa.jour === "paie") return true;
+    const checkM = (y, m) => {
+      const lastD = ld(y, m);
+      const j = pa.jour === "fin" ? lastD : Math.min(+pa.jour || 1, lastD);
+      const d = ymd(y, m, j);
+      return d >= deb && (!fin || d < fin);
+    };
+    const [dy, dm] = deb.split("-").map(Number);
+    const [fy, fm] = (fin || deb).split("-").map(Number);
+    return checkM(dy, dm) || ((fy !== dy || fm !== dm) && checkM(fy, fm));
+  };
+
+  // Frequency label for a rec/rrec
+  const recFreqLabel = r =>
+    r.frequence === "paie" || r.jour === "paie" ? "À ma paie"
+    : r.frequence === "semaine" ? "Chaque " + (r.jourSemaine || "")
+    : r.frequence === "2semaines" ? "/ 2 sem. " + (r.jourSemaine || "")
+    : r.jour === "fin" ? "Dernier du mois"
+    : "Le " + r.jour;
+
   // Category expense totals for the current pay period
   const dbcPaie = (() => {
     if (!curPeriode) return {};
@@ -342,13 +384,25 @@ export default function Dashboard({
         onClose={() => setStatModal(null)} trow={trow} cats={cats}
       />}
 
-      {statModal === "rrecs" && <StatModal title="Autres revenus" items={rrecs.map(r => ({ key: r.id, label: r.desc, sub: "Le " + r.jour + " de chaque mois", montant: r.amount, clr: GN, pfx: "+" }))} emptyMsg="Aucun autre revenu." onClose={() => setStatModal(null)} trow={trow} />}
-      {statModal === "recs" && <StatModal title="Paiements fixes" items={recs.map(r => ({ key: r.id, label: r.desc, sub: "Le " + r.jour + " de chaque mois", montant: r.amount, clr: RD, pfx: "-", catId: r.cat }))} emptyMsg="Aucun paiement fixe." onClose={() => setStatModal(null)} trow={trow} cats={cats} />}
+      {statModal === "rrecs" && <StatModal
+        title={viewMode === "paie" ? "Autres revenus cette période" : "Autres revenus"}
+        items={(viewMode === "paie" && curPeriode ? rrecs.filter(recInPeriod) : rrecs)
+          .map(r => ({ key: r.id, label: r.desc, sub: recFreqLabel(r), montant: r.amount, clr: GN, pfx: "+" }))}
+        emptyMsg="Aucun autre revenu cette période." onClose={() => setStatModal(null)} trow={trow}
+      />}
+      {statModal === "recs" && <StatModal
+        title={viewMode === "paie" ? "Paiements fixes cette période" : "Paiements fixes"}
+        items={(viewMode === "paie" && curPeriode ? recs.filter(recInPeriod) : recs)
+          .map(r => ({ key: r.id, label: r.desc, sub: recFreqLabel(r), montant: r.amount, clr: RD, pfx: "-", catId: r.cat }))}
+        emptyMsg="Aucun paiement fixe cette période." onClose={() => setStatModal(null)} trow={trow} cats={cats}
+      />}
 
       {statModal === "dettes" && <StatModal
         title={viewMode === "paie" ? "Paiements dettes cette période" : "Paiements dettes ce mois"}
         items={dettes.flatMap(d => [
-          ...(d.paiementsAuto || []).map(p => ({ key: p.id, label: d.nom, sub: "Le " + p.jour + " (fixe)", montant: p.montant, clr: RD, pfx: "-" })),
+          ...(d.paiementsAuto || [])
+            .filter(p => viewMode === "mois" || !curPeriode || autoPayInPeriod(p))
+            .map(p => ({ key: p.id, label: d.nom, sub: "Le " + p.jour + " (fixe)", montant: p.montant, clr: RD, pfx: "-" })),
           ...(d.paiements || [])
             .filter(p => viewMode === "paie" && curPeriode ? inPeriod(p) : p.date.startsWith(curMo))
             .map(p => ({ key: p.id, label: d.nom, sub: fd(p.date), montant: p.montant, clr: RD, pfx: "-" })),
@@ -360,7 +414,9 @@ export default function Dashboard({
       {statModal === "projets" && <StatModal
         title={viewMode === "paie" ? "Versements projets cette période" : "Versements projets ce mois"}
         items={projets.flatMap(p => [
-          ...(p.paiementsAuto || []).map(v => ({ key: v.id, label: p.nom, sub: "Le " + v.jour + " (fixe)", montant: v.montant, clr: RD, pfx: "-" })),
+          ...(p.paiementsAuto || [])
+            .filter(v => viewMode === "mois" || !curPeriode || autoPayInPeriod(v))
+            .map(v => ({ key: v.id, label: p.nom, sub: "Le " + v.jour + " (fixe)", montant: v.montant, clr: RD, pfx: "-" })),
           ...(p.versements || [])
             .filter(v => viewMode === "paie" && curPeriode ? inPeriod(v) : v.date.startsWith(curMo))
             .map(v => ({ key: v.id, label: p.nom, sub: fd(v.date), montant: v.montant, clr: RD, pfx: "-" })),
