@@ -261,7 +261,7 @@ export default function App() {
     <div style={{ fontFamily: "system-ui,sans-serif", background: BG, minHeight: "100vh", color: TX, paddingBottom: 80 }}>
       <style>{NS + `
         :root {
-          --c-bg:#FFFFFF; --c-sf:#F8F4EC; --c-sf2:#EDE7D8; --c-br:#DDD0A0; --c-br2:#C4A84A;
+          --c-bg:#FFFFFF; --c-sf:#F1F5F9; --c-sf2:#E2E8F0; --c-br:#DDD0A0; --c-br2:#C4A84A;
           --c-tx:#1E293B; --c-tx2:#64748B; --c-tx3:#94A3B8;
           --c-bt:#15803D; --c-btb:#166534; --c-btt:#FFFFFF;
           --c-ac:#15803D; --c-rd:#F43F5E; --c-gn:#10B981;
@@ -270,7 +270,7 @@ export default function App() {
           --c-bt-light:#F0FDF4;
         }
         :root.dark {
-          --c-bg:#0A0A0A; --c-sf:#161616; --c-sf2:#222222; --c-br:#3D3010; --c-br2:#6B5020;
+          --c-bg:#0A0A0A; --c-sf:#1E293B; --c-sf2:#334155; --c-br:#3D3010; --c-br2:#6B5020;
           --c-tx:#F1F5F9; --c-tx2:#94A3B8; --c-tx3:#64748B;
           --c-bt:#15803D; --c-btb:#166534; --c-btt:#FFFFFF;
           --c-ac:#15803D; --c-rd:#F87171; --c-gn:#34D399;
