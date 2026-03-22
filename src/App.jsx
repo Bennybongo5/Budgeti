@@ -260,6 +260,10 @@ export default function App() {
   return (
     <div style={{ fontFamily: "system-ui,sans-serif", background: BG, minHeight: "100vh", color: TX, paddingBottom: 80 }}>
       <style>{NS + `
+        ::-webkit-scrollbar { height: 3px; width: 3px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(180,140,40,0.25); border-radius: 3px; }
+        * { scrollbar-width: thin; scrollbar-color: rgba(180,140,40,0.25) transparent; }
         :root {
           --c-bg:#FFFFFF; --c-sf:#F1F5F9; --c-sf2:#E2E8F0; --c-br:#DDD0A0; --c-br2:#C4A84A;
           --c-tx:#1E293B; --c-tx2:#64748B; --c-tx3:#94A3B8;
