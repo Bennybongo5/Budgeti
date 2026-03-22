@@ -423,6 +423,7 @@ export default function App() {
             setFilCat={setFilCat} setSelMo={setSelMo}
             startETx={startETx}
             txs={txs} paie={paie} paieM={paieM} recs={recs} rrecs={rrecs} dettes={dettes} projets={projets}
+            updRecs={updRecs} updRrecs={updRrecs} delRec={delRec} delRr={delRr}
             {...styles}
           />
         )}

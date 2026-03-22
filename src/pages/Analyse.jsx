@@ -1,10 +1,12 @@
 import { useMemo, useState } from "react";
-import { SF, SF2, BR, BR2, TX, TX2, TX3, GN, RD, BT, BTB, BTT } from "../constants.js";
+import { SF, SF2, BR, BR2, TX, TX2, TX3, GN, RD, BT, BTB, BTT, AC } from "../constants.js";
 import { fmt } from "../constants.js";
 import { ymd, ld } from "../utils/dates.js";
 import { calcProportionalMonth } from "../utils/calculs.js";
 import TxRow from "../components/TxRow.jsx";
 import Modal from "../components/Modal.jsx";
+import SaveCancel from "../components/SaveCancel.jsx";
+import DelBtn from "../components/DelBtn.jsx";
 
 const shortFmt = v => {
   if (v >= 1000) return (v / 1000).toFixed(1).replace(/\.0$/, "") + "k";
@@ -144,17 +146,71 @@ function BarChart({ histItems, months, onClickMo, txs, paie, paieM, recs, rrecs,
   );
 }
 
+const jourLabel = j => j === "paie" ? "À chaque paie" : j === "fin" ? "Fin du mois" : "Le " + j;
+
 export default function Analyse({
   cats, filtTx, histItems, months, filCat, selMo,
   setFilCat, setSelMo, startETx,
   txs, paie, paieM, recs, rrecs, dettes, projets,
-  trow, ico, chip, card,
+  updRecs, updRrecs, delRec, delRr,
+  trow, ico, chip, card, inp,
 }) {
   const [chartMo, setChartMo] = useState(null);
+  // Local state for editing a rec directly from Analyse
+  const [editRec, setEditRec] = useState(null);
+  const [editRr, setEditRr] = useState(null);
+  const [editRecForm, setEditRecForm] = useState({ desc: "", amount: "", jour: 1, cat: "" });
+  const [editRrForm, setEditRrForm] = useState({ desc: "", amount: "", jour: 1 });
+
+  const openEditRec = r => {
+    setEditRec(r);
+    setEditRecForm({ desc: r.desc, amount: r.amount, jour: r.jour, cat: r.cat });
+  };
+  const openEditRr = r => {
+    setEditRr(r);
+    setEditRrForm({ desc: r.desc, amount: r.amount, jour: r.jour });
+  };
+  const saveRec = () => {
+    updRecs(prev => prev.map(r => r.id === editRec.id ? { ...r, ...editRecForm, amount: +editRecForm.amount } : r));
+    setEditRec(null);
+  };
+  const saveRr = () => {
+    updRrecs(prev => prev.map(r => r.id === editRr.id ? { ...r, ...editRrForm, amount: +editRrForm.amount } : r));
+    setEditRr(null);
+  };
 
   return (
     <div>
       <p style={{ fontSize: 15, fontWeight: 500, margin: "0 0 12px", color: TX }}>Analyse</p>
+
+      {/* Edit modal for a recurring expense */}
+      {editRec && (
+        <Modal title="Modifier la charge">
+          <div style={{ marginBottom: 10 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Description</label><input autoFocus style={inp} value={editRecForm.desc} onChange={e => setEditRecForm(f => ({ ...f, desc: e.target.value }))} /></div>
+          <div style={{ marginBottom: 10 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Montant (CAD)</label><input style={inp} type="number" value={editRecForm.amount} onChange={e => setEditRecForm(f => ({ ...f, amount: e.target.value }))} /></div>
+          <div style={{ marginBottom: 10 }}>
+            <label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Catégorie</label>
+            <select style={inp} value={editRecForm.cat} onChange={e => setEditRecForm(f => ({ ...f, cat: e.target.value }))}>
+              {cats.map(c => <option key={c.id} value={c.id}>{c.icon} {c.label}</option>)}
+            </select>
+          </div>
+          <SaveCancel onS={saveRec} onC={() => setEditRec(null)} />
+          <DelBtn onClick={() => { delRec(editRec.id); setEditRec(null); }} />
+        </Modal>
+      )}
+
+      {/* Edit modal for a recurring income */}
+      {editRr && (
+        <Modal title="Modifier l'autre revenu">
+          <div style={{ marginBottom: 10 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Description</label><input autoFocus style={inp} value={editRrForm.desc} onChange={e => setEditRrForm(f => ({ ...f, desc: e.target.value }))} /></div>
+          <div style={{ display: "flex", gap: 10, marginBottom: 14 }}>
+            <div style={{ flex: 1 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Montant</label><input style={inp} type="number" value={editRrForm.amount} onChange={e => setEditRrForm(f => ({ ...f, amount: e.target.value }))} /></div>
+            <div style={{ flex: 1 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Jour du mois</label><input style={inp} type="number" min="1" max="31" value={editRrForm.jour} onChange={e => setEditRrForm(f => ({ ...f, jour: +e.target.value }))} /></div>
+          </div>
+          <SaveCancel onS={saveRr} onC={() => setEditRr(null)} />
+          <DelBtn onClick={() => { delRr(editRr.id); setEditRr(null); }} />
+        </Modal>
+      )}
 
       <div style={card}>
         <p style={{ fontSize: 13, fontWeight: 500, color: TX2, margin: "0 0 6px" }}>Revenus vs Dépenses par mois</p>
@@ -202,13 +258,59 @@ export default function Analyse({
       </div>
 
       <div style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 6, marginBottom: 4 }}>
-        {[{ id: "tout", label: "Tout" }, { id: "revenu", label: "Revenus" }, { id: "paie", label: "Paies" }, { id: "recurrents", label: "Recurrents" }, { id: "dettes", label: "Dettes" }, { id: "projets", label: "Projets" }, ...cats].map(c => (
+        {[{ id: "tout", label: "Tout" }, { id: "revenu", label: "Revenus" }, { id: "paie", label: "Paies" }, { id: "recurrents", label: "Récurrents" }, { id: "dettes", label: "Dettes" }, { id: "projets", label: "Projets" }, ...cats].map(c => (
           <button key={c.id} style={chip(filCat === c.id)} onClick={() => setFilCat(c.id)}>{c.icon && !["tout", "revenu", "paie", "recurrents", "dettes", "projets"].includes(c.id) ? c.icon + " " : ""}{c.label}</button>
         ))}
       </div>
 
-      {filtTx.length === 0 && <div style={{ textAlign: "center", color: TX3, padding: "30px 20px", fontSize: 13 }}>Aucune transaction.</div>}
-      {filtTx.map(x => <TxRow key={x.id} x={x} cats={cats} trow={trow} ico={ico} startETx={startETx} />)}
+      {/* Recurring items list with edit/delete — shown when "Récurrents" chip is active */}
+      {filCat === "recurrents" && (recs.length > 0 || rrecs.length > 0) && (
+        <div style={{ marginBottom: 12 }}>
+          <p style={{ fontSize: 12, fontWeight: 500, color: TX2, margin: "8px 0 6px" }}>Gérer les récurrents</p>
+
+          {recs.length > 0 && (
+            <div style={{ marginBottom: 8 }}>
+              <p style={{ fontSize: 11, color: RD, margin: "0 0 5px", fontWeight: 500 }}>Dépenses fixes</p>
+              {[...recs].sort((a, b) => (a.jour === "fin" ? 32 : a.jour === "paie" ? 0 : a.jour) - (b.jour === "fin" ? 32 : b.jour === "paie" ? 0 : b.jour)).map(r => {
+                const cat = cats.find(c => c.id === r.cat) || { icon: "📦" };
+                return (
+                  <div key={r.id} style={{ background: SF, border: "1px solid " + BR, borderRadius: 10, padding: "9px 12px", marginBottom: 6, display: "flex", alignItems: "center", gap: 8 }}>
+                    <span style={{ fontSize: 15 }}>{cat.icon}</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontSize: 13, color: TX, margin: 0, fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.desc}</p>
+                      <p style={{ fontSize: 11, color: TX3, margin: 0 }}>{jourLabel(r.jour)}</p>
+                    </div>
+                    <span style={{ fontSize: 13, fontWeight: 500, color: RD, flexShrink: 0 }}>-{fmt(r.amount)}</span>
+                    <button onClick={() => openEditRec(r)} style={{ background: "none", border: "1px solid " + BR, borderRadius: 7, padding: "4px 8px", color: AC, fontSize: 13, cursor: "pointer", flexShrink: 0 }}>✎</button>
+                    <button onClick={() => delRec(r.id)} style={{ background: "none", border: "1px solid " + BR, borderRadius: 7, padding: "4px 8px", color: RD, fontSize: 13, cursor: "pointer", flexShrink: 0 }}>🗑</button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {rrecs.length > 0 && (
+            <div style={{ marginBottom: 8 }}>
+              <p style={{ fontSize: 11, color: GN, margin: "0 0 5px", fontWeight: 500 }}>Autres revenus</p>
+              {[...rrecs].sort((a, b) => a.jour - b.jour).map(r => (
+                <div key={r.id} style={{ background: SF, border: "1px solid " + BR, borderRadius: 10, padding: "9px 12px", marginBottom: 6, display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ fontSize: 15 }}>💰</span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ fontSize: 13, color: TX, margin: 0, fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.desc}</p>
+                    <p style={{ fontSize: 11, color: TX3, margin: 0 }}>Le {r.jour} de chaque mois</p>
+                  </div>
+                  <span style={{ fontSize: 13, fontWeight: 500, color: GN, flexShrink: 0 }}>+{fmt(r.amount)}</span>
+                  <button onClick={() => openEditRr(r)} style={{ background: "none", border: "1px solid " + BR, borderRadius: 7, padding: "4px 8px", color: AC, fontSize: 13, cursor: "pointer", flexShrink: 0 }}>✎</button>
+                  <button onClick={() => delRr(r.id)} style={{ background: "none", border: "1px solid " + BR, borderRadius: 7, padding: "4px 8px", color: RD, fontSize: 13, cursor: "pointer", flexShrink: 0 }}>🗑</button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {filtTx.length === 0 && filCat !== "recurrents" && <div style={{ textAlign: "center", color: TX3, padding: "30px 20px", fontSize: 13 }}>Aucune transaction.</div>}
+      {filCat !== "recurrents" && filtTx.map(x => <TxRow key={x.id} x={x} cats={cats} trow={trow} ico={ico} startETx={startETx} />)}
     </div>
   );
 }
