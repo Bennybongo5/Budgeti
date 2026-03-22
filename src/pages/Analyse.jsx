@@ -17,23 +17,35 @@ function computeDateRef(jourSemaine) {
   const diff = (DOW[jourSemaine] - curDow + 7) % 7;
   return addD(t, diff);
 }
+function fmtRef(d) {
+  const [y, m, day] = d.split("-").map(Number);
+  const date = new Date(y, m - 1, day);
+  const dayNames = ["Dim.", "Lun.", "Mar.", "Mer.", "Jeu.", "Ven.", "Sam."];
+  const moNames = ["jan.", "fév.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."];
+  return dayNames[date.getDay()] + " " + day + " " + moNames[m - 1];
+}
 const FREQ_OPTIONS = [
   { id: "mois", label: "Mensuel" },
   { id: "semaine", label: "Hebdo" },
   { id: "2semaines", label: "Aux 2 sem." },
+  { id: "paie", label: "À ma paie" },
 ];
 
-// Inline frequency picker for edit modals
-function FreqPicker({ frm, setFrm, showPaie }) {
+// Inline frequency picker for edit modals (mirrors Recurrents.jsx FreqPicker)
+function FreqPicker({ frm, setFrm }) {
   const isWeekly = frm.frequence === "semaine" || frm.frequence === "2semaines";
+  const twoRefs = frm.frequence === "2semaines" ? (() => {
+    const d1 = computeDateRef(frm.jourSemaine || "Lundi");
+    return [d1, addD(d1, 14)];
+  })() : [];
   return (
     <>
       <div style={{ marginBottom: 10 }}>
         <label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Fréquence</label>
-        <div style={{ display: "flex", gap: 6 }}>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
           {FREQ_OPTIONS.map(f => (
             <button key={f.id} type="button"
-              style={{ flex: 1, padding: "7px 4px", background: frm.frequence === f.id ? BT : SF, border: "1px solid " + (frm.frequence === f.id ? BTB : BR), borderRadius: 8, color: frm.frequence === f.id ? BTT : TX2, fontSize: 11, cursor: "pointer" }}
+              style={{ padding: "7px 10px", background: frm.frequence === f.id ? BT : SF, border: "1px solid " + (frm.frequence === f.id ? BTB : BR), borderRadius: 8, color: frm.frequence === f.id ? BTT : TX2, fontSize: 12, cursor: "pointer" }}
               onClick={() => setFrm(prev => ({
                 ...prev, frequence: f.id,
                 ...(f.id === "2semaines" ? { dateRef: computeDateRef(prev.jourSemaine || "Lundi") } : {}),
@@ -42,36 +54,21 @@ function FreqPicker({ frm, setFrm, showPaie }) {
           ))}
         </div>
       </div>
-      {frm.frequence === "mois" && showPaie && (
-        <div style={{ marginBottom: 10 }}>
-          <label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Quand</label>
-          <div style={{ display: "flex", gap: 6 }}>
-            <button type="button"
-              style={{ flex: 1, padding: "7px 4px", background: frm.jour !== "paie" ? BT : SF, border: "1px solid " + (frm.jour !== "paie" ? BTB : BR), borderRadius: 8, color: frm.jour !== "paie" ? BTT : TX2, fontSize: 11, cursor: "pointer" }}
-              onClick={() => setFrm(f => ({ ...f, jour: typeof f.jour === "number" || f.jour === "fin" ? f.jour : 1 }))}
-            >{frm.jour !== "paie" ? (frm.jour === "fin" ? "Fin du mois" : "Le " + frm.jour) : "Jour du mois"}</button>
-            <button type="button"
-              style={{ flex: 1, padding: "7px 4px", background: frm.jour === "paie" ? BT : SF, border: "1px solid " + (frm.jour === "paie" ? BTB : BR), borderRadius: 8, color: frm.jour === "paie" ? BTT : TX2, fontSize: 11, cursor: "pointer" }}
-              onClick={() => setFrm(f => ({ ...f, jour: "paie" }))}
-            >Paie</button>
-          </div>
-        </div>
-      )}
-      {frm.frequence === "mois" && !showPaie && (
+      {frm.frequence === "mois" && (
         <div style={{ marginBottom: 10 }}>
           <label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Jour du mois</label>
-          <input style={{ width: "100%", padding: "9px 10px", background: SF, border: "1px solid " + BR, borderRadius: 8, color: TX, fontSize: 13, boxSizing: "border-box" }}
-            type="number" min="1" max="31" value={frm.jour}
-            onChange={e => setFrm(f => ({ ...f, jour: +e.target.value }))}
-          />
-        </div>
-      )}
-      {frm.frequence === "mois" && showPaie && frm.jour !== "paie" && (
-        <div style={{ marginBottom: 10 }}>
-          <input style={{ width: "100%", padding: "9px 10px", background: SF, border: "1px solid " + BR, borderRadius: 8, color: TX, fontSize: 13, boxSizing: "border-box" }}
-            type="number" min="1" max="31" value={frm.jour === "fin" ? 31 : frm.jour}
-            onChange={e => setFrm(f => ({ ...f, jour: +e.target.value }))}
-          />
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+            {Array.from({ length: 31 }, (_, i) => i + 1).map(j => (
+              <button key={j} type="button"
+                style={{ width: 36, height: 36, background: frm.jour === j ? BT : SF, border: "1px solid " + (frm.jour === j ? BTB : BR), borderRadius: 8, color: frm.jour === j ? BTT : TX2, fontSize: 12, cursor: "pointer", flexShrink: 0 }}
+                onClick={() => setFrm(f => ({ ...f, jour: j }))}
+              >{j}</button>
+            ))}
+            <button type="button"
+              style={{ padding: "0 10px", height: 36, background: frm.jour === "fin" ? BT : SF, border: "1px solid " + (frm.jour === "fin" ? BTB : BR), borderRadius: 8, color: frm.jour === "fin" ? BTT : TX2, fontSize: 11, cursor: "pointer" }}
+              onClick={() => setFrm(f => ({ ...f, jour: "fin" }))}
+            >Dernier du mois</button>
+          </div>
         </div>
       )}
       {isWeekly && (
@@ -89,6 +86,22 @@ function FreqPicker({ frm, setFrm, showPaie }) {
             ))}
           </div>
         </div>
+      )}
+      {frm.frequence === "2semaines" && (
+        <div style={{ marginBottom: 10 }}>
+          <label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Quelle semaine est la tienne ?</label>
+          <div style={{ display: "flex", gap: 6 }}>
+            {twoRefs.map(d => (
+              <button key={d} type="button"
+                style={{ flex: 1, padding: "8px 6px", background: frm.dateRef === d ? BT : SF, border: "1px solid " + (frm.dateRef === d ? BTB : BR), borderRadius: 8, color: frm.dateRef === d ? BTT : TX2, fontSize: 12, cursor: "pointer" }}
+                onClick={() => setFrm(f => ({ ...f, dateRef: d }))}
+              >{fmtRef(d)}</button>
+            ))}
+          </div>
+        </div>
+      )}
+      {frm.frequence === "paie" && (
+        <p style={{ fontSize: 12, color: TX3, margin: "0 0 10px", fontStyle: "italic" }}>Le montant sera déduit automatiquement à chaque paie.</p>
       )}
     </>
   );
@@ -162,7 +175,7 @@ function PieChart({ histItems, mo, cats }) {
   );
 }
 
-function BarChart({ histItems, months, onClickMo, txs, paie, paieM, recs, rrecs, dettes, projets }) {
+function BarChart({ months, onClickMo, txs, paie, paieM, recs, rrecs, dettes, projets }) {
   const data = useMemo(() => {
     return [...months].reverse().slice(0, 12).reverse().map(mo => {
       const [my, mm] = mo.split("-").map(Number);
@@ -278,7 +291,7 @@ export default function Analyse({
               {cats.map(c => <option key={c.id} value={c.id}>{c.icon} {c.label}</option>)}
             </select>
           </div>
-          <FreqPicker frm={editRecForm} setFrm={setEditRecForm} showPaie={true} />
+          <FreqPicker frm={editRecForm} setFrm={setEditRecForm} />
           <SaveCancel onS={saveRec} onC={() => setEditRec(null)} />
           <DelBtn onClick={() => { delRec(editRec.id); setEditRec(null); }} />
         </Modal>
@@ -289,7 +302,7 @@ export default function Analyse({
         <Modal title="Modifier l'autre revenu">
           <div style={{ marginBottom: 10 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Description</label><input autoFocus style={inp} value={editRrForm.desc} onChange={e => setEditRrForm(f => ({ ...f, desc: e.target.value }))} /></div>
           <div style={{ marginBottom: 10 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Montant</label><input style={inp} type="number" value={editRrForm.amount} onChange={e => setEditRrForm(f => ({ ...f, amount: e.target.value }))} /></div>
-          <FreqPicker frm={editRrForm} setFrm={setEditRrForm} showPaie={false} />
+          <FreqPicker frm={editRrForm} setFrm={setEditRrForm} />
           <SaveCancel onS={saveRr} onC={() => setEditRr(null)} />
           <DelBtn onClick={() => { delRr(editRr.id); setEditRr(null); }} />
         </Modal>

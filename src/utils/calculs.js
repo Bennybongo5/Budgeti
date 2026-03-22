@@ -85,7 +85,7 @@ export function calcProportionalMonth(paie,moStart,moEnd,paieM,recs,rrecs,dettes
   const lastDay=ld(my,mm);
   // "per paie" items: proportional per period | "per day" items: once if day falls in month
   // Monthly recs split by "paie" (proportional) vs fixed day; weekly/biweekly counted by occurrences
-  const recPaieSum=recs.filter(r=>(!r.frequence||r.frequence==="mois")&&r.jour==="paie").reduce((s,r)=>s+r.amount,0);
+  const recPaieSum=recs.filter(r=>r.frequence==="paie"||((!r.frequence||r.frequence==="mois")&&r.jour==="paie")).reduce((s,r)=>s+r.amount,0);
   let recDaySum=recs.filter(r=>(!r.frequence||r.frequence==="mois")&&r.jour!=="paie").reduce((s,r)=>{const j=r.jour==="fin"?lastDay:Math.min(+r.jour||1,lastDay);return ymd(my,mm,j)>=moStart&&ymd(my,mm,j)<=moEnd?s+r.amount:s;},0);
   recs.filter(r=>r.frequence==="semaine"||r.frequence==="2semaines").forEach(r=>{recDaySum+=r.amount*getRecOccurrencesInMonth(r,my,mm).length;});
   let rrDaySum=rrecs.filter(r=>!r.frequence||r.frequence==="mois").reduce((s,r)=>{const j=Math.min(+r.jour||1,lastDay);return ymd(my,mm,j)>=moStart&&ymd(my,mm,j)<=moEnd?s+r.amount:s;},0);

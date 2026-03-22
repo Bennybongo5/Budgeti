@@ -22,22 +22,35 @@ const FREQ_OPTIONS = [
   { id: "mois", label: "Mensuel" },
   { id: "semaine", label: "Hebdo" },
   { id: "2semaines", label: "Aux 2 sem." },
+  { id: "paie", label: "À ma paie" },
 ];
 
-const jourLabel = j => j === "paie" ? "Paie" : j === "fin" ? "Fin du mois" : "Le " + j;
+// Format a YYYY-MM-DD date as "Lun. 24 mars"
+function fmtRef(d) {
+  const [y, m, day] = d.split("-").map(Number);
+  const date = new Date(y, m - 1, day);
+  const dayNames = ["Dim.", "Lun.", "Mar.", "Mer.", "Jeu.", "Ven.", "Sam."];
+  const moNames = ["jan.", "fév.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."];
+  return dayNames[date.getDay()] + " " + day + " " + moNames[m - 1];
+}
 
-// Reusable frequency + day-of-week picker block
-function FreqPicker({ frm, setFrm, showJourMoisBtn, onOpenJourPicker, addType }) {
+// Reusable frequency picker: monthly day grid, weekly day-of-week, biweekly + 2 ref dates, paie
+function FreqPicker({ frm, setFrm }) {
   const isWeekly = frm.frequence === "semaine" || frm.frequence === "2semaines";
+  const twoRefs = frm.frequence === "2semaines" ? (() => {
+    const d1 = computeDateRef(frm.jourSemaine || "Lundi");
+    return [d1, addD(d1, 14)];
+  })() : [];
+
   return (
     <>
       {/* Frequency selector */}
       <div style={{ marginBottom: 10 }}>
         <label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Fréquence</label>
-        <div style={{ display: "flex", gap: 6 }}>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
           {FREQ_OPTIONS.map(f => (
             <button key={f.id} type="button"
-              style={{ flex: 1, padding: "7px 4px", background: frm.frequence === f.id ? BT : SF, border: "1px solid " + (frm.frequence === f.id ? BTB : BR), borderRadius: 8, color: frm.frequence === f.id ? BTT : TX2, fontSize: 11, cursor: "pointer" }}
+              style={{ padding: "7px 10px", background: frm.frequence === f.id ? BT : SF, border: "1px solid " + (frm.frequence === f.id ? BTB : BR), borderRadius: 8, color: frm.frequence === f.id ? BTT : TX2, fontSize: 12, cursor: "pointer" }}
               onClick={() => setFrm(prev => ({
                 ...prev, frequence: f.id,
                 ...(f.id === "2semaines" ? { dateRef: computeDateRef(prev.jourSemaine || "Lundi") } : {}),
@@ -47,31 +60,22 @@ function FreqPicker({ frm, setFrm, showJourMoisBtn, onOpenJourPicker, addType })
         </div>
       </div>
 
-      {/* Monthly: jour du mois / paie (dépense) or jour number (revenu) */}
-      {frm.frequence === "mois" && addType === "depense" && showJourMoisBtn && (
-        <div style={{ marginBottom: 10 }}>
-          <label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Quand</label>
-          <div style={{ display: "flex", gap: 6 }}>
-            <button type="button"
-              style={{ flex: 1, padding: "7px 4px", background: frm.jour !== "paie" ? BT : SF, border: "1px solid " + (frm.jour !== "paie" ? BTB : BR), borderRadius: 8, color: frm.jour !== "paie" ? BTT : TX2, fontSize: 11, cursor: "pointer" }}
-              onClick={() => { setFrm(f => ({ ...f, jour: typeof f.jour === "number" || f.jour === "fin" ? f.jour : 1 })); onOpenJourPicker(); }}
-            >{frm.jour !== "paie" ? jourLabel(frm.jour) : "Jour du mois"}</button>
-            <button type="button"
-              style={{ flex: 1, padding: "7px 4px", background: frm.jour === "paie" ? BT : SF, border: "1px solid " + (frm.jour === "paie" ? BTB : BR), borderRadius: 8, color: frm.jour === "paie" ? BTT : TX2, fontSize: 11, cursor: "pointer" }}
-              onClick={() => setFrm(f => ({ ...f, jour: "paie" }))}
-            >Paie</button>
-          </div>
-        </div>
-      )}
-
-      {/* Monthly: jour number input (revenu) */}
-      {frm.frequence === "mois" && addType === "revenu" && (
+      {/* Monthly: inline day-of-month grid (1–31 + Dernier du mois) */}
+      {frm.frequence === "mois" && (
         <div style={{ marginBottom: 10 }}>
           <label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Jour du mois</label>
-          <input style={{ width: "100%", padding: "9px 10px", background: SF, border: "1px solid " + BR, borderRadius: 8, color: TX, fontSize: 13, boxSizing: "border-box" }}
-            type="number" min="1" max="31" value={frm.jour}
-            onChange={e => setFrm(f => ({ ...f, jour: +e.target.value }))}
-          />
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+            {Array.from({ length: 31 }, (_, i) => i + 1).map(j => (
+              <button key={j} type="button"
+                style={{ width: 36, height: 36, background: frm.jour === j ? BT : SF, border: "1px solid " + (frm.jour === j ? BTB : BR), borderRadius: 8, color: frm.jour === j ? BTT : TX2, fontSize: 12, cursor: "pointer", flexShrink: 0 }}
+                onClick={() => setFrm(f => ({ ...f, jour: j }))}
+              >{j}</button>
+            ))}
+            <button type="button"
+              style={{ padding: "0 10px", height: 36, background: frm.jour === "fin" ? BT : SF, border: "1px solid " + (frm.jour === "fin" ? BTB : BR), borderRadius: 8, color: frm.jour === "fin" ? BTT : TX2, fontSize: 11, cursor: "pointer" }}
+              onClick={() => setFrm(f => ({ ...f, jour: "fin" }))}
+            >Dernier du mois</button>
+          </div>
         </div>
       )}
 
@@ -92,6 +96,26 @@ function FreqPicker({ frm, setFrm, showJourMoisBtn, onOpenJourPicker, addType })
           </div>
         </div>
       )}
+
+      {/* Biweekly: pick which week is the user's reference */}
+      {frm.frequence === "2semaines" && (
+        <div style={{ marginBottom: 10 }}>
+          <label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Quelle semaine est la tienne ?</label>
+          <div style={{ display: "flex", gap: 6 }}>
+            {twoRefs.map(d => (
+              <button key={d} type="button"
+                style={{ flex: 1, padding: "8px 6px", background: frm.dateRef === d ? BT : SF, border: "1px solid " + (frm.dateRef === d ? BTB : BR), borderRadius: 8, color: frm.dateRef === d ? BTT : TX2, fontSize: 12, cursor: "pointer" }}
+                onClick={() => setFrm(f => ({ ...f, dateRef: d }))}
+              >{fmtRef(d)}</button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* À ma paie: info message */}
+      {frm.frequence === "paie" && (
+        <p style={{ fontSize: 12, color: TX3, margin: "0 0 10px", fontStyle: "italic" }}>Le montant sera déduit automatiquement à chaque paie.</p>
+      )}
     </>
   );
 }
@@ -104,8 +128,6 @@ export default function Recurrents({
   totRec, totRR,
   inp, card, tbtn, bigBtn, CatSel,
 }) {
-  const [showJourPicker, setShowJourPicker] = useState(false);
-  const [jourPickerTarget, setJourPickerTarget] = useState("add");
   const [addOpen, setAddOpen] = useState(false);
 
   const handleAddBtn = type => {
@@ -124,9 +146,7 @@ export default function Recurrents({
         <Modal title="Modifier la charge">
           <div style={{ marginBottom: 10 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Description</label><input style={inp} value={eRecFrm.desc} onChange={e => setERecFrm(f => ({ ...f, desc: e.target.value }))} /></div>
           <div style={{ marginBottom: 10 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Montant</label><input style={inp} type="number" value={eRecFrm.amount} onChange={e => setERecFrm(f => ({ ...f, amount: e.target.value }))} /></div>
-          <FreqPicker frm={eRecFrm} setFrm={setERecFrm} showJourMoisBtn addType="depense"
-            onOpenJourPicker={() => { setJourPickerTarget("editRec"); setShowJourPicker(true); }}
-          />
+          <FreqPicker frm={eRecFrm} setFrm={setERecFrm} />
           <div style={{ marginBottom: 14 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Catégorie</label><CatSel value={eRecFrm.cat} onChange={v => setERecFrm(f => ({ ...f, cat: v }))} /></div>
           <SaveCancel onS={() => { addRec(); setERecMod(false); }} onC={() => { setERecId(null); setERecMod(false); }} />
           <DelBtn onClick={() => delRec(eRecId)} />
@@ -138,34 +158,11 @@ export default function Recurrents({
         <Modal title="Modifier l'autre revenu">
           <div style={{ marginBottom: 10 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Description</label><input style={inp} value={rrFrm.desc} onChange={e => setRrFrm(f => ({ ...f, desc: e.target.value }))} /></div>
           <div style={{ marginBottom: 10 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Montant</label><input style={inp} type="number" value={rrFrm.amount} onChange={e => setRrFrm(f => ({ ...f, amount: e.target.value }))} /></div>
-          <FreqPicker frm={rrFrm} setFrm={setRrFrm} showJourMoisBtn={false} addType="revenu"
-            onOpenJourPicker={() => {}}
-          />
+          <FreqPicker frm={rrFrm} setFrm={setRrFrm} />
           <SaveCancel onS={() => { addRr(); setERrMod(false); }} onC={() => { setERrId(null); setERrMod(false); }} />
           <DelBtn onClick={() => delRr(eRrId)} />
         </Modal>
       )}
-
-      {/* Day-of-month picker modal */}
-      {showJourPicker && (() => {
-        const isEdit = jourPickerTarget === "editRec";
-        const curJour = isEdit ? eRecFrm.jour : recFrm.jour;
-        const setJour = j => isEdit ? setERecFrm(f => ({ ...f, jour: j })) : setRecFrm(f => ({ ...f, jour: j }));
-        return (
-          <Modal title="Choix de la journée">
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 14 }}>
-              {Array.from({ length: 31 }, (_, i) => i + 1).map(j => (
-                <button key={j} type="button" onClick={() => { setJour(j); setShowJourPicker(false); }}
-                  style={{ width: 46, height: 46, background: curJour === j ? BT : SF, border: "1px solid " + (curJour === j ? BTB : BR), borderRadius: 10, color: curJour === j ? BTT : TX, fontSize: 14, fontWeight: 500, cursor: "pointer" }}>{j}</button>
-              ))}
-              <button type="button" onClick={() => { setJour("fin"); setShowJourPicker(false); }}
-                style={{ padding: "0 14px", height: 46, background: curJour === "fin" ? BT : SF, border: "1px solid " + (curJour === "fin" ? BTB : BR), borderRadius: 10, color: curJour === "fin" ? BTT : TX, fontSize: 12, cursor: "pointer" }}>Fin du mois</button>
-            </div>
-            <button type="button" onClick={() => setShowJourPicker(false)}
-              style={{ width: "100%", padding: "11px", background: SF2, border: "1px solid " + BR, borderRadius: 10, color: TX2, fontSize: 13, cursor: "pointer" }}>Annuler</button>
-          </Modal>
-        );
-      })()}
 
       {/* Add buttons — small, left-aligned, Dashboard colors */}
       <p style={{ fontSize: 12, fontWeight: 500, color: TX2, margin: "0 0 6px" }}>Ajouter</p>
@@ -203,13 +200,7 @@ export default function Recurrents({
           </div>
 
           {/* Frequency + day picker */}
-          <FreqPicker
-            frm={curFrm}
-            setFrm={setCurFrm}
-            showJourMoisBtn={addType === "depense"}
-            addType={addType}
-            onOpenJourPicker={() => { setJourPickerTarget("add"); setShowJourPicker(true); }}
-          />
+          <FreqPicker frm={curFrm} setFrm={setCurFrm} />
 
           {/* Category (depense only) */}
           {addType === "depense" && (
@@ -250,7 +241,7 @@ export default function Recurrents({
           {recs.length === 0 && <p style={{ fontSize: 12, color: TX3, textAlign: "center", padding: "10px 0" }}>Aucune</p>}
           {[...recs].sort((a, b) => (a.jour === "fin" ? 32 : a.jour) - (b.jour === "fin" ? 32 : b.jour)).map(r => {
             const c = cats.find(x => x.id === r.cat) || { icon: "📦", label: r.cat };
-            const freqLabel = r.frequence === "semaine" ? "Chaque " + (r.jourSemaine || "") : r.frequence === "2semaines" ? "/ 2 sem. " + (r.jourSemaine || "") : r.jour === "paie" ? "Paie" : r.jour === "fin" ? "Fin du mois" : "Le " + r.jour;
+            const freqLabel = r.frequence === "paie" ? "À ma paie" : r.frequence === "semaine" ? "Chaque " + (r.jourSemaine || "") : r.frequence === "2semaines" ? "/ 2 sem. " + (r.jourSemaine || "") : r.jour === "paie" ? "À ma paie" : r.jour === "fin" ? "Dernier du mois" : "Le " + r.jour;
             return (
               <div key={r.id} style={{ background: SF, border: "1px solid " + BR, borderRadius: 10, padding: "9px 10px", marginBottom: 6, display: "flex", alignItems: "center", gap: 6, overflow: "hidden" }}>
                 <span style={{ fontSize: 14, flexShrink: 0 }}>{c.icon}</span>
@@ -270,7 +261,7 @@ export default function Recurrents({
           <p style={{ fontSize: 12, fontWeight: 500, color: GN, margin: "0 0 8px" }}>Autres revenus</p>
           {rrecs.length === 0 && <p style={{ fontSize: 12, color: TX3, textAlign: "center", padding: "10px 0" }}>Aucun</p>}
           {[...rrecs].sort((a, b) => a.jour - b.jour).map(r => {
-            const freqLabel = r.frequence === "semaine" ? "Chaque " + (r.jourSemaine || "") : r.frequence === "2semaines" ? "/ 2 sem. " + (r.jourSemaine || "") : "Le " + r.jour;
+            const freqLabel = r.frequence === "paie" ? "À ma paie" : r.frequence === "semaine" ? "Chaque " + (r.jourSemaine || "") : r.frequence === "2semaines" ? "/ 2 sem. " + (r.jourSemaine || "") : r.jour === "fin" ? "Dernier du mois" : "Le " + r.jour;
             return (
               <div key={r.id} style={{ background: SF, border: "1px solid " + BR, borderRadius: 10, padding: "9px 10px", marginBottom: 6, display: "flex", alignItems: "center", gap: 6, overflow: "hidden" }}>
                 <span style={{ fontSize: 14, flexShrink: 0 }}>💰</span>
