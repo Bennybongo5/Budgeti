@@ -430,7 +430,7 @@ export default function Dashboard({
       <div style={{ marginBottom: 8 }}>
         {txs.length === 0 && <p style={{ fontSize: 13, color: TX3, textAlign: "center", padding: "10px 0" }}>Aucune transaction.</p>}
         {[...txs].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 5).map(x => <TxRow key={x.id} x={x} cats={cats} trow={trow} ico={ico} startETx={startETx} />)}
-        {txs.length > 5 && <button onClick={() => navigate("historique")} style={{ width: "100%", marginTop: 8, padding: "9px", background: "none", border: "1px solid " + BR2, borderRadius: 10, color: TX3, fontSize: 12, cursor: "pointer" }}>Voir tout l historique</button>}
+
       </div>
     </div>
   );
