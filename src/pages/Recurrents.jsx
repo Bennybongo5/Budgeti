@@ -248,7 +248,7 @@ export default function Recurrents({
         <div style={{ minWidth: 0 }}>
           <p style={{ fontSize: 12, fontWeight: 500, color: RD, margin: "0 0 8px" }}>Dépenses</p>
           {recs.length === 0 && <p style={{ fontSize: 12, color: TX3, textAlign: "center", padding: "10px 0" }}>Aucune</p>}
-          {[...recs].sort((a, b) => (a.jour === "fin" ? 32 : a.jour) - (b.jour === "fin" ? 32 : b.jour)).map(r => {
+          {[...recs].filter(r => !r.dateFin).sort((a, b) => (a.jour === "fin" ? 32 : a.jour) - (b.jour === "fin" ? 32 : b.jour)).map(r => {
             const c = cats.find(x => x.id === r.cat) || { icon: "📦", label: r.cat };
             const freqLabel = r.frequence === "paie" ? "À ma paie" : r.frequence === "semaine" ? "Chaque " + (r.jourSemaine || "") : r.frequence === "2semaines" ? "/ 2 sem. " + (r.jourSemaine || "") : r.jour === "paie" ? "À ma paie" : r.jour === "fin" ? "Dernier du mois" : "Le " + r.jour;
             return (
@@ -269,7 +269,7 @@ export default function Recurrents({
         <div style={{ minWidth: 0 }}>
           <p style={{ fontSize: 12, fontWeight: 500, color: GN, margin: "0 0 8px" }}>Autres revenus</p>
           {rrecs.length === 0 && <p style={{ fontSize: 12, color: TX3, textAlign: "center", padding: "10px 0" }}>Aucun</p>}
-          {[...rrecs].sort((a, b) => a.jour - b.jour).map(r => {
+          {[...rrecs].filter(r => !r.dateFin).sort((a, b) => a.jour - b.jour).map(r => {
             const freqLabel = r.frequence === "paie" ? "À ma paie" : r.frequence === "semaine" ? "Chaque " + (r.jourSemaine || "") : r.frequence === "2semaines" ? "/ 2 sem. " + (r.jourSemaine || "") : r.jour === "fin" ? "Dernier du mois" : "Le " + r.jour;
             return (
               <div key={r.id} style={{ background: SF, border: "1px solid " + BR, borderRadius: 10, padding: "9px 10px", marginBottom: 6, display: "flex", alignItems: "center", gap: 6, overflow: "hidden" }}>

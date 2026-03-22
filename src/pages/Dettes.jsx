@@ -142,8 +142,8 @@ export default function Dettes({
               <button style={{ flex: 1, padding: "10px", background: SF, border: "1px solid " + BR, borderRadius: 10, color: TX2, fontSize: 13, cursor: "pointer" }} onClick={() => setPaiType("manuel")}>Unique</button>
             </div>
             {dette.paiements.length === 0 && (dette.paiementsAuto || []).filter(x => +x.montant > 0).length === 0 && <p style={{ textAlign: "center", color: TX3, fontSize: 13, padding: "10px 0" }}>Aucun paiement.</p>}
-            {(dette.paiementsAuto || []).filter(x => +x.montant > 0).length > 0 && <p style={{ fontSize: 11, color: TX3, margin: "4px 0 2px", fontWeight: 500 }}>Mensuels</p>}
-            {(dette.paiementsAuto || []).filter(x => +x.montant > 0).map((x, i) => (
+            {(dette.paiementsAuto || []).filter(x => +x.montant > 0 && !x.dateFin).length > 0 && <p style={{ fontSize: 11, color: TX3, margin: "4px 0 2px", fontWeight: 500 }}>Mensuels</p>}
+            {(dette.paiementsAuto || []).filter(x => +x.montant > 0 && !x.dateFin).map((x, i) => (
               <div key={"auto" + i} style={trow}>
                 <div style={ico}>🔁</div>
                 <div style={{ flex: 1 }}><p style={{ fontSize: 13, color: TX, margin: 0, fontWeight: 500 }}>{fmt(+x.montant)}</p><p style={{ fontSize: 11, color: TX3, margin: 0 }}>{x.jour === "paie" ? "Paie" : x.jour === "fin" ? "Fin du mois" : "Le " + x.jour}</p></div>

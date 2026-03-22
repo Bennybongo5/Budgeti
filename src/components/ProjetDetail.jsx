@@ -135,10 +135,10 @@ function ProjetDetail({
           <p style={{ textAlign: "center", color: TX3, fontSize: 13, padding: "10px 0" }}>Aucun versement.</p>
         )}
 
-        {(projet.paiementsAuto || []).filter((x) => +x.montant > 0).length > 0 && (
+        {(projet.paiementsAuto || []).filter((x) => +x.montant > 0 && !x.dateFin).length > 0 && (
           <p style={{ fontSize: 11, color: TX3, margin: "4px 0 2px", fontWeight: 500 }}>Mensuels</p>
         )}
-        {(projet.paiementsAuto || []).filter((x) => +x.montant > 0).map((x, i) => (
+        {(projet.paiementsAuto || []).filter((x) => +x.montant > 0 && !x.dateFin).map((x, i) => (
           <div key={"auto" + i} style={trow}>
             <div style={ico}>🔁</div>
             <div style={{ flex: 1 }}>

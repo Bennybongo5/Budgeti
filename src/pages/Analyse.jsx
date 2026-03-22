@@ -248,7 +248,8 @@ export default function Analyse({
   cats, filtTx, histItems, months, filCat, selMo,
   setFilCat, setSelMo, startETx,
   txs, paie, paieM, recs, rrecs, dettes, projets,
-  updRecs, updRrecs, delRec, delRr,
+  updRecs, updRrecs,
+  excludeRecOcc, excludeRrOcc, excludeDettePayOcc, excludeProjetPayOcc,
   updDettes, updProjets,
   trow, ico, chip, card, inp,
 }) {
@@ -325,7 +326,7 @@ export default function Analyse({
           </div>
           <FreqPicker frm={editRecForm} setFrm={setEditRecForm} />
           <SaveCancel onS={saveRec} onC={() => setEditRec(null)} />
-          <DelBtn onClick={() => { delRec(editRec.id); setEditRec(null); }} />
+          <DelBtn onClick={() => { excludeRecOcc(editRec.recId, editRec.date.slice(0,7)); setEditRec(null); }} />
         </Modal>
       )}
 
@@ -339,18 +340,14 @@ export default function Analyse({
           )}
           <SaveCancel onS={saveEditPay} onC={() => setEditPay(null)} />
           <DelBtn onClick={() => {
-            if (editPay.source === "dette") {
-              if (editPay.payType === "auto") {
-                updDettes(prev => prev.map(d => d.id === editPay.detteId ? { ...d, paiementsAuto: (d.paiementsAuto || []).filter(pa => pa.id !== editPay.paiId) } : d));
-              } else {
-                updDettes(prev => prev.map(d => d.id === editPay.detteId ? { ...d, paiements: d.paiements.filter(p => p.id !== editPay.paiId) } : d));
-              }
+            if (editPay.payType === "auto") {
+              // Exclude only this month's occurrence, keep the rule
+              if (editPay.source === "dette") excludeDettePayOcc(editPay.detteId, editPay.paiId, editPay.date.slice(0,7));
+              else excludeProjetPayOcc(editPay.projetId, editPay.paiId, editPay.date.slice(0,7));
             } else {
-              if (editPay.payType === "auto") {
-                updProjets(prev => prev.map(p => p.id === editPay.projetId ? { ...p, paiementsAuto: (p.paiementsAuto || []).filter(pa => pa.id !== editPay.paiId) } : p));
-              } else {
-                updProjets(prev => prev.map(p => p.id === editPay.projetId ? { ...p, versements: p.versements.filter(v => v.id !== editPay.versId) } : p));
-              }
+              // Manual payment: delete the actual entry
+              if (editPay.source === "dette") updDettes(prev => prev.map(d => d.id === editPay.detteId ? { ...d, paiements: d.paiements.filter(p => p.id !== editPay.paiId) } : d));
+              else updProjets(prev => prev.map(p => p.id === editPay.projetId ? { ...p, versements: p.versements.filter(v => v.id !== editPay.versId) } : p));
             }
             setEditPay(null);
           }} />
@@ -364,7 +361,7 @@ export default function Analyse({
           <div style={{ marginBottom: 10 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Montant</label><input style={inp} type="number" value={editRrForm.amount} onChange={e => setEditRrForm(f => ({ ...f, amount: e.target.value }))} /></div>
           <FreqPicker frm={editRrForm} setFrm={setEditRrForm} />
           <SaveCancel onS={saveRr} onC={() => setEditRr(null)} />
-          <DelBtn onClick={() => { delRr(editRr.id); setEditRr(null); }} />
+          <DelBtn onClick={() => { excludeRrOcc(editRr.rrId, editRr.date.slice(0,7)); setEditRr(null); }} />
         </Modal>
       )}
 
