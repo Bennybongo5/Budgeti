@@ -318,27 +318,29 @@ export default function Analyse({
         const moStart = ymd(cmy, cmm, 1);
         const moEnd = ymd(cmy, cmm, ld(cmy, cmm));
         const prop = calcProportionalMonth(paie, moStart, moEnd, paieM, recs, rrecs, dettes, projets);
-        const totPaie = txs.filter(x => x.type === "revenu" && x.desc === "Paie" && x.date.startsWith(chartMo)).reduce((s, x) => s + x.amount, 0);
         const totArgentRecu = txs.filter(x => x.type === "revenu" && x.desc !== "Paie" && x.date.startsWith(chartMo)).reduce((s, x) => s + x.amount, 0);
-        const revTotal = totPaie + prop.totRR + totArgentRecu;
-        const depTotal = txs.filter(x => x.type === "depense" && x.date.startsWith(chartMo)).reduce((s, x) => s + x.amount, 0) + prop.totRec + prop.totDette + prop.totProjet;
+        const totDep = txs.filter(x => x.type === "depense" && x.date.startsWith(chartMo)).reduce((s, x) => s + x.amount, 0);
+        const revTotal = prop.totPaie + prop.totRR + totArgentRecu;
+        const depTotal = totDep + prop.totRec + prop.totDette + prop.totProjet;
+        const solde = revTotal - depTotal;
         return (
-          <Modal title={"Dépenses — " + moLabel(chartMo)} onClose={() => setChartMo(null)}>
+          <Modal title={"Vue mensuelle — " + moLabel(chartMo)} onClose={() => setChartMo(null)}>
             <div style={{ display: "flex", gap: 6, marginBottom: 6 }}>
               <div style={{ flex: 1, padding: "6px 10px", background: "rgba(90,160,60,0.08)", border: "1px solid rgba(90,160,60,0.2)", borderRadius: 8 }}>
                 <p style={{ fontSize: 10, color: TX3, margin: "0 0 2px" }}>Revenus</p>
-                <p style={{ fontSize: 13, fontWeight: 600, color: GN, margin: 0 }}>{fmt(revTotal)}</p>
+                <p style={{ fontSize: 13, fontWeight: 600, color: GN, margin: 0 }}>+{fmt(revTotal)}</p>
               </div>
               <div style={{ flex: 1, padding: "6px 10px", background: "rgba(200,80,80,0.08)", border: "1px solid rgba(200,80,80,0.2)", borderRadius: 8 }}>
                 <p style={{ fontSize: 10, color: TX3, margin: "0 0 2px" }}>Dépenses</p>
-                <p style={{ fontSize: 13, fontWeight: 600, color: RD, margin: 0 }}>{fmt(depTotal)}</p>
+                <p style={{ fontSize: 13, fontWeight: 600, color: RD, margin: 0 }}>-{fmt(depTotal)}</p>
               </div>
             </div>
             <div style={{ padding: "6px 10px", background: SF2, border: "1px solid " + BR, borderRadius: 8, marginBottom: 14 }}>
-              <p style={{ fontSize: 10, color: TX3, margin: "0 0 2px" }}>Solde</p>
-              <p style={{ fontSize: 13, fontWeight: 600, color: revTotal - depTotal >= 0 ? GN : RD, margin: 0 }}>{revTotal - depTotal >= 0 ? "+" : ""}{fmt(revTotal - depTotal)}</p>
+              <p style={{ fontSize: 10, color: TX3, margin: "0 0 2px" }}>Solde du mois</p>
+              <p style={{ fontSize: 13, fontWeight: 600, color: solde >= 0 ? GN : RD, margin: 0 }}>{solde >= 0 ? "+" : ""}{fmt(solde)}</p>
             </div>
-            <PieChart histItems={histItems} mo={chartMo} cats={cats} />
+            <p style={{ fontSize: 12, fontWeight: 500, color: TX2, margin: "0 0 8px" }}>Dépenses par catégorie</p>
+            <PieChart histItems={txs} mo={chartMo} cats={cats} />
             <button style={{ width: "100%", marginTop: 16, padding: "11px", background: BT, border: "1px solid " + BTB, borderRadius: 10, color: BTT, fontSize: 13, fontWeight: 500, cursor: "pointer" }} onClick={() => setChartMo(null)}>Fermer</button>
           </Modal>
         );
@@ -363,10 +365,9 @@ export default function Analyse({
         // For recurring items, resolve the original rec/rrec to enable inline editing
         let onEdit;
         if (x.source === "rec" || x.source === "rr") {
-          const recId = parseInt(x.id.split("-")[1]);
           const original = x.source === "rec"
-            ? recs.find(r => r.id === recId)
-            : rrecs.find(r => r.id === recId);
+            ? recs.find(r => r.id === x.recId)
+            : rrecs.find(r => r.id === x.rrId);
           if (original) {
             onEdit = () => x.source === "rec" ? openEditRec(original) : openEditRr(original);
           }

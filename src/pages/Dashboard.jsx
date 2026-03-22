@@ -146,7 +146,7 @@ export default function Dashboard({
       return [lbl, ...vals];
     });
     const sep = [<div key="sep" style={{ gridColumn: "1 / " + (periodes.length + 2), borderTop: "0.5px solid " + BR2, margin: "3px 0" }} />];
-    const rl = <span key="rl" style={{ fontSize: 11, fontWeight: 500, color: TX, whiteSpace: "nowrap" }}>Reste libre</span>;
+    const rl = <span key="rl" style={{ fontSize: 11, fontWeight: 500, color: TX, whiteSpace: "nowrap" }}>Solde</span>;
     const rv = periodes.map((p, i) => (
       <div key={"rv" + i} style={{ textAlign: "center", background: !p.hasPaie ? SF : p.reste >= 0 ? BT : "var(--c-rd-light)", border: "1px solid " + (!p.hasPaie ? BR : p.reste >= 0 ? BTB : "var(--c-rd-light-b)"), borderRadius: 8, padding: "4px 3px" }}>
         <p style={{ fontSize: 12, fontWeight: 500, color: !p.hasPaie ? TX3 : p.reste >= 0 ? BTT : RD, margin: 0 }}>{p.hasPaie ? fmt(p.reste) : "—"}</p>
@@ -256,15 +256,16 @@ export default function Dashboard({
               <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("depenses")}><StatBox label="Dépenses" value={"-" + fmt(curPeriode.deps)} color={RD} /></div>
             </div>
             <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
-              <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("argentRecu")}><StatBox label="Argent reçu" value={"+" + fmt(curPeriode.aRev)} color={GN} /></div>
+              <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("rrecs")}><StatBox label="Autres revenus" value={"+" + fmt(curPeriode.rrP)} color={GN} /></div>
               <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("recs")}><StatBox label="Paiements fixes" value={"-" + fmt(curPeriode.ch)} color={RD} /></div>
             </div>
             <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
+              <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("argentRecu")}><StatBox label="Argent reçu" value={"+" + fmt(curPeriode.aRev)} color={GN} /></div>
               <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("dettes")}><StatBox label="Paiements dettes" value={"-" + fmt(curPeriode.detP)} color={RD} /></div>
-              <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("projets")}><StatBox label="Vers. projets" value={"-" + fmt(curPeriode.prjP)} color={RD} /></div>
             </div>
             <div style={{ display: "flex", gap: 10, marginBottom: 12 }}>
-              <StatBox label="Reste libre" value={fmt(curPeriode.reste)} color={curPeriode.reste >= 0 ? GN : RD} />
+              <StatBox label="Solde" value={fmt(curPeriode.reste)} color={curPeriode.reste >= 0 ? GN : RD} />
+              <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setStatModal("projets")}><StatBox label="Vers. projets" value={"-" + fmt(curPeriode.prjP)} color={RD} /></div>
             </div>
           </div>
         ) : (
