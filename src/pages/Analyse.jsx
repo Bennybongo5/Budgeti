@@ -182,10 +182,9 @@ function BarChart({ months, onClickMo, txs, paie, paieM, recs, rrecs, dettes, pr
       const moStart = ymd(my, mm, 1);
       const moEnd = ymd(my, mm, ld(my, mm));
       const prop = calcProportionalMonth(paie, moStart, moEnd, paieM, recs, rrecs, dettes, projets);
-      const totPaie = txs.filter(x => x.type === "revenu" && x.desc === "Paie" && x.date.startsWith(mo)).reduce((s, x) => s + x.amount, 0);
       const totArgentRecu = txs.filter(x => x.type === "revenu" && x.desc !== "Paie" && x.date.startsWith(mo)).reduce((s, x) => s + x.amount, 0);
       const totDep = txs.filter(x => x.type === "depense" && x.date.startsWith(mo)).reduce((s, x) => s + x.amount, 0);
-      const rev = totPaie + prop.totRR + totArgentRecu;
+      const rev = prop.totPaie + prop.totRR + totArgentRecu;
       const dep = totDep + prop.totRec + prop.totDette + prop.totProjet;
       return { mo, rev, dep, solde: rev - dep };
     });
