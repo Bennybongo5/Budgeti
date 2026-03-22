@@ -76,16 +76,17 @@ export default function Recurrents({
         );
       })()}
 
-      {/* Colored add buttons — always at the top */}
-      <div style={{ display: "flex", gap: 10, marginBottom: 14 }}>
+      {/* Add buttons — small, left-aligned, same colors as Dashboard action buttons */}
+      <p style={{ fontSize: 12, fontWeight: 500, color: TX2, margin: "0 0 6px" }}>Ajouter</p>
+      <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
         <button
-          style={{ flex: 1, padding: "14px 8px", background: addOpen && addType === "depense" ? "var(--c-dep)" : "var(--c-rd-light)", border: "1px solid var(--c-dep-b)", borderRadius: 12, color: addOpen && addType === "depense" ? "#FFFFFF" : "var(--c-dep-b)", fontSize: 14, fontWeight: 500, cursor: "pointer" }}
+          style={{ padding: "9px 18px", background: "var(--c-dep)", border: "1px solid var(--c-dep-b)", borderRadius: 10, color: "#FFFFFF", fontSize: 13, fontWeight: 500, cursor: "pointer" }}
           onClick={() => handleAddBtn("depense")}
-        >+ Dépense</button>
+        >Dépense</button>
         <button
-          style={{ flex: 1, padding: "14px 8px", background: addOpen && addType === "revenu" ? BT : "var(--c-bt-light)", border: "1px solid " + BTB, borderRadius: 12, color: addOpen && addType === "revenu" ? BTT : BT, fontSize: 14, fontWeight: 500, cursor: "pointer" }}
+          style={{ padding: "9px 18px", background: BT, border: "1px solid " + BTB, borderRadius: 10, color: BTT, fontSize: 13, fontWeight: 500, cursor: "pointer" }}
           onClick={() => handleAddBtn("revenu")}
-        >+ Revenu</button>
+        >Revenu</button>
       </div>
 
       {/* Add form — appears right below the buttons when open */}

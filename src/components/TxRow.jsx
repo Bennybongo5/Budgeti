@@ -1,6 +1,7 @@
 import { fmt, TX, TX3, AC, GN, RD } from "../constants.js";
 
-function TxRow({ x, cats, trow, ico, startETx }) {
+// onEdit: optional callback — when provided, shows an edit button for recurring items
+function TxRow({ x, cats, trow, ico, startETx, onEdit }) {
   const cat = cats.find((c) => c.id === x.cat) || { icon: "📦", label: x.cat };
   const icon = x.source === "dette" ? "📊"
     : x.source === "projet" ? (x.icon || "🎯")
@@ -24,6 +25,8 @@ function TxRow({ x, cats, trow, ico, startETx }) {
       </span>
       {!x.source
         ? <button style={{ background: "none", border: "none", cursor: "pointer", color: AC, fontSize: 14, padding: "2px 4px" }} onClick={() => startETx(x)}>✎</button>
+        : (x.source === "rec" || x.source === "rr") && onEdit
+        ? <button style={{ background: "none", border: "none", cursor: "pointer", color: AC, fontSize: 14, padding: "2px 4px" }} onClick={onEdit}>✎</button>
         : <div style={{ width: 28 }} />}
     </div>
   );

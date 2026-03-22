@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { SF, SF2, BR, BR2, TX, TX2, TX3, GN, RD, BT, BTB, BTT, AC } from "../constants.js";
+import { SF, SF2, BR, BR2, TX, TX2, TX3, GN, RD, BT, BTB, BTT } from "../constants.js";
 import { fmt } from "../constants.js";
 import { ymd, ld } from "../utils/dates.js";
 import { calcProportionalMonth } from "../utils/calculs.js";
@@ -146,8 +146,6 @@ function BarChart({ histItems, months, onClickMo, txs, paie, paieM, recs, rrecs,
   );
 }
 
-const jourLabel = j => j === "paie" ? "À chaque paie" : j === "fin" ? "Fin du mois" : "Le " + j;
-
 export default function Analyse({
   cats, filtTx, histItems, months, filCat, selMo,
   setFilCat, setSelMo, startETx,
@@ -263,54 +261,21 @@ export default function Analyse({
         ))}
       </div>
 
-      {/* Recurring items list with edit/delete — shown when "Récurrents" chip is active */}
-      {filCat === "recurrents" && (recs.length > 0 || rrecs.length > 0) && (
-        <div style={{ marginBottom: 12 }}>
-          <p style={{ fontSize: 12, fontWeight: 500, color: TX2, margin: "8px 0 6px" }}>Gérer les récurrents</p>
-
-          {recs.length > 0 && (
-            <div style={{ marginBottom: 8 }}>
-              <p style={{ fontSize: 11, color: RD, margin: "0 0 5px", fontWeight: 500 }}>Dépenses fixes</p>
-              {[...recs].sort((a, b) => (a.jour === "fin" ? 32 : a.jour === "paie" ? 0 : a.jour) - (b.jour === "fin" ? 32 : b.jour === "paie" ? 0 : b.jour)).map(r => {
-                const cat = cats.find(c => c.id === r.cat) || { icon: "📦" };
-                return (
-                  <div key={r.id} style={{ background: SF, border: "1px solid " + BR, borderRadius: 10, padding: "9px 12px", marginBottom: 6, display: "flex", alignItems: "center", gap: 8 }}>
-                    <span style={{ fontSize: 15 }}>{cat.icon}</span>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ fontSize: 13, color: TX, margin: 0, fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.desc}</p>
-                      <p style={{ fontSize: 11, color: TX3, margin: 0 }}>{jourLabel(r.jour)}</p>
-                    </div>
-                    <span style={{ fontSize: 13, fontWeight: 500, color: RD, flexShrink: 0 }}>-{fmt(r.amount)}</span>
-                    <button onClick={() => openEditRec(r)} style={{ background: "none", border: "1px solid " + BR, borderRadius: 7, padding: "4px 8px", color: AC, fontSize: 13, cursor: "pointer", flexShrink: 0 }}>✎</button>
-                    <button onClick={() => delRec(r.id)} style={{ background: "none", border: "1px solid " + BR, borderRadius: 7, padding: "4px 8px", color: RD, fontSize: 13, cursor: "pointer", flexShrink: 0 }}>🗑</button>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          {rrecs.length > 0 && (
-            <div style={{ marginBottom: 8 }}>
-              <p style={{ fontSize: 11, color: GN, margin: "0 0 5px", fontWeight: 500 }}>Autres revenus</p>
-              {[...rrecs].sort((a, b) => a.jour - b.jour).map(r => (
-                <div key={r.id} style={{ background: SF, border: "1px solid " + BR, borderRadius: 10, padding: "9px 12px", marginBottom: 6, display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ fontSize: 15 }}>💰</span>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ fontSize: 13, color: TX, margin: 0, fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.desc}</p>
-                    <p style={{ fontSize: 11, color: TX3, margin: 0 }}>Le {r.jour} de chaque mois</p>
-                  </div>
-                  <span style={{ fontSize: 13, fontWeight: 500, color: GN, flexShrink: 0 }}>+{fmt(r.amount)}</span>
-                  <button onClick={() => openEditRr(r)} style={{ background: "none", border: "1px solid " + BR, borderRadius: 7, padding: "4px 8px", color: AC, fontSize: 13, cursor: "pointer", flexShrink: 0 }}>✎</button>
-                  <button onClick={() => delRr(r.id)} style={{ background: "none", border: "1px solid " + BR, borderRadius: 7, padding: "4px 8px", color: RD, fontSize: 13, cursor: "pointer", flexShrink: 0 }}>🗑</button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {filtTx.length === 0 && filCat !== "recurrents" && <div style={{ textAlign: "center", color: TX3, padding: "30px 20px", fontSize: 13 }}>Aucune transaction.</div>}
-      {filCat !== "recurrents" && filtTx.map(x => <TxRow key={x.id} x={x} cats={cats} trow={trow} ico={ico} startETx={startETx} />)}
+      {filtTx.length === 0 && <div style={{ textAlign: "center", color: TX3, padding: "30px 20px", fontSize: 13 }}>Aucune transaction.</div>}
+      {filtTx.map(x => {
+        // For recurring items, resolve the original rec/rrec to enable inline editing
+        let onEdit;
+        if (x.source === "rec" || x.source === "rr") {
+          const recId = parseInt(x.id.split("-")[1]);
+          const original = x.source === "rec"
+            ? recs.find(r => r.id === recId)
+            : rrecs.find(r => r.id === recId);
+          if (original) {
+            onEdit = () => x.source === "rec" ? openEditRec(original) : openEditRr(original);
+          }
+        }
+        return <TxRow key={x.id} x={x} cats={cats} trow={trow} ico={ico} startETx={startETx} onEdit={onEdit} />;
+      })}
     </div>
   );
 }
