@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { FREQS, JOURS_SEM, JOURS_MOIS, PAR_PAIE_ROWS, SF, SF2, BR, BR2, TX, TX2, TX3, BT, BTB, BTT, AC, RD, GN } from "../constants.js";
 import { today, fmt, fd, ymd, ld } from "../utils/dates.js";
-import { getPaieBreakdownForMonth } from "../utils/calculs.js";
+import { getPaieBreakdownForMonth, getWeeklyOccurrencesInPeriod } from "../utils/calculs.js";
 import Modal from "../components/Modal.jsx";
 import SaveCancel from "../components/SaveCancel.jsx";
 import StatBox from "../components/StatBox.jsx";
@@ -412,13 +412,31 @@ export default function Dashboard({
       {statModal === "rrecs" && <StatModal
         title={viewMode === "paie" ? "Autres revenus cette période" : "Autres revenus"}
         items={(viewMode === "paie" && curPeriode ? rrecs.filter(recInPeriod) : rrecs.filter(r => (!r.dateFin || curMo < r.dateFin) && !(r.exclusions||[]).includes(curMo)))
-          .map(r => ({ key: r.id, label: r.desc, sub: recFreqLabel(r), montant: r.amount, clr: GN, pfx: "+" }))}
+          .flatMap(r => {
+            // Weekly/biweekly: one row per occurrence in the period
+            if ((r.frequence === "semaine" || r.frequence === "2semaines") && viewMode === "paie" && curPeriode) {
+              const occs = getWeeklyOccurrencesInPeriod(r.frequence, r.jourSemaine, r.dateRef, curPeriode.deb, curPeriode.fin);
+              return occs
+                .filter(d => !(r.exclusions||[]).includes(d.slice(0,7)))
+                .map((d, i) => ({ key: r.id + "_" + i, label: r.desc, sub: fd(d), montant: r.amount, clr: GN, pfx: "+" }));
+            }
+            return [{ key: r.id, label: r.desc, sub: recFreqLabel(r), montant: r.amount, clr: GN, pfx: "+" }];
+          })}
         emptyMsg="Aucun autre revenu cette période." onClose={() => setStatModal(null)} trow={trow}
       />}
       {statModal === "recs" && <StatModal
         title={viewMode === "paie" ? "Paiements fixes cette période" : "Paiements fixes"}
         items={(viewMode === "paie" && curPeriode ? recs.filter(recInPeriod) : recs.filter(r => (!r.dateFin || curMo < r.dateFin) && !(r.exclusions||[]).includes(curMo)))
-          .map(r => ({ key: r.id, label: r.desc, sub: recFreqLabel(r), montant: r.amount, clr: RD, pfx: "-", catId: r.cat }))}
+          .flatMap(r => {
+            // Weekly/biweekly: one row per occurrence in the period
+            if ((r.frequence === "semaine" || r.frequence === "2semaines") && viewMode === "paie" && curPeriode) {
+              const occs = getWeeklyOccurrencesInPeriod(r.frequence, r.jourSemaine, r.dateRef, curPeriode.deb, curPeriode.fin);
+              return occs
+                .filter(d => !(r.exclusions||[]).includes(d.slice(0,7)))
+                .map((d, i) => ({ key: r.id + "_" + i, label: r.desc, sub: fd(d), montant: r.amount, clr: RD, pfx: "-", catId: r.cat }));
+            }
+            return [{ key: r.id, label: r.desc, sub: recFreqLabel(r), montant: r.amount, clr: RD, pfx: "-", catId: r.cat }];
+          })}
         emptyMsg="Aucun paiement fixe cette période." onClose={() => setStatModal(null)} trow={trow} cats={cats}
       />}
 
@@ -427,7 +445,16 @@ export default function Dashboard({
         items={dettes.flatMap(d => [
           ...(d.paiementsAuto || [])
             .filter(p => (!p.dateFin || curMo < p.dateFin) && !(p.exclusions||[]).includes(curMo) && (viewMode === "mois" || !curPeriode || autoPayInPeriod(p)))
-            .map(p => ({ key: p.id, label: d.nom, sub: "Le " + p.jour + " (fixe)", montant: p.montant, clr: RD, pfx: "-" })),
+            .flatMap(p => {
+              // Weekly/biweekly: one row per occurrence in the period
+              if ((p.frequence === "semaine" || p.frequence === "2semaines") && viewMode === "paie" && curPeriode) {
+                const occs = getWeeklyOccurrencesInPeriod(p.frequence, p.jourSemaine, p.dateRef, curPeriode.deb, curPeriode.fin);
+                return occs
+                  .filter(o => !(p.exclusions||[]).includes(o.slice(0,7)))
+                  .map((o, i) => ({ key: p.id + "_" + i, label: d.nom, sub: fd(o), montant: p.montant, clr: RD, pfx: "-" }));
+              }
+              return [{ key: p.id, label: d.nom, sub: p.jour === "paie" ? "À ma paie" : "Le " + p.jour + " (fixe)", montant: p.montant, clr: RD, pfx: "-" }];
+            }),
           ...(d.paiements || [])
             .filter(p => viewMode === "paie" && curPeriode ? inPeriod(p) : p.date.startsWith(curMo))
             .map(p => ({ key: p.id, label: d.nom, sub: fd(p.date), montant: p.montant, clr: RD, pfx: "-" })),
@@ -441,7 +468,16 @@ export default function Dashboard({
         items={projets.flatMap(p => [
           ...(p.paiementsAuto || [])
             .filter(v => (!v.dateFin || curMo <= v.dateFin) && !(v.exclusions||[]).includes(curMo) && (viewMode === "mois" || !curPeriode || autoPayInPeriod(v)))
-            .map(v => ({ key: v.id, label: p.nom, sub: "Le " + v.jour + " (fixe)", montant: v.montant, clr: RD, pfx: "-" })),
+            .flatMap(v => {
+              // Weekly/biweekly: one row per occurrence in the period
+              if ((v.frequence === "semaine" || v.frequence === "2semaines") && viewMode === "paie" && curPeriode) {
+                const occs = getWeeklyOccurrencesInPeriod(v.frequence, v.jourSemaine, v.dateRef, curPeriode.deb, curPeriode.fin);
+                return occs
+                  .filter(o => !(v.exclusions||[]).includes(o.slice(0,7)))
+                  .map((o, i) => ({ key: v.id + "_" + i, label: p.nom, sub: fd(o), montant: v.montant, clr: RD, pfx: "-" }));
+              }
+              return [{ key: v.id, label: p.nom, sub: v.jour === "paie" ? "À ma paie" : "Le " + v.jour + " (fixe)", montant: v.montant, clr: RD, pfx: "-" }];
+            }),
           ...(p.versements || [])
             .filter(v => viewMode === "paie" && curPeriode ? inPeriod(v) : v.date.startsWith(curMo))
             .map(v => ({ key: v.id, label: p.nom, sub: fd(v.date), montant: v.montant, clr: RD, pfx: "-" })),
