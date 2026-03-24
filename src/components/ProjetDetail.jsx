@@ -15,6 +15,14 @@ function ProjetDetail({
 }) {
   const [showJourPicker, setShowJourPicker] = useState(false);
   const jourLabel = j => j === "paie" ? "Paie" : j === "fin" ? "Fin du mois" : "Le " + j;
+  const JOURS_SEMAINE = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
+  const freqLabel = pa => {
+    const f = pa.frequence || "mois";
+    if (f === "paie" || pa.jour === "paie") return "Paie";
+    if (f === "semaine") return "Hebdo – " + (pa.jourSemaine || "");
+    if (f === "2semaines") return "2 sem. – " + (pa.jourSemaine || "");
+    return pa.jour === "fin" ? "Fin du mois" : "Le " + pa.jour;
+  };
   const sp = gSoldeP(projet);
   const pp = gPctP(projet);
   const rest = Math.max(0, projet.objectif - sp);
@@ -84,31 +92,47 @@ function ProjetDetail({
       </div>
 
       {verType && (
-        <Modal title={verType === "fixe" ? "Versement mensuel" : "Versement unique"}>
-          <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
-            <div style={{ flex: 1 }}>
-              <label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Montant (CAD)</label>
-              <input autoFocus style={inp} type="number" placeholder="0.00" value={verFrm.montant} onChange={(e) => setVerFrm((f) => ({ ...f, montant: e.target.value }))} />
-            </div>
-            {verType === "fixe" ? (
-              <div style={{ flex: 1 }}>
-                <label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Quand</label>
-                <div style={{ display: "flex", gap: 6 }}>
-                  <button type="button" style={{ flex: 1, padding: "7px 4px", background: verFrm.jour !== "paie" ? BT : SF, border: "1px solid " + (verFrm.jour !== "paie" ? BTB : BR), borderRadius: 8, color: verFrm.jour !== "paie" ? BTT : TX2, fontSize: 11, cursor: "pointer" }} onClick={() => { setVerFrm(f => ({ ...f, jour: f.jour === "paie" ? 1 : f.jour })); setShowJourPicker(true); }}>{verFrm.jour !== "paie" ? jourLabel(verFrm.jour) : "Jour du mois"}</button>
-                  <button type="button" style={{ flex: 1, padding: "7px 4px", background: verFrm.jour === "paie" ? BT : SF, border: "1px solid " + (verFrm.jour === "paie" ? BTB : BR), borderRadius: 8, color: verFrm.jour === "paie" ? BTT : TX2, fontSize: 11, cursor: "pointer" }} onClick={() => setVerFrm(f => ({ ...f, jour: "paie" }))}>Paie</button>
-                </div>
-              </div>
-            ) : (
-              <div style={{ flex: 1 }}>
-                <label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Date</label>
-                <input style={inp} type="date" value={verFrm.date} onChange={(e) => setVerFrm((f) => ({ ...f, date: e.target.value }))} />
-              </div>
-            )}
+        <Modal title={verType === "fixe" ? "Versement récurrent" : "Versement unique"}>
+          <div style={{ marginBottom: 10 }}>
+            <label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Montant (CAD)</label>
+            <input autoFocus style={inp} type="number" placeholder="0.00" value={verFrm.montant} onChange={(e) => setVerFrm((f) => ({ ...f, montant: e.target.value }))} />
           </div>
           {verType === "fixe" && (
-            <div style={{ marginBottom: 14 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Date de début</label><MonthPicker value={verFrm.dateDebut || ""} onChange={v => setVerFrm(f => ({ ...f, dateDebut: v }))} /></div>
+            <>
+              <div style={{ marginBottom: 10 }}>
+                <label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Fréquence</label>
+                <div style={{ display: "flex", gap: 6 }}>
+                  {[["mois","Mensuel"],["semaine","Hebdo"],["2semaines","2 sem."],["paie","Paie"]].map(([val,lbl]) => (
+                    <button key={val} type="button" style={{ flex: 1, padding: "7px 4px", background: (verFrm.frequence||"mois") === val ? BT : SF, border: "1px solid " + ((verFrm.frequence||"mois") === val ? BTB : BR), borderRadius: 8, color: (verFrm.frequence||"mois") === val ? BTT : TX2, fontSize: 11, cursor: "pointer" }} onClick={() => setVerFrm(f => ({ ...f, frequence: val }))}>{lbl}</button>
+                  ))}
+                </div>
+              </div>
+              {(verFrm.frequence === "semaine" || verFrm.frequence === "2semaines") && (
+                <div style={{ marginBottom: 10 }}>
+                  <label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Jour</label>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                    {JOURS_SEMAINE.map(j => (
+                      <button key={j} type="button" style={{ flex: 1, padding: "6px 2px", minWidth: 50, background: verFrm.jourSemaine === j ? BT : SF, border: "1px solid " + (verFrm.jourSemaine === j ? BTB : BR), borderRadius: 8, color: verFrm.jourSemaine === j ? BTT : TX2, fontSize: 10, cursor: "pointer" }} onClick={() => setVerFrm(f => ({ ...f, jourSemaine: j }))}>{j}</button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {(!verFrm.frequence || verFrm.frequence === "mois") && (
+                <div style={{ marginBottom: 10 }}>
+                  <label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Jour du mois</label>
+                  <button type="button" style={{ ...inp, textAlign: "left", cursor: "pointer" }} onClick={() => setShowJourPicker(true)}>{jourLabel(verFrm.jour)}</button>
+                </div>
+              )}
+              <div style={{ marginBottom: 14 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Date de début</label><MonthPicker value={verFrm.dateDebut || ""} onChange={v => setVerFrm(f => ({ ...f, dateDebut: v }))} /></div>
+            </>
           )}
-          <SaveCancel onS={addVer} onC={() => { setVerType(null); setVerFrm({ montant: "", date: today(), jour: "1", dateDebut: today().slice(0,7) }); }} />
+          {verType === "manuel" && (
+            <div style={{ marginBottom: 14 }}>
+              <label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Date</label>
+              <input style={inp} type="date" value={verFrm.date} onChange={(e) => setVerFrm((f) => ({ ...f, date: e.target.value }))} />
+            </div>
+          )}
+          <SaveCancel onS={addVer} onC={() => { setVerType(null); setVerFrm({ montant: "", date: today(), frequence: "mois", jourSemaine: "Lundi", dateRef: "", jour: "1", dateDebut: today().slice(0,7) }); }} />
         </Modal>
       )}
 
@@ -143,9 +167,9 @@ function ProjetDetail({
             <div style={ico}>🔁</div>
             <div style={{ flex: 1 }}>
               <p style={{ fontSize: 13, color: TX, margin: 0, fontWeight: 500 }}>{fmt(+x.montant)}</p>
-              <p style={{ fontSize: 11, color: TX3, margin: 0 }}>{x.jour === "paie" ? "Paie" : x.jour === "fin" ? "Fin du mois" : "Le " + x.jour}</p>
+              <p style={{ fontSize: 11, color: TX3, margin: 0 }}>{freqLabel(x)}</p>
             </div>
-            <button style={{ background: "none", border: "none", cursor: "pointer", color: AC, fontSize: 14, padding: "2px 4px" }} onClick={() => { setEditVer({ id: x.id, type: "fixe" }); setEditVerFrm({ montant: x.montant, jour: x.jour, date: "", dateDebut: x.dateDebut || today().slice(0,7) }); }}>✎</button>
+            <button style={{ background: "none", border: "none", cursor: "pointer", color: AC, fontSize: 14, padding: "2px 4px" }} onClick={() => { setEditVer({ id: x.id, type: "fixe" }); setEditVerFrm({ montant: x.montant, frequence: x.frequence || "mois", jourSemaine: x.jourSemaine || "Lundi", dateRef: x.dateRef || "", jour: x.jour, date: "", dateDebut: x.dateDebut || today().slice(0,7) }); }}>✎</button>
           </div>
         ))}
 

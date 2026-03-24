@@ -4,7 +4,37 @@ export function getPaies(p){const t=today();const[ty,tm,td]=t.split("-").map(Num
 
 export function getFinD(p,last){if(!last)return null;const[y,m]=last.split("-").map(Number);if(p.frequence==="semaine")return addD(last,7);if(p.frequence==="2semaines")return addD(last,14);if(p.frequence==="mois"){const j=p.jour1==="fin"?ld(y,m+1):Math.min(p.jour1,ld(y,m+1));return ymd(y,m+1,j);}if(p.frequence==="2mois"){const gj=(j,yr,mo)=>j==="fin"?ld(yr,mo):Math.min(j,ld(yr,mo));const all=[];for(let i=0;i<=2;i++){let mo=m-1+i,yr=y+Math.floor(mo/12);mo=((mo%12)+12)%12;all.push(ymd(yr,mo+1,gj(p.jour1,yr,mo+1)));all.push(ymd(yr,mo+1,gj(p.jour2,yr,mo+1)));}all.sort();const idx=all.findIndex(d=>d>last);return idx!==-1?all[idx]:null;}return null;}
 
-export function calcAutoInPeriod(items,deb,fin){const[dy,dm]=deb.split("-").map(Number);const debMo=deb.slice(0,7);return items.reduce((total,item)=>total+(item.paiementsAuto||[]).reduce((s,pa)=>{if(!pa.montant||isNaN(+pa.montant))return s;if(pa.dateDebut&&debMo<pa.dateDebut)return s;if(pa.dateFin&&debMo>=pa.dateFin)return s;if(pa.jour==="paie"){if((pa.exclusions||[]).includes(debMo))return s;return s+(+pa.montant);}for(let mo=0;mo<=1;mo++){let mc=dm-1+mo,yc=dy+Math.floor(mc/12);mc=((mc%12)+12)%12;const j=Math.min(+pa.jour||1,ld(yc,mc+1));const ds=ymd(yc,mc+1,j);if(ds>=deb&&(fin?ds<fin:true)){if((pa.exclusions||[]).includes(ds.slice(0,7)))return s;return s+(+pa.montant);}}return s;},0),0);}
+export function calcAutoInPeriod(items,deb,fin){
+  const[dy,dm]=deb.split("-").map(Number);
+  const debMo=deb.slice(0,7);
+  return items.reduce((total,item)=>total+(item.paiementsAuto||[]).reduce((s,pa)=>{
+    if(!pa.montant||isNaN(+pa.montant))return s;
+    if(pa.dateDebut&&debMo<pa.dateDebut)return s;
+    if(pa.dateFin&&debMo>=pa.dateFin)return s;
+    // Weekly/biweekly: count all occurrences in [deb, fin)
+    if(pa.frequence==="semaine"||pa.frequence==="2semaines"){
+      const occ=getWeeklyOccurrencesInPeriod(pa.frequence,pa.jourSemaine,pa.dateRef,deb,fin);
+      return s+occ.filter(d=>!(pa.exclusions||[]).includes(d.slice(0,7))).length*(+pa.montant);
+    }
+    // Once per pay period
+    if(pa.jour==="paie"||pa.frequence==="paie"){
+      if((pa.exclusions||[]).includes(debMo))return s;
+      return s+(+pa.montant);
+    }
+    // Fixed day of month
+    for(let mo=0;mo<=1;mo++){
+      let mc=dm-1+mo,yc=dy+Math.floor(mc/12);
+      mc=((mc%12)+12)%12;
+      const j=Math.min(+pa.jour||1,ld(yc,mc+1));
+      const ds=ymd(yc,mc+1,j);
+      if(ds>=deb&&(fin?ds<fin:true)){
+        if((pa.exclusions||[]).includes(ds.slice(0,7)))return s;
+        return s+(+pa.montant);
+      }
+    }
+    return s;
+  },0),0);
+}
 
 export function calcManuelsInPeriod(items,deb,fin,key){return items.reduce((total,item)=>total+(item[key]||[]).reduce((s,e)=>(e.date>=deb&&(fin?e.date<fin:true)?s+(+e.montant||0):s),0),0);}
 
@@ -13,29 +43,30 @@ function daysBetween(d1,d2){return Math.round((new Date(d2)-new Date(d1))/864000
 // Day-of-week map (JS convention: 0=Sun, 1=Mon, ..., 6=Sat)
 const DOW_MAP={Lundi:1,Mardi:2,Mercredi:3,Jeudi:4,Vendredi:5,Samedi:6,Dimanche:0};
 
-// Returns all dates (YYYY-MM-DD) when a weekly/biweekly rec occurs in a given month
-export function getRecOccurrencesInMonth(r,y,m){
-  const iv=r.frequence==="semaine"?7:14;
-  const lastD=ld(y,m);
-  const moStart=ymd(y,m,1);
-  const moEnd=ymd(y,m,lastD);
-  const targetDow=DOW_MAP[r.jourSemaine]??1;
-  const results=[];
+// Returns all dates when a weekly/biweekly item occurs in [deb, fin) — fin is exclusive
+export function getWeeklyOccurrencesInPeriod(frequence,jourSemaine,dateRef,deb,fin){
+  const iv=frequence==="semaine"?7:14;
+  const targetDow=DOW_MAP[jourSemaine]??1;
   let cur;
-  if(r.frequence==="2semaines"&&r.dateRef){
-    // Walk from dateRef anchor to first occurrence in or after moStart
-    cur=r.dateRef;
-    while(cur>moEnd)cur=addD(cur,-iv);
-    while(cur<moStart)cur=addD(cur,iv);
+  if(frequence==="2semaines"&&dateRef){
+    cur=dateRef;
+    while(cur>deb)cur=addD(cur,-iv);
+    while(cur<deb)cur=addD(cur,iv);
   }else{
-    // Find first occurrence of target day on or after moStart
-    const[sy,sm,sd]=moStart.split("-").map(Number);
+    const[sy,sm,sd]=deb.split("-").map(Number);
     const startDow=new Date(sy,sm-1,sd).getDay();
     const diff=(targetDow-startDow+7)%7;
-    cur=addD(moStart,diff);
+    cur=addD(deb,diff);
   }
-  while(cur<=moEnd){results.push(cur);cur=addD(cur,iv);}
+  const results=[];
+  const endBound=fin||"9999-99-99";
+  while(cur<endBound){results.push(cur);cur=addD(cur,iv);}
   return results;
+}
+
+// Returns all dates (YYYY-MM-DD) when a weekly/biweekly rec occurs in a given month
+export function getRecOccurrencesInMonth(r,y,m){
+  return getWeeklyOccurrencesInPeriod(r.frequence,r.jourSemaine,r.dateRef,ymd(y,m,1),addD(ymd(y,m,ld(y,m)),1));
 }
 
 export function getPaieBreakdownForMonth(paie,moStart,moEnd,paieM){
@@ -104,11 +135,11 @@ export function calcProportionalMonth(paie,moStart,moEnd,paieM,recs,rrecs,dettes
     const ratio=oD/totalD;
     totPaie+=(paieM[deb]||0)*ratio;
     totRecPaie+=recPaieSum*ratio;
-    dettes.forEach(d=>(d.paiementsAuto||[]).filter(pa=>pa.jour==="paie"&&+pa.montant>0&&activePa(pa)).forEach(pa=>{totDettePaie+=(+pa.montant)*ratio;}));
-    projets.forEach(p=>(p.paiementsAuto||[]).filter(pa=>pa.jour==="paie"&&+pa.montant>0&&activePa(pa)).forEach(pa=>{totProjetPaie+=(+pa.montant)*ratio;}));
+    dettes.forEach(d=>(d.paiementsAuto||[]).filter(pa=>(pa.jour==="paie"||pa.frequence==="paie")&&+pa.montant>0&&activePa(pa)).forEach(pa=>{totDettePaie+=(+pa.montant)*ratio;}));
+    projets.forEach(p=>(p.paiementsAuto||[]).filter(pa=>(pa.jour==="paie"||pa.frequence==="paie")&&+pa.montant>0&&activePa(pa)).forEach(pa=>{totProjetPaie+=(+pa.montant)*ratio;}));
   });
-  const detDaySum=dettes.reduce((s,d)=>s+(d.paiementsAuto||[]).filter(pa=>pa.jour!=="paie"&&+pa.montant>0&&activePa(pa)).reduce((ss,pa)=>{const j=pa.jour==="fin"?lastDay:Math.min(+pa.jour||1,lastDay);return ymd(my,mm,j)>=moStart&&ymd(my,mm,j)<=moEnd?ss+(+pa.montant):ss;},0),0);
-  const prjDaySum=projets.reduce((s,p)=>s+(p.paiementsAuto||[]).filter(pa=>pa.jour!=="paie"&&+pa.montant>0&&activePa(pa)).reduce((ss,pa)=>{const j=pa.jour==="fin"?lastDay:Math.min(+pa.jour||1,lastDay);return ymd(my,mm,j)>=moStart&&ymd(my,mm,j)<=moEnd?ss+(+pa.montant):ss;},0),0);
+  const detDaySum=dettes.reduce((s,d)=>s+(d.paiementsAuto||[]).filter(pa=>pa.jour!=="paie"&&pa.frequence!=="paie"&&+pa.montant>0&&activePa(pa)).reduce((ss,pa)=>{if(pa.frequence==="semaine"||pa.frequence==="2semaines"){const occ=getWeeklyOccurrencesInPeriod(pa.frequence,pa.jourSemaine,pa.dateRef,moStart,moEnd1);return ss+occ.filter(d=>!(pa.exclusions||[]).includes(d.slice(0,7))).length*(+pa.montant);}const j=pa.jour==="fin"?lastDay:Math.min(+pa.jour||1,lastDay);return ymd(my,mm,j)>=moStart&&ymd(my,mm,j)<=moEnd?ss+(+pa.montant):ss;},0),0);
+  const prjDaySum=projets.reduce((s,p)=>s+(p.paiementsAuto||[]).filter(pa=>pa.jour!=="paie"&&pa.frequence!=="paie"&&+pa.montant>0&&activePa(pa)).reduce((ss,pa)=>{if(pa.frequence==="semaine"||pa.frequence==="2semaines"){const occ=getWeeklyOccurrencesInPeriod(pa.frequence,pa.jourSemaine,pa.dateRef,moStart,moEnd1);return ss+occ.filter(d=>!(pa.exclusions||[]).includes(d.slice(0,7))).length*(+pa.montant);}const j=pa.jour==="fin"?lastDay:Math.min(+pa.jour||1,lastDay);return ymd(my,mm,j)>=moStart&&ymd(my,mm,j)<=moEnd?ss+(+pa.montant):ss;},0),0);
   return{
     totPaie,
     totRec:totRecPaie+recDaySum,

@@ -19,6 +19,7 @@ export default function Projets({
 }) {
   const [showJourPicker, setShowJourPicker] = useState(false);
   const jourLabel = j => j === "paie" ? "Paie" : j === "fin" ? "Fin du mois" : "Le " + j;
+  const JOURS_SEMAINE = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
   const gSoldeP = p => p.versements.reduce((s, v) => s + v.montant, 0);
   const gPctP = p => Math.min(100, Math.round(gSoldeP(p) / p.objectif * 100));
   const projet = projets.find(p => p.id === prjSel);
@@ -40,14 +41,44 @@ export default function Projets({
 
       {editVer && (
         <Modal title="Modifier le versement">
-          <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
-            <div style={{ flex: 1 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Montant (CAD)</label><input style={inp} type="number" value={editVerFrm.montant} onChange={e => setEditVerFrm(f => ({ ...f, montant: e.target.value }))} /></div>
-            {editVer.type === "fixe"
-              ? <div style={{ flex: 1 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Quand</label><div style={{ display: "flex", gap: 6 }}><button type="button" style={{ flex: 1, padding: "7px 4px", background: editVerFrm.jour !== "paie" ? BT : SF, border: "1px solid " + (editVerFrm.jour !== "paie" ? BTB : BR), borderRadius: 8, color: editVerFrm.jour !== "paie" ? BTT : TX2, fontSize: 11, cursor: "pointer" }} onClick={() => { setEditVerFrm(f => ({ ...f, jour: f.jour === "paie" ? 1 : f.jour })); setShowJourPicker(true); }}>{editVerFrm.jour !== "paie" ? jourLabel(editVerFrm.jour) : "Jour du mois"}</button><button type="button" style={{ flex: 1, padding: "7px 4px", background: editVerFrm.jour === "paie" ? BT : SF, border: "1px solid " + (editVerFrm.jour === "paie" ? BTB : BR), borderRadius: 8, color: editVerFrm.jour === "paie" ? BTT : TX2, fontSize: 11, cursor: "pointer" }} onClick={() => setEditVerFrm(f => ({ ...f, jour: "paie" }))}>Paie</button></div></div>
-              : <div style={{ flex: 1 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Date</label><input style={inp} type="date" value={editVerFrm.date} onChange={e => setEditVerFrm(f => ({ ...f, date: e.target.value }))} /></div>}
+          <div style={{ marginBottom: 10 }}>
+            <label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Montant (CAD)</label>
+            <input style={inp} type="number" value={editVerFrm.montant} onChange={e => setEditVerFrm(f => ({ ...f, montant: e.target.value }))} />
           </div>
           {editVer.type === "fixe" && (
-            <div style={{ marginBottom: 14 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Date de début</label><MonthPicker value={editVerFrm.dateDebut || ""} onChange={v => setEditVerFrm(f => ({ ...f, dateDebut: v }))} /></div>
+            <>
+              <div style={{ marginBottom: 10 }}>
+                <label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Fréquence</label>
+                <div style={{ display: "flex", gap: 6 }}>
+                  {[["mois","Mensuel"],["semaine","Hebdo"],["2semaines","2 sem."],["paie","Paie"]].map(([val,lbl]) => (
+                    <button key={val} type="button" style={{ flex: 1, padding: "7px 4px", background: (editVerFrm.frequence||"mois") === val ? BT : SF, border: "1px solid " + ((editVerFrm.frequence||"mois") === val ? BTB : BR), borderRadius: 8, color: (editVerFrm.frequence||"mois") === val ? BTT : TX2, fontSize: 11, cursor: "pointer" }} onClick={() => setEditVerFrm(f => ({ ...f, frequence: val }))}>{lbl}</button>
+                  ))}
+                </div>
+              </div>
+              {(editVerFrm.frequence === "semaine" || editVerFrm.frequence === "2semaines") && (
+                <div style={{ marginBottom: 10 }}>
+                  <label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Jour</label>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                    {JOURS_SEMAINE.map(j => (
+                      <button key={j} type="button" style={{ flex: 1, padding: "6px 2px", minWidth: 50, background: editVerFrm.jourSemaine === j ? BT : SF, border: "1px solid " + (editVerFrm.jourSemaine === j ? BTB : BR), borderRadius: 8, color: editVerFrm.jourSemaine === j ? BTT : TX2, fontSize: 10, cursor: "pointer" }} onClick={() => setEditVerFrm(f => ({ ...f, jourSemaine: j }))}>{j}</button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {(!editVerFrm.frequence || editVerFrm.frequence === "mois") && (
+                <div style={{ marginBottom: 10 }}>
+                  <label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Jour du mois</label>
+                  <button type="button" style={{ ...inp, textAlign: "left", cursor: "pointer" }} onClick={() => setShowJourPicker(true)}>{jourLabel(editVerFrm.jour)}</button>
+                </div>
+              )}
+              <div style={{ marginBottom: 14 }}><label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Date de début</label><MonthPicker value={editVerFrm.dateDebut || ""} onChange={v => setEditVerFrm(f => ({ ...f, dateDebut: v }))} /></div>
+            </>
+          )}
+          {editVer.type === "manuel" && (
+            <div style={{ marginBottom: 14 }}>
+              <label style={{ fontSize: 12, color: TX2, marginBottom: 4, display: "block" }}>Date</label>
+              <input style={inp} type="date" value={editVerFrm.date} onChange={e => setEditVerFrm(f => ({ ...f, date: e.target.value }))} />
+            </div>
           )}
           <SaveCancel onS={saveEditVer} onC={() => setEditVer(null)} />
           {editVer.type === "fixe"
